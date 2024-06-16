@@ -43,6 +43,7 @@
 #' @importFrom stringr str_detect str_extract str_replace_all str_replace
 #' @importFrom stringr str_sub
 #' @importFrom RSQLite dbConnect dbDisconnect dbWriteTable dbRemoveTable SQLite
+#' @importFrom RSQLite dbReadTable
 #'
 run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE) {
 
