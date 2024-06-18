@@ -70,8 +70,8 @@ mod_config(path = path,
              c("source", "MODIS/006/MOD13A2", "EVI")
            ),
            values = list(
-             c("mean","min","max"),
-             c("mean","sd")
+             c("mean", "min", "max"),
+             c("mean", "sd")
            ))
 ```
 
