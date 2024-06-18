@@ -27,10 +27,14 @@ set_cli <- function(path) {
                        file.path(cli_path, "set_cli.R"))
 
   for (cli_file in cli_files) {
-    if (cli_file != "get_fips.R") {
-      cli_content <- readLines(cli_file)
+
+    base_cli <- basename(cli_file)
+    cli_content <- readLines(cli_file)
+
+    if (base_cli != "get_fips.R") {
       cli_content[1] <- paste0("path <- '", path, "'")
-      writeLines(cli_content, con = file.path(folder, basename(cli_file)))
     }
+
+    writeLines(cli_content, con = file.path(folder, base_cli))
   }
 }

@@ -35,6 +35,7 @@ option_parser <- OptionParser(
 )
 
 args <- parse_args(option_parser)
+args$regions <- unlist(strsplit(args$regions, " "))
 args$source <- eval(parse(text = args$source))
 
 set_config(

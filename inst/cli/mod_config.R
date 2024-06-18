@@ -8,10 +8,10 @@ library(optparse)
 library(geeLite)
 
 option_list <- list(
-  make_option(c("--target"), type = "list", help = paste0("[mandatory] ",
-  "Specifies the path to the values to be replaced."),
-  make_option(c("--values"), type = "list", help = paste0("[mandatory] New ",
-  "values to replace the original ones.")))
+  make_option(c("--target"), type = "character", help = paste0("[mandatory] ",
+  "Specifies the path to the values to be replaced.")),
+  make_option(c("--values"), type = "character", help = paste0("[mandatory] ",
+  "New values to replace the original ones."))
 )
 
 option_parser <- OptionParser(
@@ -20,6 +20,8 @@ option_parser <- OptionParser(
 )
 
 args <- parse_args(option_parser)
+args$target <- eval(parse(text = args$target))
+args$values <- eval(parse(text = args$values))
 
 mod_config(path = path,
            target = args$target,
