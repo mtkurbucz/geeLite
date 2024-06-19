@@ -41,9 +41,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 2: Create database
   # ----------------------------------------------------------------------------
 
-  sink <- capture.output(
-    run_geelite(path = test_path)
-  )
+  run_geelite(path = test_path)
 
   # Check if the database is created
   db_file <- file.path(test_path, "data", "geelite.db")
@@ -82,9 +80,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 4: Update database
   # ----------------------------------------------------------------------------
 
-  sink <- capture.output(
-    run_geelite(path = test_path)
-  )
+  run_geelite(path = test_path)
 
   # Check the content of the updated database
   con <- dbConnect(SQLite(), dbname = db_file)
