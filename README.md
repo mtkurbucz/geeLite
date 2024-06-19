@@ -4,7 +4,6 @@
 # geeLite R Package
 
 <!-- badges: start -->
-[![Build Status](https://github.com/mtkurbucz/geeLite/workflows/R-CMD-check/badge.svg)](https://github.com/mtkurbucz/geeLite/actions)
 <!-- badges: end -->
 
 This package streamlines the process of building, managing, and updating
