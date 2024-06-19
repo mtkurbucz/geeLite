@@ -1,12 +1,17 @@
-pkgs <- c("jsonlite", "RSQLite", "utils", "withr")
+pkgs <- c("rnaturalearthdata", "geojsonio", "withr")
 if (length(pkgs <- setdiff(pkgs, rownames(installed.packages()))))
-  install.packages(pkgs)
+  install.packages(pkgs, repos = "https://cloud.r-project.org")
 rm(pkgs)
-suppressWarnings({
-  library(jsonlite);
-  library(RSQLite);
-  library(utils);
-  library(withr);
+
+suppressMessages({
+  suppressWarnings({
+    library(rnaturalearthdata)
+    library(geojsonio)
+    library(jsonlite)
+    library(RSQLite)
+    library(utils)
+    library(withr)
+  })
 })
 
 test_that("Testing geeLite Package Pipeline", {
@@ -80,7 +85,9 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 4: Update database
   # ----------------------------------------------------------------------------
 
-  run_geelite(path = test_path)
+  sink <- capture.output(
+    run_geelite(path = test_path)
+  )
 
   # Check the content of the updated database
   con <- dbConnect(SQLite(), dbname = db_file)
