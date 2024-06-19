@@ -7,7 +7,6 @@ suppressWarnings({
   library(RSQLite);
   library(utils);
   library(withr);
-  library(geeLite);
 })
 
 test_that("Testing geeLite Package Pipeline", {
