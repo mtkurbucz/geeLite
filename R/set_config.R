@@ -34,9 +34,9 @@
 #' @param start [optional] (date) First date of the data collection
 #' (default: \code{"2000-01-01"}).
 #'
-#' @param limit [optional] (integer) GEE’s limit to process multiple bins
-#' simultaneously. \code{Limit - 1} bins will be processed at the same time
-#' (default: \code{5000}).
+#' @param limit [optional] (integer) Limit on concurrent zonal statistics
+#' calculations. \code{Limit - 1} bins will be processed at the same time
+#' (default: \code{10000}).
 #'
 #' @param crs [optional] (integer) CRS to be assigned to the dataset (default
 #' is the shapefile's CRS: \code{NULL}).
@@ -54,7 +54,7 @@
 #'             )
 #'            ),
 #'            start = "2010-01-01",
-#'            resol = 5)
+#'            resol = 3)
 #' }
 #'
 #' @importFrom jsonlite write_json
