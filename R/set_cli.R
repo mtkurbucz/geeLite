@@ -1,6 +1,7 @@
-#' @title Printing the Configuration File
+#' @title Setting Up the CLI Files
 #'
-#' @description This function prints the configuration file.
+#' @description This function creates R scripts to make main functions callable
+#' through the command line interface (CLI) (\texttt{path/cli}).
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
