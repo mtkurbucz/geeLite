@@ -11,7 +11,7 @@
 #'
 #' @param user [optional] (character) Used to create a folder within the path
 #' \code{~/.config/earthengine/}. This folder stores all the credentials
-#' associated with a specific Google identity.
+#' associated with a specific Google identity (default: \code{NULL}).
 #'
 #' @param rebuild [optional] (logical) If set to \code{TRUE}, the database and
 #' its supplementary files will be overwritten based on the configuration file
