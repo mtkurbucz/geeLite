@@ -47,9 +47,9 @@ is a nested list with three levels:
 \item{scale}{[optional] (integer) Scale of images before processing
 (default: \code{NULL}).}
 
-\item{limit}{[optional] (integer) GEE’s limit to process multiple bins
-simultaneously. \code{Limit - 1} bins will be processed at the same time
-(default: \code{5000}).}
+\item{limit}{[optional] (integer) Limit on concurrent zonal statistics
+calculations. \code{Limit - 1} bins will be processed at the same time
+(default: \code{10000}).}
 
 \item{crs}{[optional] (integer) CRS to be assigned to the dataset (default
 is the shapefile's CRS: \code{NULL}).}
@@ -69,7 +69,7 @@ set_config(path = "path",
             )
            ),
            start = "2010-01-01",
-           resol = 5)
+           resol = 3)
 }
 
 }

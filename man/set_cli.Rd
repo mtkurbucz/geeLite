@@ -2,7 +2,7 @@
 % Please edit documentation in R/set_cli.R
 \name{set_cli}
 \alias{set_cli}
-\title{Printing the Configuration File}
+\title{Setting Up the CLI Files}
 \usage{
 set_cli(path)
 }
@@ -14,7 +14,8 @@ generated database.}
 Configuration object.
 }
 \description{
-This function prints the configuration file.
+This function creates R scripts to make main functions callable
+through the command line interface (CLI).
 }
 \examples{
 # Example: Printing the configuration file

@@ -1,7 +1,7 @@
 #' @title Setting Up the CLI Files
 #'
 #' @description This function creates R scripts to make main functions callable
-#' through the command line interface (CLI) (\texttt{path/cli}).
+#' through the command line interface (CLI).
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
