@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_geelite.R
 \name{run_geelite}
 \alias{run_geelite}
-\title{Collecting GEE Data}
+\title{Collecting and Storing GEE Data}
 \usage{
 run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE)
 }

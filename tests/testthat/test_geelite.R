@@ -64,6 +64,11 @@ test_that("Testing geeLite Package Pipeline", {
   state <- get_state(path = test_path)
   expect_equal(config, state)
 
+  # Testing read_db function
+  db <- read_db(path = test_path)
+  expect_equal(names(db), c("grid", "MODIS/006/MOD13A2"))
+  rm(db)
+
   # ----------------------------------------------------------------------------
   # Step 3: Modify configuration file
   # ----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-#' @title Collecting GEE Data
+#' @title Collecting and Storing GEE Data
 #'
 #' @description Collects and stores GEE data, updating states and log files
 #' (\code{path/data/geelite.db}).
