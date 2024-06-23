@@ -585,9 +585,13 @@ pull_data <- function(task, grid) {
 
   cat("\n")
   if (!state_exists) {
-    cli_alert_info("Database built successfully.")
+    cli_alert_info("Database successfully built: 'data/geelite.db'.")
+    cli_alert_info("State file generated: 'state/state.json'.")
+    cli_alert_info("CLI scripts generated: 'cli/R functions'.")
   } else {
-    cli_alert_info("Database updated successfully.")
+    cli_alert_info("Database successfully updated: 'data/geelite.db'.")
+    cli_alert_info("State file updated: 'state/state.json'.")
+    cli_alert_info("CLI scripts updated: 'cli/R functions'.")
   }
   cat("\n")
 }

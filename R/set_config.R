@@ -57,6 +57,7 @@
 #'            resol = 3)
 #' }
 #'
+#' @importFrom cli cli_alert_info
 #' @importFrom jsonlite write_json
 #'
 set_config <- function(path, regions, source, start = "2000-01-01", resol,
@@ -74,5 +75,6 @@ set_config <- function(path, regions, source, start = "2000-01-01", resol,
 
   dir.create(file.path(path, "config"), showWarnings = FALSE)
   write_json(config, file.path(path, "config", "config.json"), pretty = TRUE)
+  cli_alert_info("Config file generated: 'config/config.json'.")
 
 }
