@@ -12,10 +12,10 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: get_fips.R --type [type]",
+  usage = "Usage: get_regids.R --type [type]",
   option_list = option_list
 )
 
 args <- parse_args(option_parser)
 
-get_fips(type = args$type)
+get_regids(type = args$type)

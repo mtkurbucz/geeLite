@@ -177,7 +177,7 @@ set_depend <- function(conda, user) {
 get_grid <- function(task) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  fips <- NULL
+  iso <- NULL
 
   regions <- task$regions
   idx_drop <- str_detect(regions, "^\\-")
@@ -190,7 +190,7 @@ get_grid <- function(task) {
   if (file.exists(db_file)) {
 
     # Read grid, excluding regions to be removed (-)
-    grid <- read_grid() %>% filter(!fips %in% regions_drop)
+    grid <- read_grid() %>% filter(!iso %in% regions_drop)
 
     # Add new regions (+)
     if (any(idx_add)) {
@@ -221,21 +221,22 @@ get_grid <- function(task) {
 get_shapes <- function(regions) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  . <- states <- fips_10 <- geometry <- NULL
+  . <- states <- iso_a2_eh <- iso_3166_2 <- geometry <- NULL
 
   country <- regions[nchar(regions) == 2]
   state <- regions[nchar(regions) > 2]
 
   if (!length(country) == 0){
     shapes <- ne_countries(scale = "medium", returnclass = "sf") %>%
-      filter(fips_10 %in% regions) %>%
-      select(fips_10, geometry) %>%
-      rename(fips = fips_10)
+      filter(iso_a2_eh %in% regions) %>%
+      select(iso_a2_eh, geometry) %>%
+      rename(iso = iso_a2_eh)
   }
 
   if (!length(state) == 0){
-    ne_states(returnclass = "sf") %>%
-      .[.$fips %in% regions, c("fips", "geometry")]
+    states <- ne_states(returnclass = "sf") %>%
+      .[.$iso_3166_2 %in% regions, c("iso_3166_2", "geometry")] %>%
+      rename(iso = iso_3166_2)
     if (exists("regions")) {
       shapes <- rbind(regions, states)
     } else {
@@ -251,7 +252,7 @@ get_shapes <- function(regions) {
 get_bins <- function(shapes, resol) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  id <- fips <- geometry <- NULL
+  id <- iso <- geometry <- NULL
 
   for (i in 1:nrow(shapes)) {
 
@@ -260,17 +261,17 @@ get_bins <- function(shapes, resol) {
     bin <- as.data.frame(cell_to_polygon(bin_id))
 
     if (i == 1) {
-      bin$fips <- shapes$fips[i]
+      bin$iso <- shapes$iso[i]
       bin$id <- unlist(bin_id)
       bins <- bin
     } else {
-      bin$fips <- shapes$fips[i]
+      bin$iso <- shapes$iso[i]
       bin$id <- unlist(bin_id)
       bins <- rbind(bins, bin)
     }
   }
 
-  bins <- bins %>% select(fips, id, geometry)
+  bins <- bins %>% select(iso, id, geometry)
   return(bins)
 }
 
@@ -304,7 +305,7 @@ write_grid <- function(grid) {
 pull_data <- function(task, grid) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  id <- ee <- fips <- stat <- GEOMETRY <- NULL
+  id <- ee <- iso <- stat <- GEOMETRY <- NULL
 
   # Setting the progress bar
   pb <- progress_bar$new(
@@ -327,8 +328,8 @@ pull_data <- function(task, grid) {
 
   # Organize new regions into a separate grid object
   if (any(idx_add)) {
-    grid_add <- grid %>% filter(fips %in% regions_add)
-    grid <- grid %>% filter(!fips %in% regions_add)
+    grid_add <- grid %>% filter(iso %in% regions_add)
+    grid <- grid %>% filter(!iso %in% regions_add)
   }
 
   datasets <- names(task$source)
@@ -364,7 +365,7 @@ pull_data <- function(task, grid) {
     } else if (state_exists) {
       con <- dbConnect(SQLite(), dbname = db_file)
       table <- dbReadTable(con, dataset, check.names = FALSE) %>%
-        filter(!id %in% grid$id[grid$fips %in% regions_drop])
+        filter(!id %in% grid$id[grid$iso %in% regions_drop])
       latest_date <- as.Date(gsub("_", "-", colnames(table)[ncol(table)]))
       dataset_new <- FALSE
     } else {

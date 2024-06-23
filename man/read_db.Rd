@@ -15,8 +15,8 @@ tables. To identify available tables and their names or IDs, use the
 \code{get_tables} function (default: \code{"all"}).}
 }
 \value{
-A list object with the first element (grid) as an \code{sf} object,
-and subsequent elements (databases) as \code{data.frame} objects.
+A list object with the first element (grid) as an sf object, and
+subsequent elements (databases) as data frame objects.
 }
 \description{
 Reading selected SQLite tables into an \code{list} object.

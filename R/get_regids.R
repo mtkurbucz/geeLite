@@ -1,20 +1,20 @@
-#' @title Collecting FIPS Region Codes
+#' @title Collecting ISO 3166-2 Region Codes
 #'
-#' @description This function collects FIPS region codes.
+#' @description This function collects ISO 3166-2 region codes.
 #'
 #' @param type [optional] (character) Type of the regions to be printed
 #' (options: \code{"state"}, \code{"country"}, \code{"all"}, default:
 #' \code{"country"}).
 #'
-#' @return A data frame object that includes region names, FIPS codes, and
+#' @return A data frame object that includes region names, ISO 3166-2 codes, and
 #' types.
 #'
 #' @export
 #'
 #' @examples
-#' # Example: Storing FIPS region codes
+#' # Example: Storing ISO 3166-2 region codes
 #' \dontrun{
-#'  fips <- get_fips()
+#'  regids <- get_regids()
 #' }
 #'
 #' @importFrom magrittr %>%
@@ -22,44 +22,35 @@
 #' @importFrom rnaturalearth ne_states ne_countries
 #' @importFrom dplyr select rename filter mutate arrange
 #'
-get_fips <- function(type = "country") {
+get_regids <- function(type = "country") {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  name <- Type <- fips <- FIPS <- fips_10 <- geounit <- NULL
+  iso <- name <- iso_a2_eh <- iso_3166_2 <- geounit <- NULL
 
   if (type != "state"){
-
     regions <- ne_countries(scale = "small") %>%
       st_set_geometry(NULL) %>%
-      select(geounit, fips_10) %>%
-      rename(
-        Name = geounit,
-        FIPS = fips_10
-      ) %>%
-      filter(nchar(FIPS) == 2) %>%
-      mutate(Type = "country")
-
+      select(geounit, iso_a2_eh) %>%
+      rename(name = geounit, iso = iso_a2_eh) %>%
+      filter(!str_detect(iso, "-99")) %>%
+      mutate(type = "country")
   }
 
   if (type != "country"){
-
     states <- ne_states() %>%
       st_set_geometry(NULL) %>%
-      select(name, fips) %>%
-      rename(Name = name, FIPS = fips) %>%
-      filter(nchar(FIPS) == 4) %>%
-      mutate(Type = "state")
-
+      select(name, iso_3166_2) %>%
+      rename(iso = iso_3166_2) %>%
+      filter(!str_detect(iso, "~")) %>%
+      mutate(type = "state")
     if (type == "all") {
       regions <- rbind(regions, states)
     } else {
       regions <- states
     }
-
   }
 
-  regions <- regions %>%
-    arrange(Type, FIPS)
+  regions <- regions %>% arrange(type, iso)
 
   return(regions)
 }

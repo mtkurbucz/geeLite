@@ -9,8 +9,8 @@
 #' tables. To identify available tables and their names or IDs, use the
 #' \code{get_tables} function (default: \code{"all"}).
 #'
-#' @return A list object with the first element (grid) as an \code{sf} object,
-#' and subsequent elements (databases) as \code{data.frame} objects.
+#' @return A list object with the first element (grid) as an sf object, and
+#' subsequent elements (databases) as data frame objects.
 #'
 #' @export
 #'
@@ -26,6 +26,9 @@
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
 #'
 read_db <- function(path, tables = "all") {
+
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  GEOMETRY <- NULL
 
   tables_all <- get_tables(path)
 
