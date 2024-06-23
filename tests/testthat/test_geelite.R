@@ -9,7 +9,6 @@ suppressMessages({
     library(geojsonio)
     library(jsonlite)
     library(RSQLite)
-    library(utils)
     library(withr)
   })
 })
@@ -36,7 +35,8 @@ test_that("Testing geeLite Package Pipeline", {
              regions = regions,
              source = source,
              start = start,
-             resol = resol)
+             resol = resol,
+             verbose = FALSE)
 
   # Check if the config file is created
   config_file <- file.path(test_path, "config", "config.json")
@@ -46,7 +46,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 2: Create database
   # ----------------------------------------------------------------------------
 
-  run_geelite(path = test_path)
+  run_geelite(path = test_path, verbose = FALSE)
 
   # Check if the database is created
   db_file <- file.path(test_path, "data", "geelite.db")
@@ -90,9 +90,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 4: Update database
   # ----------------------------------------------------------------------------
 
-  sink <- capture.output(
-    run_geelite(path = test_path)
-  )
+  run_geelite(path = test_path, verbose = FALSE)
 
   # Check the content of the updated database
   con <- dbConnect(SQLite(), dbname = db_file)

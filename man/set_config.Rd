@@ -12,7 +12,8 @@ set_config(
   resol,
   scale = NULL,
   limit = 10000,
-  crs = NULL
+  crs = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -53,6 +54,9 @@ calculations. \code{Limit - 1} bins will be processed at the same time
 
 \item{crs}{[optional] (integer) CRS to be assigned to the dataset (default
 is the shapefile's CRS: \code{NULL}).}
+
+\item{verbose}{[optional] (logical) Display computation status and messages
+(default: \code{TRUE}).}
 }
 \description{
 This function creates the configuration file

@@ -16,11 +16,14 @@ option_list <- list(
   "~/.config/earthengine/.")),
   make_option(c("--rebuild"), type = "logical", default = FALSE, help = paste0(
   "[optional] If set to TRUE, the database and its supplementary files will ",
-  "be overwritten based on the configuration file"))
+  "be overwritten based on the configuration file")),
+  make_option(c("--verbose"), type = "logical", default = TRUE,
+  help = "[optional] Display computation status and messages.")
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: run_geelite.R --conda [conda] --rebuild [rebuild]",
+  usage = paste0("Usage: run_geelite.R --conda [conda] --rebuild [rebuild] ",
+  "--verbose [verbose]"),
   option_list = option_list
 )
 
@@ -29,4 +32,5 @@ args <- parse_args(option_parser)
 run_geelite(path = path,
             conda = args$conda,
             user = args$user,
-            rebuild = args$rebuild)
+            rebuild = args$rebuild,
+            verbose = args$verbose)

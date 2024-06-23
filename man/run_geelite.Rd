@@ -4,7 +4,7 @@
 \alias{run_geelite}
 \title{Collecting and Storing GEE Data}
 \usage{
-run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE)
+run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
@@ -20,6 +20,9 @@ associated with a specific Google identity (default: \code{NULL}).}
 \item{rebuild}{[optional] (logical) If set to \code{TRUE}, the database and
 its supplementary files will be overwritten based on the configuration file
 (default: \code{FALSE}).}
+
+\item{verbose}{[optional] (logical) Display computation status and messages
+(default: \code{TRUE}).}
 }
 \description{
 Collects and stores GEE data, updating states and log files

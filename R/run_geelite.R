@@ -17,6 +17,9 @@
 #' its supplementary files will be overwritten based on the configuration file
 #' (default: \code{FALSE}).
 #'
+#' @param verbose [optional] (logical) Display computation status and messages
+#' (default: \code{TRUE}).
+#'
 #' @export
 #'
 #' @examples
@@ -30,11 +33,11 @@
 #' @importFrom stats setNames
 #' @importFrom tidyr replace_na
 #' @importFrom tidyrgee as_tidyee
-#' @importFrom utils packageVersion
 #' @importFrom progress progress_bar
 #' @importFrom cli cli_alert_info cli_h1
 #' @importFrom jsonlite fromJSON write_json
 #' @importFrom rgee ee_extract ee_Initialize
+#' @importFrom utils packageVersion capture.output
 #' @importFrom sf st_as_sf st_crs st_read st_write
 #' @importFrom rnaturalearth ne_countries ne_states
 #' @importFrom reticulate use_condaenv py_run_string
@@ -45,22 +48,25 @@
 #' @importFrom RSQLite dbConnect dbDisconnect dbWriteTable dbRemoveTable SQLite
 #' @importFrom RSQLite dbReadTable
 #'
-run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE) {
+run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
+                        verbose = TRUE) {
 
-  version <- as.character(packageVersion("geeLite"))
-  cli_h1("")
-  cat("\033[1mgeeLite R Package - Version:", version, "\033[0m")
-  cli_h1("")
-  cat("\n")
+  if (verbose) {
+    version <- as.character(packageVersion("geeLite"))
+    cli_h1("")
+    cat("\033[1mgeeLite R Package - Version:", version, "\033[0m")
+    cli_h1("")
+    cat("\n")
+  }
 
   setwd(path)
 
-  gen_folders(rebuild)            # create subfolders within the path directory
-  task <- get_task()              # define task
-  grid <- get_grid(task)          # get grid
-  set_depend(conda, user)         # activate dependencies
-  pull_data(task, grid)           # build/update database
-  set_cli(path)                   # set CLI files
+  gen_folders(rebuild)              # create subfolders within the path
+  task <- get_task()                # define task
+  grid <- get_grid(task)            # get grid
+  set_depend(conda, user, verbose)  # activate dependencies
+  pull_data(task, grid, verbose)    # build/update database
+  set_cli(path)                     # set CLI files
 
 }
 
@@ -162,12 +168,24 @@ comp_lists <- function(x, y) {
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-set_depend <- function(conda, user) {
+set_depend <- function(conda, user, verbose) {
 
   use_condaenv(conda, required = TRUE)
 
-  ee_Initialize(user = user)
-  cat("\n")
+  if (verbose){
+    ee_Initialize(user = user)
+    cat("\n")
+  } else {
+    # Capture the output silently
+    output <- capture.output({
+      ee_Initialize(user = user)
+    })
+
+    # Check if output indicates waiting for user input
+    if (any(grepl("Enter", output, ignore.case = TRUE))) {
+      stop("Initialization requires user input. Please enable verbose mode.")
+    }
+  }
 
 }
 
@@ -302,7 +320,7 @@ write_grid <- function(grid) {
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 
-pull_data <- function(task, grid) {
+pull_data <- function(task, grid, verbose) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   id <- ee <- iso <- stat <- GEOMETRY <- NULL
@@ -584,17 +602,19 @@ pull_data <- function(task, grid) {
   # Write log file
   write_log(!state_exists)
 
-  cat("\n")
-  if (!state_exists) {
-    cli_alert_info("Database successfully built: 'data/geelite.db'.")
-    cli_alert_info("State file generated: 'state/state.json'.")
-    cli_alert_info("CLI scripts generated: 'cli/R functions'.")
-  } else {
-    cli_alert_info("Database successfully updated: 'data/geelite.db'.")
-    cli_alert_info("State file updated: 'state/state.json'.")
-    cli_alert_info("CLI scripts updated: 'cli/R functions'.")
+  if (verbose) {
+    cat("\n")
+    if (!state_exists) {
+      cli_alert_info("Database successfully built: 'data/geelite.db'.")
+      cli_alert_info("State file generated: 'state/state.json'.")
+      cli_alert_info("CLI scripts generated: 'cli/R functions'.")
+    } else {
+      cli_alert_info("Database successfully updated: 'data/geelite.db'.")
+      cli_alert_info("State file updated: 'state/state.json'.")
+      cli_alert_info("CLI scripts updated: 'cli/R functions'.")
+    }
+    cat("\n")
   }
-  cat("\n")
 }
 
 

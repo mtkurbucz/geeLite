@@ -41,6 +41,9 @@
 #' @param crs [optional] (integer) CRS to be assigned to the dataset (default
 #' is the shapefile's CRS: \code{NULL}).
 #'
+#' @param verbose [optional] (logical) Display computation status and messages
+#' (default: \code{TRUE}).
+#'
 #' @export
 #'
 #' @examples
@@ -61,7 +64,8 @@
 #' @importFrom jsonlite write_json
 #'
 set_config <- function(path, regions, source, start = "2000-01-01", resol,
-                       scale = NULL, limit = 10000, crs = NULL) {
+                       scale = NULL, limit = 10000, crs = NULL,
+                       verbose = TRUE) {
 
   config <- list(
     regions = regions,
@@ -75,6 +79,9 @@ set_config <- function(path, regions, source, start = "2000-01-01", resol,
 
   dir.create(file.path(path, "config"), showWarnings = FALSE)
   write_json(config, file.path(path, "config", "config.json"), pretty = TRUE)
-  cli_alert_info("Config file generated: 'config/config.json'.")
-
+  if (verbose) {
+    cat("\n")
+    cli_alert_info("Config file generated: 'config/config.json'.")
+    cat("\n")
+  }
 }
