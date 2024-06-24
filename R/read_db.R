@@ -6,7 +6,7 @@
 #' generated database.
 #'
 #' @param tables [optional] (character or integer) Names or IDs of the selected
-#' tables. To identify available tables and their names or IDs, use the
+#' tables. To identify the names and IDs of the available tables, use the
 #' \code{get_tables} function (default: \code{"all"}).
 #'
 #' @return A list object with the first element (grid) as an sf object, and
