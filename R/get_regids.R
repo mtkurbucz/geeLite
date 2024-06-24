@@ -1,6 +1,7 @@
-#' @title Collecting ISO 3166-2 Region Codes
+#' @title Printing ISO 3166-2 Region Codes
 #'
-#' @description This function collects ISO 3166-2 region codes.
+#' @description This function returns a data frame containing ISO 3166-2 region
+#' codes.
 #'
 #' @param admin_lvl [optional] (numeric) Specifies the administrative level. Use
 #' \code{0} for country-level, \code{1} for state-level, or \code{NULL} to
