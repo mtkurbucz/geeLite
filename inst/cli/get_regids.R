@@ -6,16 +6,16 @@ library(optparse)
 library(geeLite)
 
 option_list <- list(
-  make_option(c("--type"), type = "character", default = "country", help =
-  paste0("[optional] Type of the regions to be printed (options: 'state', ",
-  "'country', 'all')."))
+  make_option(c("--admin_lvl"), type = "integer", default = 0, help =
+  paste0("[optional] Specifies the administrative level. Use 0 for ",
+  "country-level, 1 for state-level, or NULL to include all regions."))
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: get_regids.R --type [type]",
+  usage = "Usage: get_regids.R --admin_lvl [admin_lvl]",
   option_list = option_list
 )
 
 args <- parse_args(option_parser)
 
-get_regids(type = args$type)
+get_regids(admin_lvl = args$admin_lvl)
