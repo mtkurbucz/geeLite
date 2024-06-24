@@ -31,7 +31,7 @@ get_regids <- function(admin_lvl = 0) {
     stop("Invalid 'admin_lvl' parameter. Valid entries are 0, 1, or NULL.")
   }
 
-  if (admin_lvl != 1){
+  if (any(admin_lvl == 0, is.null(admin_lvl))){
     regions <- ne_countries(scale = "small") %>%
       st_set_geometry(NULL) %>%
       select(geounit, iso_a2_eh) %>%
@@ -40,7 +40,7 @@ get_regids <- function(admin_lvl = 0) {
       mutate(admin_lvl = 0)
   }
 
-  if (admin_lvl != 0){
+  if (any(admin_lvl == 1, is.null(admin_lvl))){
     states <- ne_states() %>%
       st_set_geometry(NULL) %>%
       select(name, iso_3166_2) %>%
