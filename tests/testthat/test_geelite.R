@@ -46,7 +46,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 2: Create database
   # ----------------------------------------------------------------------------
 
-  run_geelite(path = test_path, verbose = FALSE)
+  run_geelite(path = test_path)
 
   # Check if the database is created
   db_file <- file.path(test_path, "data", "geelite.db")
