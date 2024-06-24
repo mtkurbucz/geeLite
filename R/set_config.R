@@ -6,8 +6,8 @@
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
 #'
-#' @param regions [mandatory] (character) FIPS codes of the regions of interest
-#' (two-letter country code, followed by an optional two-digit state code).
+#' @param regions [mandatory] (character) ISO 3166-2 codes of the regions of
+#' interest (two letters for countries and additional characters for states).
 #'
 #' @param source [mandatory] (list) Description of GEE datasets of interest. It
 #' is a nested list with three levels:
