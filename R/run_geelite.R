@@ -171,21 +171,8 @@ comp_lists <- function(x, y) {
 set_depend <- function(conda, user, verbose) {
 
   use_condaenv(conda, required = TRUE)
-
-  if (verbose){
-    ee_Initialize(user = user)
-    cat("\n")
-  } else {
-    # Capture the output silently
-    output <- capture.output({
-      ee_Initialize(user = user)
-    })
-
-    # Check if output indicates waiting for user input
-    if (any(grepl("Enter", output, ignore.case = TRUE))) {
-      stop("Initialization requires user input. Please enable verbose mode.")
-    }
-  }
+  ee_Initialize(user = user, quiet = !verbose)
+  if (verbose) cat("\n")
 
 }
 
