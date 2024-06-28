@@ -32,7 +32,7 @@ library(geeLite)
 path <- "path/where/the/database/will/be/generated/"
 
 set_config(path = path,
-           regions = c("SO", "YM"),
+           regions = c("SO", "YE"),
            source = list(
               "MODIS/006/MOD13A2" = list(
                 "NDVI" = c("mean", "sd")
@@ -106,7 +106,7 @@ Rscript /path/to/geeLite/cli/set_cli.R --path "path/where/the/database/will/be/g
 cd "path/where/the/database/will/be/generated/"
 
 # Setting the configuration file:
-Rscript cli/set_config.R --regions "SO YM" --source "list('MODIS/006/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
+Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/006/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
 
 # Collecting GEE data based on the configuration file:
 Rscript cli/run_geelite.R
