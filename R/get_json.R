@@ -5,14 +5,14 @@
 #' @description Reads and prints the configuration file in a human-readable
 #' format.
 #'
-#' @param path (character) Path to the root directory of the generated database.
+#' @param path [mandatory] (character) Path to the root directory of the
+#' generated database.
 #' @return A character string representing the formatted configuration JSON.
 #' @export
 #' @examples
 #' # Example: Printing the configuration file
 #' \dontrun{
-#'   config <- get_config(path = "path/to/root/directory")
-#'   cat(config)
+#'   get_config(path = "path/to/root/directory")
 #' }
 #'
 get_config <- function(path) {
@@ -25,14 +25,14 @@ get_config <- function(path) {
 #'
 #' @description Reads and prints the state file in a human-readable format.
 #'
-#' @param path (character) Path to the root directory of the generated database.
+#' @param path [mandatory] (character) Path to the root directory of the
+#' generated database.
 #' @return A character string representing the formatted state JSON.
 #' @export
 #' @examples
 #' # Example: Printing the state file
 #' \dontrun{
-#'   state <- get_state(path = "path/to/root/directory")
-#'   cat(state)
+#'   get_state(path = "path/to/root/directory")
 #' }
 #'
 get_state <- function(path) {
@@ -46,10 +46,10 @@ get_state <- function(path) {
 #' @description Reads and prints a specified JSON file in a human-readable
 #' format from the specified root directory of the generated database.
 #'
-#' @param path (character) Path to the root directory of the generated database.
-#' Must be a valid directory path.
-#' @param file_path (character) Relative path to the JSON file from the root
-#' directory.
+#' @param path [mandatory] (character) Path to the root directory of the
+#' generated database.
+#' @param file_path [mandatory] (character) Relative path to the JSON file from
+#' the root directory.
 #' @return A character string representing the formatted JSON of the specified
 #' file.
 #' @importFrom jsonlite fromJSON toJSON
@@ -62,8 +62,8 @@ get_json <- function(path, file_path) {
   validate_params(params)
 
   # Read and format the JSON file
-  full_file_path <- file.path(path, file_path)
-  file_content <- fromJSON(full_file_path)
+  file_path_full <- file.path(path, file_path)
+  file_content <- fromJSON(file_path_full)
   formatted_content <- toJSON(file_content, pretty = TRUE)
 
   return(formatted_content)

@@ -4,7 +4,8 @@
 #' arguments, ensuring symbols are evaluated to their values, lists are
 #' preserved, and language objects are evaluated in the calling environment.
 #'
-#' @param call [mandatory] The call expression captured using match.call().
+#' @param call [mandatory] (list) The call expression captured using
+#' match.call().
 #' @return A list of evaluated parameters.
 #'
 generate_params <- function(call) {
@@ -30,7 +31,7 @@ generate_params <- function(call) {
 #'
 #' @description This function validates parameters.
 #'
-#' @param params A list containing parameters to validate.
+#' @param params [mandatory] (list) A list containing parameters to validate.
 #' @details
 #' Validations performed:
 #' - 'path': Checks if the directory exists.
