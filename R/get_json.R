@@ -39,7 +39,7 @@ get_state <- function(path) {
   get_json(path, "state/state.json")
 }
 
-# Internal Function ------------------------------------------------------------
+# Internal Functions -----------------------------------------------------------
 
 #' @title Print JSON File
 #'
