@@ -64,14 +64,9 @@ get_json <- function(path, file_path) {
   # Validate 'file_path' parameter
   check_file_validity(full_file_path)
 
-  # Check if the specified file exists
-  if (!file.exists(full_file_path)) {
-    stop(sprintf("File does not exist at path: %s", full_file_path))
-  }
-
   # Read and format the JSON file
-  file_content <- jsonlite::fromJSON(full_file_path)
-  formatted_content <- jsonlite::toJSON(file_content, pretty = TRUE)
+  file_content <- fromJSON(full_file_path)
+  formatted_content <- toJSON(file_content, pretty = TRUE)
 
   return(formatted_content)
 }
