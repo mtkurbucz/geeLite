@@ -56,14 +56,13 @@ get_state <- function(path) {
 #'
 get_json <- function(path, file_path) {
 
-  # Validate 'path' parameter
-  check_directory_validity(path)
-
-  # Validate 'file_path' parameter
-  full_file_path <- file.path(path, file_path)
-  check_file_validity(full_file_path)
+  # Validate parameters
+  call <- match.call()
+  params <- generate_params(call)
+  validate_params(params)
 
   # Read and format the JSON file
+  full_file_path <- file.path(path, file_path)
   file_content <- fromJSON(full_file_path)
   formatted_content <- toJSON(file_content, pretty = TRUE)
 

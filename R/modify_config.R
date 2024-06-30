@@ -26,28 +26,13 @@
 #'
 modify_config <- function(path, keys, new_values, verbose = TRUE) {
 
-  # Validate 'path' parameter
-  check_directory_validity(path)
-  config_path <- file.path(path, "config/config.json")
-  check_file_validity(config_path)
-
-  # Validate 'keys' parameter
-  if (!is.list(keys) || length(keys) == 0) {
-    stop("'keys' must be a non-empty list.")
-  }
-
-  valid_keys <- c("regions", "source", "limit")
-  invalid_keys <- setdiff(as.character(map(keys, 1)), valid_keys)
-  if(length(invalid_keys) > 0) {
-    stop(sprintf("Invalid keys specified: %s", invalid_keys))
-  }
-
-  # Validate 'new_values' parameter
-  if (!is.list(new_values) || length(new_values) != length(keys)) {
-    stop("'new_values' must be a list with the same length as 'keys'.")
-  }
+  # Validate parameters
+  call <- match.call()
+  params <- generate_params(call)
+  validate_params(params)
 
   # Read configuration file
+  config_path <- file.path(path, "config/config.json")
   config <- fromJSON(config_path)
 
   # Modify configuration settings
