@@ -32,12 +32,12 @@ generate_params <- function(call) {
 #' @description This function validates parameters.
 #'
 #' @param params [mandatory] (list) A list containing parameters to validate.
-#' @details
-#' Validations performed:
-#' - 'path': Checks if the directory exists.
+#' @details Validations performed:
+#' - 'admin_lvl': Validates if it is NULL, 0, or 1.
 #' - 'file_path': Constructs a file path and checks if the file exists.
 #' - 'keys': Ensures it is a non-empty list with valid entries.
 #' - 'new_values': Verifies it is a list with the same length as 'keys'.
+#' - 'path': Checks if the directory exists.
 #' - 'verbose': Checks if it is a logical value.
 #' @return Invisible NULL if all validations pass.
 #'
@@ -47,10 +47,10 @@ validate_params <- function(params) {
 
     value <- params[[name]]
 
-    if (name == "path") {
+    if (name == "admin_lvl") {
 
-      if (!dir.exists(value)) {
-        stop(sprintf("Directory not found: %s", value))
+      if (!is.null(value) && !value %in% c(0, 1)) {
+        stop("Invalid 'admin_lvl' parameter. Valid entries are 0, 1, or NULL.")
       }
 
     } else if (name == "file_path") {
@@ -75,6 +75,12 @@ validate_params <- function(params) {
 
       if (!is.list(value) || length(value) != length(value)) {
         stop("'new_values' must be a list with the same length as 'keys'.")
+      }
+
+    } else if (name == "path") {
+
+      if (!dir.exists(value)) {
+        stop(sprintf("Directory not found: %s", value))
       }
 
     } else if (name == "verbose") {

@@ -1,38 +1,35 @@
+# Main Functions ---------------------------------------------------------------
+
 #' @title Retrieve ISO 3166-2 Region Codes
 #'
-#' @description This function returns a data frame containing ISO 3166-2 region codes for specified administrative levels.
+#' @description This function returns a data frame containing ISO 3166-2 region
+#' codes for specified administrative levels.
 #'
 #' @param admin_lvl [optional] (numeric) Specifies the administrative level. Use
 #' \code{0} for country-level, \code{1} for state-level, or \code{NULL} to
 #' include all regions (default: \code{0}).
-#'
 #' @return A data frame containing region names, ISO 3166-2 codes, and
 #' administrative levels.
-#'
 #' @export
-#'
 #' @examples
 #' # Example: Retrieve ISO 3166-2 region codes
 #' \dontrun{
-#'   regids <- get_regids()
-#'   print(regids)
+#'   fetch_regions()
 #' }
-#'
 #' @importFrom magrittr %>%
 #' @importFrom sf st_set_geometry
 #' @importFrom rnaturalearth ne_states ne_countries
 #' @importFrom dplyr select rename filter mutate arrange
 #' @importFrom stringr str_detect
 #'
-get_regids <- function(admin_lvl = 0) {
+fetch_regions <- function(admin_lvl = 0) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   iso <- name <- iso_a2_eh <- iso_3166_2 <- geounit <- NULL
 
   # Validate 'admin_lvl' parameter
-  if (!is.null(admin_lvl) && !admin_lvl %in% c(0, 1)) {
-    stop("Invalid 'admin_lvl' parameter. Valid entries are 0, 1, or NULL.")
-  }
+  params <- list(admin_lvl = admin_lvl)
+  validate_params(params)
 
   regions <- NULL
 
