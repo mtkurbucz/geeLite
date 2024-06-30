@@ -1,41 +1,58 @@
-#' @title Setting Up the CLI Files
+# Main Functions ---------------------------------------------------------------
+
+#' @title Set Up CLI Files
 #'
-#' @description This function creates R scripts to make main functions callable
-#' through the command line interface (CLI).
+#' @description Creates R scripts to enable main functions to be callable
+#' through the Command Line Interface (CLI).
 #'
-#' @param path [mandatory] (character) Path to the root directory of the
+#' @param path [mandatory] (character) The path to the root directory of the
 #' generated database.
-#'
-#' @return Configuration object.
-#'
+#' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @export
-#'
 #' @examples
-#' # Example: Printing the configuration file
+#' # Example: Setting up CLI files
 #' \dontrun{
-#'   set_cli(path = "path")
+#'   set_cli(path = "path/to/root/directory")
 #' }
+#' @importFrom cli cli_alert_info
 #'
-set_cli <- function(path) {
+set_cli <- function(path, verbose = TRUE) {
 
-  folder <- file.path(path, "cli")
-  if (!dir.exists(folder)) {
-    dir.create(folder)
-  }
+  # Validate 'verbose' and the 'cli' directory within the specified path
+  cli_dir <- file.path(path, "cli")
+  params <- list(path = cli_dir, verbose = verbose)
+  validate_params(params)
 
-  cli_path <- file.path(system.file(package = "geeLite"), "cli")
-  cli_files <- setdiff(dir(cli_path, full.names = TRUE),
-                       file.path(cli_path, "set_cli.R"))
+  # Directory containing source files
+  src_dir <- file.path(system.file(package = "geeLite"), "cli")
 
-  for (cli_file in cli_files) {
+  # Retrieve all source files, excluding "set_cli.R" script
+  src_files <- setdiff(dir(src_dir, full.names = TRUE),
+                       file.path(src_dir, "set_cli.R"))
 
-    base_cli <- basename(cli_file)
-    cli_content <- readLines(cli_file)
+  # Iterate through source files
+  for (src_file in src_files) {
 
-    if (base_cli != "get_fips.R") {
-      cli_content[1] <- paste0("path <- '", path, "'")
+    # Get the base name of the source file
+    src_name <- basename(src_file)
+
+    # Read the content of the source file
+    src_content <- readLines(src_file)
+
+    # Modify the content for each file except "fetch_regions.R"
+    if (src_name != "fetch_regions.R") {
+      src_content[1] <- paste0("path <- '", path, "'")
     }
 
-    writeLines(cli_content, con = file.path(folder, base_cli))
+    # Write modified content to the CLI directory
+    writeLines(src_content, con = file.path(cli_dir, src_name))
+
+  }
+
+  # Output information if verbose mode is enabled
+  if (verbose) {
+    cat("\n")
+    cli_alert_info("CLI files generated: 'cli/...'.")
+    cat("\n")
   }
 }

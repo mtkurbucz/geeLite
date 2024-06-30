@@ -79,7 +79,7 @@ validate_params <- function(params) {
 
     } else if (name == "verbose") {
 
-      if (!is.logical(verbose)) {
+      if (!is.logical(value)) {
         stop("'verbose' must be a logical value.")
       }
 
