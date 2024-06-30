@@ -59,9 +59,8 @@ get_json <- function(path, file_path) {
   # Validate 'path' parameter
   check_directory_validity(path)
 
-  full_file_path <- file.path(path, file_path)
-
   # Validate 'file_path' parameter
+  full_file_path <- file.path(path, file_path)
   check_file_validity(full_file_path)
 
   # Read and format the JSON file
