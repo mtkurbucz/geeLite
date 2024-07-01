@@ -1,4 +1,4 @@
-# Main Functions ---------------------------------------------------------------
+# Main Function ----------------------------------------------------------------
 
 #' @title Set Up CLI Files
 #'
@@ -7,14 +7,16 @@
 #'
 #' @param path [mandatory] (character) The path to the root directory of the
 #' generated database.
+#'
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
+#'
 #' @export
+#'
 #' @examples
 #' # Example: Setting up CLI files
 #' \dontrun{
 #'   set_cli(path = "path/to/root/directory")
 #' }
-#' @importFrom cli cli_alert_info
 #'
 set_cli <- function(path, verbose = TRUE) {
 
@@ -30,29 +32,51 @@ set_cli <- function(path, verbose = TRUE) {
   src_files <- setdiff(dir(src_dir, full.names = TRUE),
                        file.path(src_dir, "set_cli.R"))
 
-  # Iterate through source files
-  for (src_file in src_files) {
-
-    # Get the base name of the source file
-    src_name <- basename(src_file)
-
-    # Read the content of the source file
-    src_content <- readLines(src_file)
-
-    # Modify the content for each file except "fetch_regions.R"
-    if (src_name != "fetch_regions.R") {
-      src_content[1] <- paste0("path <- '", path, "'")
-    }
-
-    # Write modified content to the CLI directory
-    writeLines(src_content, con = file.path(cli_dir, src_name))
-
-  }
+  # Process each source file
+  process_source_files(src_files, path)
 
   # Output information if verbose mode is enabled
-  if (verbose) {
-    cat("\n")
-    cli_alert_info("CLI files generated: 'cli/...'.")
-    cat("\n")
+  output_info("CLI files generated: 'cli/...'.", verbose)
+
+}
+
+# Internal Functions -----------------------------------------------------------
+
+#' @title Process Source Files
+#'
+#' @description Processes multiple source files by iterating through them.
+#'
+#' @param src_files [mandatory] (character) A vector of source file paths.
+#'
+#' @param path [mandatory] (character) The path to the root directory of the
+#' generated database.
+#'
+#' @keywords internal
+#'
+process_source_files <- function(src_files, path) {
+  for (src_file in src_files) {
+    process_single_file(src_file, path)
   }
+}
+
+# ------------------------------------------------------------------------------
+
+#' @title Process a Single Source File
+#'
+#' @description Processes an individual source file.
+#'
+#' @param src_file [mandatory] (character) The path of the source file.
+#'
+#' @param path [mandatory] (character) The path to the root directory of the
+#' generated database.
+#'
+#' @keywords internal
+#'
+process_single_file <- function(src_file, path) {
+  src_name <- basename(src_file)
+  src_content <- readLines(src_file)
+  if (src_name != "fetch_regions.R") {
+    src_content[1] <- paste0("path <- '", path, "'")
+  }
+  writeLines(src_content, con = file.path(file.path(path, "cli"), src_name))
 }

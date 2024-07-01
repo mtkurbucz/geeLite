@@ -6,7 +6,10 @@
 #'
 #' @param call [mandatory] (list) The call expression captured using
 #' match.call().
+#'
 #' @return A list of evaluated parameters.
+#'
+#' @keywords internal
 #'
 generate_params <- function(call) {
 
@@ -32,6 +35,7 @@ generate_params <- function(call) {
 #' @description This function validates parameters.
 #'
 #' @param params [mandatory] (list) A list containing parameters to validate.
+#'
 #' @details Validations performed:
 #' - 'admin_lvl': Validates if it is NULL, 0, or 1.
 #' - 'file_path': Constructs a file path and checks if the file exists.
@@ -39,7 +43,10 @@ generate_params <- function(call) {
 #' - 'new_values': Verifies it is a list with the same length as 'keys'.
 #' - 'path': Checks if the directory exists.
 #' - 'verbose': Checks if it is a logical value.
+#'
 #' @return Invisible NULL if all validations pass.
+#'
+#' @keywords internal
 #'
 validate_params <- function(params) {
 
@@ -93,4 +100,27 @@ validate_params <- function(params) {
   }
 
   invisible(NULL)
+}
+
+# ------------------------------------------------------------------------------
+
+#' @title Output CLI Information
+#'
+#' @description Outputs a message if verbose mode is enabled.
+#'
+#' @param message [mandatory] (character) The message to be displayed.
+#'
+#' @param verbose [mandatory] (logical) Flag indicating whether to display the
+#' message.
+#'
+#' @keywords internal
+#'
+#' @importFrom cli cli_alert_info
+#'
+output_info <- function(message, verbose) {
+  if (verbose) {
+    cat("\n")
+    cli_alert_info(message)
+    cat("\n")
+  }
 }

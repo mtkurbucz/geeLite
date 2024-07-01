@@ -1,4 +1,4 @@
-# Main Functions ---------------------------------------------------------------
+# Main Function ----------------------------------------------------------------
 
 #' @title Modify Configuration File
 #'
@@ -7,19 +7,27 @@
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
+#'
 #' @param keys [mandatory] (list) List specifying the path to values in the
 #' configuration file that need updating.
+#'
 #' @param new_values [mandatory] (list) List of new values to replace the
 #' original values specified by 'keys'.
+#'
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
+#'
 #' @export
+#'
 #' @examples
 #' # Example: Modify configuration file
 #' \dontrun{
-#' modify_config(path = "path/to/root/directory",
-#'               keys = list("limit", c("source", "MODIS/006/MOD13A2", "NDVI")),
-#'               new_values = list(1000, "mean"))
+#'   modify_config(
+#'     path = "path/to/root/directory",
+#'     keys = list("limit", c("source", "MODIS/006/MOD13A2", "NDVI")),
+#'     new_values = list(1000, "mean")
+#'   )
 #' }
+#'
 #' @importFrom purrr map
 #' @importFrom cli cli_alert_info
 #' @importFrom jsonlite fromJSON write_json
@@ -44,10 +52,6 @@ modify_config <- function(path, keys, new_values, verbose = TRUE) {
   write_json(config, config_path, pretty = TRUE)
 
   # Output information if verbose mode is enabled
-  if (verbose) {
-    cat("\n")
-    cli_alert_info("Config file updated: 'config/config.json'.")
-    cat("\n")
-  }
+  output_info("Config file updated: 'config/config.json'.", verbose)
 
 }

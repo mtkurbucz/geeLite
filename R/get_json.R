@@ -7,8 +7,11 @@
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
+#'
 #' @return A character string representing the formatted configuration JSON.
+#'
 #' @export
+#'
 #' @examples
 #' # Example: Printing the configuration file
 #' \dontrun{
@@ -27,8 +30,11 @@ get_config <- function(path) {
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
+#'
 #' @return A character string representing the formatted state JSON.
+#'
 #' @export
+#'
 #' @examples
 #' # Example: Printing the state file
 #' \dontrun{
@@ -39,7 +45,7 @@ get_state <- function(path) {
   get_json(path, "state/state.json")
 }
 
-# Internal Functions -----------------------------------------------------------
+# Internal Function ------------------------------------------------------------
 
 #' @title Print JSON File
 #'
@@ -48,10 +54,15 @@ get_state <- function(path) {
 #'
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
+#'
 #' @param file_path [mandatory] (character) Relative path to the JSON file from
 #' the root directory.
+#'
 #' @return A character string representing the formatted JSON of the specified
 #' file.
+#'
+#' @keywords internal
+#'
 #' @importFrom jsonlite fromJSON toJSON
 #'
 get_json <- function(path, file_path) {
