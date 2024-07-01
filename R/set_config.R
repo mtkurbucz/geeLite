@@ -1,9 +1,11 @@
+# Main Function ----------------------------------------------------------------
+
 #' @title Setting Up the Configuration File
 #'
 #' @description This function creates the configuration file
 #' (\code{path/config/config.json}).
 #'
-#' @param path [mandatory] (character) Path to the root directory of the
+#' @param path [mandatory] (character) The path to the root directory of the
 #' generated database.
 #'
 #' @param regions [mandatory] (character) ISO 3166-2 codes of the regions of
@@ -32,7 +34,7 @@
 #' (default: \code{NULL}).
 #'
 #' @param start [optional] (date) First date of the data collection
-#' (default: \code{"2000-01-01"}).
+#' (default: \code{"2010-01-01"}).
 #'
 #' @param limit [optional] (integer) Limit on concurrent zonal statistics
 #' calculations. \code{Limit - 1} bins will be processed at the same time
@@ -49,24 +51,29 @@
 #' @examples
 #' # Example: Setting up the configuration file
 #' \dontrun{
-#' set_config(path = "path",
+#' set_config(path = "path/to/root/directory",
 #'            regions = c("SO", "YM"),
 #'            source = list(
 #'             "MODIS/006/MOD13A2" = list(
 #'               "NDVI" = c("mean", "sd")
 #'             )
 #'            ),
-#'            start = "2010-01-01",
 #'            resol = 3)
 #' }
 #'
 #' @importFrom cli cli_alert_info
 #' @importFrom jsonlite write_json
 #'
-set_config <- function(path, regions, source, start = "2000-01-01", resol,
+set_config <- function(path, regions, source, start = "2010-01-01", resol,
                        scale = NULL, limit = 10000, crs = NULL,
                        verbose = TRUE) {
 
+  # Validate parameters
+  call <- match.call()
+  params <- generate_params(call)
+  validate_params(params)
+
+  # Create configuration list
   config <- list(
     regions = regions,
     source = source,
@@ -77,11 +84,13 @@ set_config <- function(path, regions, source, start = "2000-01-01", resol,
     crs = crs
   )
 
+  # Create 'config' directory if it doesn't exist
   dir.create(file.path(path, "config"), showWarnings = FALSE)
+
+  # Write configuration list to JSON file
   write_json(config, file.path(path, "config", "config.json"), pretty = TRUE)
-  if (verbose) {
-    cat("\n")
-    cli_alert_info("Config file generated: 'config/config.json'.")
-    cat("\n")
-  }
+
+  # Output information if verbose mode is enabled
+  output_info("Config file generated: 'config/config.json'.", verbose)
+
 }

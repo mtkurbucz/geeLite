@@ -69,12 +69,14 @@ fetch_regions <- function(admin_lvl = 0) {
 #' @importFrom stringr str_detect
 #'
 fetch_country_regions <- function() {
+
   countries <- ne_countries(scale = "small") %>%
     st_set_geometry(NULL) %>%
     select(geounit, iso_a2_eh) %>%
     rename(name = geounit, iso = iso_a2_eh) %>%
     filter(!str_detect(iso, "-99")) %>%
     mutate(admin_lvl = 0)
+
   return(countries)
 }
 
@@ -95,11 +97,13 @@ fetch_country_regions <- function() {
 #' @importFrom stringr str_detect
 #'
 fetch_state_regions <- function() {
+
   states <- ne_states() %>%
     st_set_geometry(NULL) %>%
     select(name, iso_3166_2) %>%
     rename(iso = iso_3166_2) %>%
     filter(!str_detect(iso, "~")) %>%
     mutate(admin_lvl = 1)
+
   return(states)
 }

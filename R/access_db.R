@@ -92,10 +92,12 @@ read_db <- function(path, tables = "all") {
 #' @keywords internal
 #'
 filter_and_sort_tables <- function(tables) {
+
   tables_drop <- c("grid", "spatial_ref_sys", "sqlite_sequence",
                    "geometry_columns")
   tables <- append("grid", sort(setdiff(tables, tables_drop)))
   tables <- data.frame(id = 1:length(tables), name = tables)
+
   return(tables)
 }
 
@@ -115,6 +117,7 @@ filter_and_sort_tables <- function(tables) {
 #' @keywords internal
 #'
 validate_tables_param <- function(tables, tables_all) {
+
   if (any(tables == "all")) {
     tables <- tables_all$name
   } else if (is.numeric(tables)) {
@@ -153,6 +156,7 @@ validate_tables_param <- function(tables, tables_all) {
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
 #'
 read_tables_from_db <- function(path, tables) {
+
   db_path <- file.path(path, "data/geelite.db")
   con <- dbConnect(SQLite(), dbname = db_path)
 
