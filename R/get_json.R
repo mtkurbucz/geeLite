@@ -74,8 +74,14 @@ get_json <- function(path, file_path) {
 
   # Read and format the JSON file
   file_path_full <- file.path(path, file_path)
-  file_content <- fromJSON(file_path_full)
-  formatted_content <- toJSON(file_content, pretty = TRUE)
+  # Check if the file exists
+  if (!file.exists(file_path_full)) {
+    stop("The specified file does not exist: ", file_path_full, 
+      "\nIf this error was the result of a get_config() call, then ensure that a configuration file has been created. Try ??set_config for help.",
+      "\nIf this error was the result of a get_state() call, then ensure that a state file has been created. Try ??pull_data for help.")
+  }
+  file_content <- jsonlite::fromJSON(file_path_full)
+  formatted_content <- jsonlite::toJSON(file_content, pretty = TRUE)
 
   return(formatted_content)
 }

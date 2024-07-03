@@ -18,7 +18,7 @@
 #'   fetch_tables(path = "path/to/root/directory")
 #' }
 #'
-#' @importFrom RSQLite dbConnect dbDisconnect dbListTables
+#' @importFrom RSQLite dbConnect dbDisconnect dbListTables SQLite
 #'
 fetch_tables <- function(path) {
 
@@ -101,8 +101,6 @@ filter_and_sort_tables <- function(tables) {
   return(tables)
 }
 
-# ------------------------------------------------------------------------------
-
 #' @title Validate Tables Parameter
 #'
 #' @description Validates the 'tables' parameter and determines which tables to
@@ -136,8 +134,6 @@ validate_tables_param <- function(tables, tables_all) {
   return(tables)
 }
 
-# ------------------------------------------------------------------------------
-
 #' @title Read Tables from Database
 #'
 #' @description Reads the specified tables from the SQLite database.
@@ -153,7 +149,7 @@ validate_tables_param <- function(tables, tables_all) {
 #' @importFrom sf st_read
 #' @importFrom magrittr %>%
 #' @importFrom dplyr rename select
-#' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
+#' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
 #'
 read_tables_from_db <- function(path, tables) {
 

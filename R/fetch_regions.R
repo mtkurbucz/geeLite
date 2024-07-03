@@ -21,7 +21,7 @@
 #' }
 #'
 #' @importFrom magrittr %>%
-#' @importFrom dplyr arrange
+#' @importFrom dplyr arrange bind_rows
 #'
 fetch_regions <- function(admin_lvl = 0) {
 
