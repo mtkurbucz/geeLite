@@ -28,7 +28,7 @@
 #'   )
 #' }
 #'
-#' @importFrom purrr map
+#' @importFrom purrr map modify_in
 #' @importFrom cli cli_alert_info
 #' @importFrom jsonlite fromJSON write_json
 #'
@@ -41,7 +41,11 @@ modify_config <- function(path, keys, new_values, verbose = TRUE) {
 
   # Read configuration file
   config_path <- file.path(path, "config/config.json")
-  config <- fromJSON(config_path)
+  if (!file.exists(config_path)) {
+    stop("Configuration file does not exist: ", config_path, "Try ??set_config for help.")
+  }
+  
+  config <- jsonlite::fromJSON(config_path)
 
   # Modify configuration settings
   for (i in seq_along(keys)) {
@@ -49,7 +53,7 @@ modify_config <- function(path, keys, new_values, verbose = TRUE) {
   }
 
   # Write updated configuration to file
-  write_json(config, config_path, pretty = TRUE)
+  jsonlite::write_json(config, config_path, pretty = TRUE)
 
   # Output information if verbose mode is enabled
   output_info("Config file updated: 'config/config.json'.", verbose)

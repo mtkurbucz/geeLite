@@ -88,7 +88,7 @@ set_config <- function(path, regions, source, start = "2010-01-01", resol,
   dir.create(file.path(path, "config"), showWarnings = FALSE)
 
   # Write configuration list to JSON file
-  write_json(config, file.path(path, "config", "config.json"), pretty = TRUE)
+  jsonlite::write_json(config, file.path(path, "config", "config.json"), pretty = TRUE)
 
   # Output information if verbose mode is enabled
   output_info("Config file generated: 'config/config.json'.", verbose)

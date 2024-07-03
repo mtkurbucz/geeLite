@@ -584,7 +584,7 @@ pull_data <- function(task, grid, verbose) {
   state <- task
   state$regions <- regions
   state$source <- source
-  write_json(state, state_file, pretty = TRUE)
+  jsonlite::write_json(state, state_file, pretty = TRUE)
 
   # Write log file
   write_log(!state_exists)
