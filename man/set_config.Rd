@@ -2,13 +2,13 @@
 % Please edit documentation in R/set_config.R
 \name{set_config}
 \alias{set_config}
-\title{Setting Up the Configuration File}
+\title{Initialize the Configuration File}
 \usage{
 set_config(
   path,
   regions,
   source,
-  start = "2000-01-01",
+  start = "2010-01-01",
   resol,
   scale = NULL,
   limit = 10000,
@@ -17,16 +17,16 @@ set_config(
 )
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
+\item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 
-\item{regions}{[mandatory] (character) FIPS codes of the regions of interest
-(two-letter country code, followed by an optional two-digit state code).}
+\item{regions}{[mandatory] (character) ISO 3166-2 codes of the regions of
+interest (two letters for countries and additional characters for states).}
 
-\item{source}{[mandatory] (list) Description of GEE datasets of interest. It
-is a nested list with three levels:
+\item{source}{[mandatory] (list) Description of Google Earth Engine (GEE)
+datasets of interest. It is a nested list with three levels:
 \describe{
-  \item{names}{(list) Names of the GEE datasets of interest (e.g.,
+  \item{names}{(list) Datasets of interest (e.g.,
   \code{"MODIS/061/MOD13A1"}).
     \describe{
       \item{bands}{(list) Bands of interest (e.g., \code{"NDVI"}).
@@ -41,7 +41,7 @@ is a nested list with three levels:
 }}
 
 \item{start}{[optional] (date) First date of the data collection
-(default: \code{"2000-01-01"}).}
+(default: \code{"2010-01-01"}).}
 
 \item{resol}{[mandatory] (integer) Resolution of the H3 bin.}
 
@@ -53,27 +53,25 @@ calculations. \code{Limit - 1} bins will be processed at the same time
 (default: \code{10000}).}
 
 \item{crs}{[optional] (integer) CRS to be assigned to the dataset (default
-is the shapefile's CRS: \code{NULL}).}
+is the shapefile's original CRS: \code{NULL}). Note: Reprojection is not
+recommended unless essential.}
 
-\item{verbose}{[optional] (logical) Display computation status and messages
-(default: \code{TRUE}).}
+\item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
 \description{
-This function creates the configuration file
-(\code{path/config/config.json}).
+Creates the configuration file in the specified directory of the generated
+database (\code{config/config.json}).
 }
 \examples{
 # Example: Setting up the configuration file
 \dontrun{
-set_config(path = "path",
-           regions = c("SO", "YM"),
-           source = list(
-            "MODIS/006/MOD13A2" = list(
-              "NDVI" = c("mean", "sd")
-            )
-           ),
-           start = "2010-01-01",
-           resol = 3)
+  set_config(path = "path/to/root/directory",
+             regions = c("SO", "YM"),
+             source = list(
+              "MODIS/006/MOD13A2" = list(
+                "NDVI" = c("mean", "sd")
+             )
+            ),
+            resol = 3)
 }
-
 }

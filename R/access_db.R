@@ -1,23 +1,18 @@
 # Main Functions ---------------------------------------------------------------
 
-#' @title Retrieve and Print SQLite Table Names
+#' Fetch Names of SQLite Tables
 #'
-#' @description This function retrieves and prints the names of the available
-#' SQLite tables in the specified database.
-#'
+#' Reads and prints the names of available SQLite tables in the specified
+#' directory of the generated database (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#'
 #' @return A data frame containing the table names.
-#'
 #' @export
-#'
 #' @examples
-#' # Example: Printing the available SQLite tables
+#' # Example: Printing the names of available SQLite tables
 #' \dontrun{
 #'   fetch_tables(path = "path/to/root/directory")
 #' }
-#'
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables SQLite
 #'
 fetch_tables <- function(path) {
@@ -38,24 +33,22 @@ fetch_tables <- function(path) {
   return(tables)
 }
 
-#' @title Read Selected SQLite Tables
+# ------------------------------------------------------------------------------
+
+#' Read Selected SQLite Tables
 #'
-#' @description Reads specified SQLite tables into a \code{list} object.
-#'
-#' @param path [mandatory] (character) The path to the root directory of the
+#' Reads SQLite tables from the specified directory of the generated database
+#' (\code{data/geelite.db}) into a list object.
+#' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#'
-#' @param tables [optional] (character or integer) The names or IDs of the
-#' tables to be read. Use the \code{fetch_tables} function to identify available
-#' table names and IDs. Defaults to \code{"all"}.
-#'
-#' @return A list where the first element (grid) is an \code{sf} object, and
-#' subsequent elements are \code{data.frame} objects.
-#'
+#' @param tables [optional] (character or integer) Names or IDs of the tables
+#' to be read. Use the \code{fetch_tables} function to identify available table
+#' names and IDs (default: \code{"all"}).
+#' @return A list where the first element ('grid') is an simple feature (sf)
+#' object, and subsequent elements are data frame objects.
 #' @export
-#'
 #' @examples
-#' # Example: Reading the "grid" table
+#' # Example: Reading the 'grid' table
 #' \dontrun{
 #'   db_list <- read_db(path = "path/to/root/directory",
 #'                      tables = "grid")
@@ -63,32 +56,25 @@ fetch_tables <- function(path) {
 #'
 read_db <- function(path, tables = "all") {
 
-  # Validate the "path" parameter
-  params <- list(path = path, file_path = "data/geelite.db")
-  validate_params(params)
-
-  # Retrieve the list of all tables
+  # Validate the 'path' parameter and retrieve the list of all tables
   tables_all <- fetch_tables(path)
 
-  # Determine which tables to read and validate the "tables" parameter
+  # Determine which tables to read and validate the 'tables' parameter
   tables <- validate_tables_param(tables, tables_all)
 
   # Read tables from the database
-  db_list <- read_tables_from_db(path, tables)
+  db_list <- read_tables(path, tables)
 
   return(db_list)
 }
 
 # Internal Functions -----------------------------------------------------------
 
-#' @title Filter and Sort Tables
+#' Filter and Sort Tables
 #'
-#' @description Filters out system tables and sorts the table names.
-#'
-#' @param tables A character vector of table names.
-#'
+#' Filters out system tables and sorts the table names.
+#' @param tables [mandatory] (character or integer) A vector of table names.
 #' @return A data frame with filtered and sorted table names.
-#'
 #' @keywords internal
 #'
 filter_and_sort_tables <- function(tables) {
@@ -101,17 +87,15 @@ filter_and_sort_tables <- function(tables) {
   return(tables)
 }
 
-#' @title Validate Tables Parameter
+# ------------------------------------------------------------------------------
+
+#' Validate Tables Parameter
 #'
-#' @description Validates the 'tables' parameter and determines which tables to
-#' read.
-#'
-#' @param tables A character or integer vector specifying tables to be read.
-#'
-#' @param tables_all A data frame of all available tables.
-#'
+#' Validates the 'tables' parameter and determines which tables to read.
+#' @param tables [mandatory] (character or integer) A vector specifying tables
+#' to be read.
+#' @param tables_all [mandatory] (data.frame) All available tables.
 #' @return A character vector of valid table names.
-#'
 #' @keywords internal
 #'
 validate_tables_param <- function(tables, tables_all) {
@@ -124,39 +108,42 @@ validate_tables_param <- function(tables, tables_all) {
   } else if (is.character(tables)) {
     tables <- intersect(tables, tables_all$name)
   } else {
-    stop("Invalid 'tables' parameter.")
+    tables <- NULL
   }
 
   if (length(tables) == 0) {
-    stop("No valid tables are specified. Please check 'tables' parameter.")
+    stop("Invalid 'tables' parameter.\n",
+         "Use 'fetch_tables' to retrieve valid table names.")
   }
 
   return(tables)
 }
 
-#' @title Read Tables from Database
+# ------------------------------------------------------------------------------
+
+#' Read Tables from Database
 #'
-#' @description Reads the specified tables from the SQLite database.
-#'
-#' @param path The path to the root directory of the generated database.
-#'
-#' @param tables A character vector of table names to read.
-#'
+#' Reads the specified tables from the SQLite database.
+#' @param path [mandatory] (character) Path to the root directory of the
+#' generated database.
+#' @param tables [mandatory] (character) A vector of table names to be read.
 #' @return A list of tables read from the database.
-#'
 #' @keywords internal
-#'
 #' @importFrom sf st_read
 #' @importFrom magrittr %>%
 #' @importFrom dplyr rename select
-#' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
+#' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
 #'
-read_tables_from_db <- function(path, tables) {
+read_tables <- function(path, tables) {
 
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  GEOMETRY <- NULL
+
+  # Connect to the SQLite database
   db_path <- file.path(path, "data/geelite.db")
   con <- dbConnect(SQLite(), dbname = db_path)
 
-  # Read the "grid" table as an sf object
+  # Read the 'grid' table as an sf object
   db_list <- list(grid = st_read(con, "grid", quiet = TRUE) %>%
                     select(-1) %>% rename(geometry = GEOMETRY))
 
@@ -168,6 +155,7 @@ read_tables_from_db <- function(path, tables) {
     }
   }
 
+  # Disconnect from the SQLite database
   dbDisconnect(con)
   return(db_list)
 }

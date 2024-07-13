@@ -22,7 +22,7 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 1: Generate configuration file
   # ----------------------------------------------------------------------------
 
-  regions <- c("SO", "YM")
+  regions <- c("SO", "YE")
   source <- list(
     "MODIS/006/MOD13A2" = list(
       "NDVI" = c("mean", "sd")
@@ -39,17 +39,18 @@ test_that("Testing geeLite Package Pipeline", {
              verbose = FALSE)
 
   # Check if the config file is created
-  config_file <- file.path(test_path, "config", "config.json")
+  config_file <- file.path(test_path, "config/config.json")
   expect_true(file.exists(config_file))
 
   # ----------------------------------------------------------------------------
   # Step 2: Create database
   # ----------------------------------------------------------------------------
 
-  run_geelite(path = test_path)
+  run_geelite(path = test_path,
+              verbose = FALSE)
 
   # Check if the database is created
-  db_file <- file.path(test_path, "data", "geelite.db")
+  db_file <- file.path(test_path, "data/geelite.db")
   expect_true(file.exists(db_file))
 
   # Check the content of the database
@@ -73,9 +74,10 @@ test_that("Testing geeLite Package Pipeline", {
   # Step 3: Modify configuration file
   # ----------------------------------------------------------------------------
 
-  mod_config(path = test_path,
-             target = list(c("source", "MODIS/006/MOD13A2", "NDVI")),
-             values = list(c("mean", "max")))
+  modify_config(path = test_path,
+                keys = list("regions", c("source", "MODIS/006/MOD13A2", "NDVI")),
+                new_values = list(c("SO", "KE"), c("mean", "max")),
+                verbose = FALSE)
 
   # Check if the config file is updated
   config <- fromJSON(config_file)
@@ -97,6 +99,8 @@ test_that("Testing geeLite Package Pipeline", {
   df <- dbReadTable(con, "MODIS/006/MOD13A2")
   expect_equal(sort(unique(df$band)), sort(c("NDVI")))
   expect_equal(sort(unique(df$stat)), sort(c("mean", "max")))
+  grid <- dbReadTable(con, "grid")
+  expect_equal(sort(unique(grid$iso)), sort(c("SO", "KE")))
   dbDisconnect(con)
 
 })

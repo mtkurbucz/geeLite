@@ -12,10 +12,10 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: get_regids.R --admin_lvl [admin_lvl]",
+  usage = "Usage: fetch_regions.R --admin_lvl [admin_lvl]",
   option_list = option_list
 )
 
 args <- parse_args(option_parser)
 
-get_regids(admin_lvl = args$admin_lvl)
+fetch_regions(admin_lvl = args$admin_lvl)

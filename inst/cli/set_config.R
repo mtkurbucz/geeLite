@@ -1,4 +1,4 @@
-# This line is used by the set_cli function
+# This line is used by the 'set_cli' function
 
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
@@ -13,7 +13,7 @@ option_list <- list(
   "by an optional two-digit state code).")),
   make_option(c("--source"), type = "character", help = paste0("[mandatory] ",
   "Description of GEE datasets of interest. It is a nested list with three ",
-  "levels (datasets, bands, and stats).")),
+  "levels ('datasets', 'bands', and 'stats').")),
   make_option(c("--resol"), type = "integer", help = paste0("[mandatory] ",
   "Resolution of the H3 bin.")),
   make_option(c("--scale"), type = "integer", default = NULL,
@@ -27,7 +27,7 @@ option_list <- list(
   "[optional] CRS to be assigned to the dataset (default is the shapefile's ",
   "CRS).")),
   make_option(c("--verbose"), type = "logical", default = TRUE,
-  help = "[optional] Display computation status and messages.")
+  help = "[optional] Display messages.")
 )
 
 option_parser <- OptionParser(

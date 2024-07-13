@@ -1,4 +1,4 @@
 # This line is used by the 'set_cli' function
 
 library(geeLite)
-get_config(path = path)
+fetch_tables(path = path)

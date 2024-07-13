@@ -64,15 +64,15 @@ run_geelite(path = path)
 4) Modifying the configuration file:
 
 ``` r
-mod_config(path = path,
-           target = list(
-             c("source", "MODIS/006/MOD13A2", "NDVI"),
-             c("source", "MODIS/006/MOD13A2", "EVI")
-           ),
-           values = list(
-             c("mean", "min", "max"),
-             c("mean", "sd")
-           ))
+modify_config(path = path,
+              target = list(
+                c("source", "MODIS/006/MOD13A2", "NDVI"),
+                c("source", "MODIS/006/MOD13A2", "EVI")
+              ),
+              values = list(
+                c("mean", "min", "max"),
+                c("mean", "sd")
+              ))
 ```
 
 5) Updating the database based on the configuration file:
@@ -112,7 +112,7 @@ Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/006/MOD13A2' = 
 Rscript cli/run_geelite.R
 
 # Modifying the configuration file:
-Rscript cli/mod_config.R --target "list(c('source', 'MODIS/006/MOD13A2', 'NDVI'), c('source', 'MODIS/006/MOD13A2', 'EVI'))" --values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
+Rscript cli/modify_config.R --target "list(c('source', 'MODIS/006/MOD13A2', 'NDVI'), c('source', 'MODIS/006/MOD13A2', 'EVI'))" --values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
 
 # Updating the database based on the configuration file:
 Rscript cli/run_geelite.R

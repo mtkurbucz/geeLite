@@ -2,25 +2,25 @@
 % Please edit documentation in R/set_cli.R
 \name{set_cli}
 \alias{set_cli}
-\title{Setting Up the CLI Files}
+\title{Initialize CLI Files}
 \usage{
-set_cli(path)
+set_cli(path, verbose = TRUE)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
 generated database.}
-}
-\value{
-Configuration object.
+
+\item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
 \description{
-This function creates R scripts to make main functions callable
-through the command line interface (CLI).
+Creates R scripts to enable main functions to be callable through the
+Command Line Interface (CLI). These scripts are stored within the specified
+directory of the generated database (\code{cli/...}).
 }
 \examples{
-# Example: Printing the configuration file
+# Example: Setting up CLI files
 \dontrun{
-  set_cli(path = "path")
+  set_cli(path = "path/to/root/directory")
 }
 
 }

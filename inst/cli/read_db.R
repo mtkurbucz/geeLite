@@ -1,4 +1,4 @@
-# This line is used by the set_cli function
+# This line is used by the 'set_cli' function
 
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
@@ -10,11 +10,11 @@ library(geeLite)
 option_list <- list(
   make_option(c("--tables"), type = "character", default = "all", help = paste0(
   "[optional] Names or IDs of the selected tables. To identify available ",
-  "tables and their names or IDs, use the get_tables function."))
+  "tables and their names or IDs, use the 'get_tables' function."))
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: run_geelite.R --conda [conda] --rebuild [rebuild]",
+  usage = "Usage: read_db.R --table [table]",
   option_list = option_list
 )
 

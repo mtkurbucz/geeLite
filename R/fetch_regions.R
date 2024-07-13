@@ -1,38 +1,33 @@
 # Main Function ----------------------------------------------------------------
 
-#' @title Retrieve ISO 3166-2 Region Codes
+#' Fetch ISO 3166-2 Region Codes
 #'
-#' @description This function returns a data frame containing ISO 3166-2 region
-#' codes for specified administrative levels.
-#'
-#' @param admin_lvl [optional] (numeric) Specifies the administrative level. Use
+#' Returns a data frame containing ISO 3166-2 region codes for specified
+#' administrative levels.
+#' @param admin_lvl [optional] (integer) Specifies the administrative level. Use
 #' \code{0} for country-level, \code{1} for state-level, or \code{NULL} to
 #' include all regions (default: \code{0}).
-#'
 #' @return A data frame containing region names, ISO 3166-2 codes, and
 #' administrative levels.
-#'
 #' @export
-#'
 #' @examples
-#' # Example: Retrieve ISO 3166-2 region codes
+#' # Example: Fetch ISO 3166-2 region codes
 #' \dontrun{
 #'   fetch_regions()
 #' }
-#'
 #' @importFrom magrittr %>%
 #' @importFrom dplyr arrange bind_rows
 #'
 fetch_regions <- function(admin_lvl = 0) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  iso <- name <- iso_a2_eh <- iso_3166_2 <- geounit <- NULL
+  iso <- NULL
 
   # Validate 'admin_lvl' parameter
   params <- list(admin_lvl = admin_lvl)
   validate_params(params)
 
-  # Retrieve regions based on admin_lvl
+  # Retrieve regions based on 'admin_lvl'
   regions <- NULL
   if (is.null(admin_lvl) || admin_lvl == 0) {
     regions <- fetch_country_regions()
@@ -54,21 +49,21 @@ fetch_regions <- function(admin_lvl = 0) {
 
 # Internal Functions -----------------------------------------------------------
 
-#' @title Fetch Country-Level Regions
+#' Fetch Country-Level Regions
 #'
-#' @description Retrieves country-level ISO 3166-2 regions.
-#'
+#' Retrieves country-level ISO 3166-2 regions.
 #' @return A data frame of country-level regions.
-#'
 #' @keywords internal
-#'
 #' @importFrom magrittr %>%
 #' @importFrom sf st_set_geometry
+#' @importFrom stringr str_detect
 #' @importFrom rnaturalearth ne_countries
 #' @importFrom dplyr select rename filter mutate
-#' @importFrom stringr str_detect
 #'
 fetch_country_regions <- function() {
+
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  geounit <- iso <- iso_a2_eh <- NULL
 
   countries <- ne_countries(scale = "small") %>%
     st_set_geometry(NULL) %>%
@@ -82,14 +77,11 @@ fetch_country_regions <- function() {
 
 # ------------------------------------------------------------------------------
 
-#' @title Fetch State-Level Regions
+#' Fetch State-Level Regions
 #'
-#' @description Retrieves state-level ISO 3166-2 regions.
-#'
+#' Retrieves state-level ISO 3166-2 regions.
 #' @return A data frame of state-level regions.
-#'
 #' @keywords internal
-#'
 #' @importFrom magrittr %>%
 #' @importFrom sf st_set_geometry
 #' @importFrom rnaturalearth ne_states
@@ -97,6 +89,9 @@ fetch_country_regions <- function() {
 #' @importFrom stringr str_detect
 #'
 fetch_state_regions <- function() {
+
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  iso <- iso_3166_2 <- name <- NULL
 
   states <- ne_states() %>%
     st_set_geometry(NULL) %>%

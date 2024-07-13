@@ -1,4 +1,4 @@
-# This line is used by the set_cli function
+# This line is used by the 'set_cli' function
 
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_geelite.R
 \name{run_geelite}
 \alias{run_geelite}
-\title{Collecting and Storing GEE Data}
+\title{Build and Update the Grid Statistics Database}
 \usage{
 run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE, verbose = TRUE)
 }
@@ -11,11 +11,11 @@ run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE, verbose = TRUE)
 generated database.}
 
 \item{conda}{[optional] (character) Name of the virtual Conda environment
-installed and used by the rgee package (default: \code{"rgee"}).}
+installed and used by the \code{rgee} package (default: \code{"rgee"}).}
 
-\item{user}{[optional] (character) Used to create a folder within the path
-\code{~/.config/earthengine/}. This folder stores all the credentials
-associated with a specific Google identity (default: \code{NULL}).}
+\item{user}{[optional] (character) Used to create a directory within the
+path \code{~/.config/earthengine/}. This directory stores all the
+credentials associated with a specific Google account (default: \code{NULL}).}
 
 \item{rebuild}{[optional] (logical) If set to \code{TRUE}, the database and
 its supplementary files will be overwritten based on the configuration file
@@ -25,13 +25,15 @@ its supplementary files will be overwritten based on the configuration file
 (default: \code{TRUE}).}
 }
 \description{
-Collects and stores GEE data, updating states and log files
-(\code{path/data/geelite.db}).
+Collects and stores grid statistics from Google Earth Engine (GEE) data in
+SQLite format (\code{data/geelite.db}), initializes CLI files
+(\code{cli/...}), and initializes or updates the state
+(\code{state/state.json}) and log (\code{log/log.txt}) files.
 }
 \examples{
-# Example: Data collection
+# Example: Build a Grid Statistics Database
 \dontrun{
-  run_geelite(path = "path")
+  run_geelite(path = "path/to/root/directory")
 }
 
 }
