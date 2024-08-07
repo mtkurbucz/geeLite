@@ -27,15 +27,15 @@
 #'
 run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
                         verbose = TRUE) {
-
+  
   # Validate parameters
   params <- list(path = path, conda = conda, user = user, rebuild = rebuild,
                  verbose = verbose)
   validate_params(params)
-
+  
   # Set the working directory
   setwd(path)
-
+  
   # Collect and store grid statistics and create or update supplementary files
   print_version(verbose)            # Display version if 'verbose' is TRUE
   set_dirs(rebuild)                 # Create required subdirectories in the path
@@ -44,7 +44,7 @@ run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
   set_depend(conda, user, verbose)  # Activate necessary dependencies
   compile_db(task, grid, verbose)   # Build or update the database
   set_cli(path, FALSE)              # Initialize CLI files
-
+  
 }
 
 # Internal Functions -----------------------------------------------------------
@@ -103,10 +103,10 @@ set_dirs <- function(rebuild) {
 #' @importFrom jsonlite fromJSON
 #'
 get_task <- function() {
-
+  
   config <- fromJSON("config/config.json")
   state_path <- "state/state.json"
-
+  
   if (!file.exists(state_path)) {
     # In the case of (re)build, the session is driven by the configuration file
     task <- config
@@ -122,7 +122,7 @@ get_task <- function() {
     task$limit <- config$limit
     task$crs <- state$crs
   }
-
+  
   return(task)
 }
 
@@ -137,14 +137,14 @@ get_task <- function() {
 #' @keywords internal
 #'
 compare_vectors <- function(vector_1, vector_2) {
-
+  
   added <- setdiff(vector_1, vector_2)
   removed <- setdiff(vector_2, vector_1)
   common <- intersect(vector_1, vector_2)
-
+  
   result <- c(paste0("+", added), common, paste0("-", removed))
   result <- result[nchar(result) > 1]
-
+  
   return(result)
 }
 
@@ -159,9 +159,9 @@ compare_vectors <- function(vector_1, vector_2) {
 #' @keywords internal
 #'
 compare_lists <- function(list_1, list_2) {
-
+  
   result <- list()
-
+  
   # Compare elements in 'list_1' with 'list_2'
   for (key_1 in names(list_1)) {
     if (key_1 %in% names(list_2)) {
@@ -171,7 +171,7 @@ compare_lists <- function(list_1, list_2) {
         if (key_2 %in% names(list_2[[key_1]])) {
           # Compare vectors within nested lists using compare_vectors function
           result[[key_1]][[key_2]] <- compare_vectors(list_1[[key_1]][[key_2]],
-                                                 list_2[[key_1]][[key_2]])
+                                                      list_2[[key_1]][[key_2]])
         } else {
           # Mark added elements in 'list_1[[key_1]]'
           result[[key_1]][[paste0("+", key_2)]] <- list_1[[key_1]][[key_2]]
@@ -188,14 +188,14 @@ compare_lists <- function(list_1, list_2) {
       result[[paste0("+", key_1)]] <- list_1[[key_1]]
     }
   }
-
+  
   # Check for removed elements in 'list_2' that are not in 'list_1'
   for (key_1 in names(list_2)) {
     if (!(key_1 %in% names(list_1))) {
       result[[paste0("-", key_1)]] <- list_2[[key_1]]
     }
   }
-
+  
   return(result)
 }
 
@@ -211,12 +211,23 @@ compare_lists <- function(list_1, list_2) {
 #' credentials associated with a specific Google account (default: \code{NULL}).
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @keywords internal
-#' @importFrom rgee ee_Initialize
 #' @importFrom reticulate use_condaenv
+#' @importFrom rgee ee_Initialize ee_clean_user_credentials
 #'
 set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
+  
+  # Activate the specified Conda environment
   use_condaenv(conda, required = TRUE)
-  ee_Initialize(user = user, quiet = !verbose)
+  
+  tryCatch({
+    # Attempt to authenticate and initialize GEE
+    ee_Initialize(user = user, quiet = !verbose)
+  }, error = function(e) {
+    # If authentication fails, clean up user credentials and retry initialization
+    ee_clean_user_credentials(user = user)
+    ee_Initialize(user = user, quiet = !verbose)
+  })
+  
   if (verbose) {
     cat("\n")
   }
@@ -237,10 +248,10 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 #' @importFrom sf st_crs st_geometry st_transform
 #'
 get_grid <- function(task) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   iso <- NULL
-
+  
   # Create a list from the 'regions' vector based on its marked elements:
   # - $add:     Regions marked with '+' (to be added)
   # - $drop:    Regions marked with '-' (to be dropped)
@@ -248,51 +259,51 @@ get_grid <- function(task) {
   # - $use_add: TRUE for regions in $use marked with '+'
   regions <- process_vector(task$regions)
   db_path <- "data/geelite.db"
-
+  
   if (file.exists(db_path)) { # Update existing grid data
-
+    
     # Read grid, excluding regions to be removed ('-')
     grid <- read_grid() %>% filter(!iso %in% regions$drop)
-
+    
     # Add new regions ('+')
     if (length(regions$add) > 0) {
-
+      
       # Transform the grid format to facilitate merge with added bins
       grid <- grid %>%
         select(-attr(st_geometry(grid), "geometry")) %>%
         as.data.frame()
-
+      
       # Define shapes of added regions and create bins based on them
       shapes <- get_shapes(regions$add)
       grid_add <- get_bins(shapes, task$resol)
-
+      
       # Combine existing grid with newly added bins
       grid <- rbind(grid, grid_add)
       sf::st_crs(grid$geometry) <- sf::st_crs(grid_add$geometry)$input
-
+      
     }
-
+    
     # Update grid if new regions ('+') or removed regions ('-') exist
     if (length(regions$add) > 0 || length(regions$drop) > 0) {
       write_grid(grid)
     }
-
+    
   } else { # (Re)build grid data if no existing database is found
-
+    
     # Define shapes of regions and create bins based on them
     shapes <- get_shapes(regions$use)
     grid <- get_bins(shapes, task$resol)
-
+    
     # Set CRS if specified
     if (length(task$crs) > 0) {
       sf::st_crs(grid$geometry) <- task$crs
     }
-
+    
     # Write grid
     write_grid(grid)
-
+    
   }
-
+  
   return(grid)
 }
 
@@ -313,14 +324,14 @@ get_grid <- function(task) {
 #' @importFrom rnaturalearth ne_countries ne_states
 #'
 get_shapes <- function(regions) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   . <- geometry <- iso_a2_eh <- iso_3166_2 <- NULL
-
+  
   # Separate regions into country-level and state-level based on string length
   country <- regions[nchar(regions) == 2]
   state <- regions[nchar(regions) > 2]
-
+  
   # If there are country-level regions
   if (length(country) > 0) {
     # Retrieve country shapes and filter by the specified regions
@@ -329,7 +340,7 @@ get_shapes <- function(regions) {
       select(iso_a2_eh, geometry) %>%
       rename(iso = iso_a2_eh)
   }
-
+  
   # If there are state-level regions
   if (length(state) > 0) {
     # Retrieve state shapes and filter by the specified regions
@@ -343,7 +354,7 @@ get_shapes <- function(regions) {
       shapes <- states
     }
   }
-
+  
   return(shapes)
 }
 
@@ -363,22 +374,22 @@ get_shapes <- function(regions) {
 #' @importFrom h3jsr cell_to_polygon polygon_to_cells
 #'
 get_bins <- function(shapes, resol) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   geometry <- id <- iso <- NULL
-
+  
   # Iterate over each shape
   for (i in 1:nrow(shapes)) {
-
+    
     # Get the current shape
     shape <- shapes[i,]
-
+    
     # Generate H3 bin IDs for the shape
     bin_id <- polygon_to_cells(shape$geometry, res = resol)
-
+    
     # Convert bin IDs to polygons
     bin <- as.data.frame(cell_to_polygon(bin_id))
-
+    
     if (i == 1) {
       # Initialize the bins data frame for the first shape
       bin$iso <- shapes$iso[i]
@@ -391,7 +402,7 @@ get_bins <- function(shapes, resol) {
       bins <- rbind(bins, bin)
     }
   }
-
+  
   # Select relevant columns
   bins <- bins %>% select(iso, id, geometry)
   return(bins)
@@ -411,20 +422,20 @@ get_bins <- function(shapes, resol) {
 #' @importFrom RSQLite dbConnect dbDisconnect SQLite
 #'
 read_grid <- function() {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   GEOMETRY <- NULL
-
+  
   # Connect to the SQLite database
   con <- dbConnect(SQLite(), dbname = "data/geelite.db")
-
+  
   # Read the grid table from the database
   grid <- st_read(con, "grid", quiet = TRUE) %>%
     select(-1) %>% rename(geometry = GEOMETRY)
-
+  
   # Disconnect from the database
   dbDisconnect(con)
-
+  
   return(grid)
 }
 
@@ -467,26 +478,26 @@ write_grid <- function(grid) {
 #' @importFrom RSQLite dbConnect dbReadTable
 #'
 compile_db <- function(task, grid, verbose) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   id <- stat <- NULL
-
+  
   # Initialize an empty list to track 'datasets', 'bands', and 'stats'
   source_for_state <- list()
-
+  
   # Set up progress bar if 'verbose' is TRUE
   pb <- set_progress_bar(verbose)
-
+  
   # Define the path for the state file and verify its existence
   state_path <- "state/state.json"
   database_new <- !file.exists(state_path)
-
+  
   # Determine the scale for data collection, if specified
   scale <- if (length(task$scale) > 0) task$scale else NULL
-
+  
   # Get reducers for grid statistics calculation
   reducers <- get_reducers()
-
+  
   # Create a list from the 'regions' vector based on its marked elements:
   # - $add:     Regions marked with '+' (to be added)
   # - $drop:    Regions marked with '-' (to be dropped)
@@ -494,26 +505,26 @@ compile_db <- function(task, grid, verbose) {
   # - $use_add: TRUE for regions in $use marked with '+'
   regions <- process_vector(task$regions)
   regions_new <- regions$use_add
-
+  
   # Flag the bins of the added regions in the 'grid'
   grid$add <- grid$iso %in% regions$add
-
+  
   # Process 'datasets' similar to 'regions'
   datasets <- process_vector(names(task$source))
-
+  
   # If updating: Remove tables from database marked with '-'
   remove_tables(datasets$drop)
-
+  
   # Iterate through each 'dataset'
   for (i in seq_along(datasets$use)) {
-
+    
     # Select the current 'dataset' and determine if it is newly added ('+')
     dataset <- datasets$use[i]
     dataset_new <- datasets$use_add[i]
-
+    
     # Process 'bands' similar to 'regions'
     bands <- process_vector(names(task$source[[i]]))
-
+    
     # If updating:
     # - Retrieve the 'table' related to the current 'dataset'
     # - Identify the most recent date recorded in the table
@@ -524,22 +535,22 @@ compile_db <- function(task, grid, verbose) {
       latest_date <- as.Date(gsub("_", "-", colnames(db_table)[ncol(db_table)]))
       dbDisconnect(con)
     }
-
+    
     # Iterate through each 'band'
     for (j in seq_along(bands$use)) {
-
+      
       # Process 'stats' similarly to 'regions' and assign functions
       stats <- process_vector(vector = task$source[[i]][[j]])
       stat_funs <- map(stats$use, ~ reducers[[.]])
       stats_new <- stats$use_add
-
+      
       # Select the current 'band' and determine if it is newly added ('+')
       band <- bands$use[j]
       band_new <- bands$use_add[j]
-
+      
       # Update the 'source_for_state' list
       source_for_state[[dataset]][[band]] <- stats$use
-
+      
       # If updating: Remove 'bands' and 'stats' from 'db_table' marked with '-'
       if (j == 1) {
         if (length(bands$drop) > 0 || length(stats$drop) > 0) {
@@ -547,14 +558,14 @@ compile_db <- function(task, grid, verbose) {
             filter(!(band %in% bands$drop) & !(stat %in% stats$drop))
         }
       }
-
+      
       # Determine the type of current data collection cases:
       # - 1: All build (db: new | (all regs | dataset | band | all stats): '+')
       # - 2: All update (db: !new & all elements: unmarked)
       # - 3: Mixed (any regs: '+' | any but not all stats: '+')
       cases <- get_cases(database_new, dataset_new, band_new, stats_new,
                          regions_new)
-
+      
       # Collect images and related information:
       # - $build:        Images for the building procedure
       # - $update:       Images for the updating procedure
@@ -563,42 +574,42 @@ compile_db <- function(task, grid, verbose) {
       # - $skip_update:  Band is up-to-date & (any regs | any stats: '+')
       images <- get_images(task, cases, dataset, band, regions_new,
                            get0("latest_date", ifnotfound = NULL))
-
+      
       # Divide 'grid' into batches:
       # - $b1: Batch_1
       # - $b2: Batch_2 (only if some, but not all, regs: '+')
       batches <- get_batches(cases, grid, images$batch_size)
-
+      
       # Skip 'band' if it is up-to-date and 'regions' and 'stats' are unmarked
       if (!images$skip_band) {
-
+        
         # Remove unmarked 'stats' if 'band' is up-to-date and no new regs added
         if (images$skip_update && !any(regions_new)) {
           stats$use <- stats$use[stats$use_add]
           stat_funs <- stat_funs[stats$use_add]
         }
-
+        
         # Determine the step size for the progress bar
         source_length <- length(datasets$use) * length(bands$use) *
           length(stats$use)
         pb_step <- 100 / source_length / length(batches$b1)
-
+        
         # Iterate through each 'stat'
         for (k in seq_along(stats$use)) {
-
+          
           # Determine the type of the current data collection case:
           # - 1: Build (If 'cases' == 1 | stats_new[k])
           # - 2: Update (If 'cases' == 2 | !stats_new[k])
           case <- ifelse(cases %in% c(1, 2), cases, ifelse(stats_new[k], 1, 2))
-
+          
           # Iterate through each 'batch'
           for (l in seq_along(batches$b1)) {
-
+            
             # Update the progress bar display
             if (verbose) {
               pb$tick(pb_step)
             }
-
+            
             # Collect grid statistics from GEE
             grid_stats <- extract_grid_stats(
               case = case,
@@ -614,15 +625,15 @@ compile_db <- function(task, grid, verbose) {
               skip_update = images$skip_update,
               grid_stats = get0("grid_stats", ifnotfound = NULL)
             )
-
+            
           }
         }
       }
     }
-
+    
     # Check if 'grid_stats' exists
     if (exists("grid_stats")) {
-
+      
       # Write 'grid_stats' to the database
       write_grid_stats(
         database_new = database_new,
@@ -631,27 +642,27 @@ compile_db <- function(task, grid, verbose) {
         grid_stats = grid_stats,
         db_table = get0("db_table", ifnotfound = NULL)
       )
-
+      
     }
   }
-
+  
   # Check if 'grid_stats' exists
   if (exists("grid_stats")) {
-
+    
     # Write the state file
     write_state_file(task, regions$use, source_for_state)
-
+    
     # Write the log file
     write_log_file(!database_new)
-
+    
     # Print output messages if 'verbose' is TRUE
     output_message(gen_messages(!database_new), verbose)
-
+    
   } else {
     cli_alert_info("Database is up-to-date.")
     cat("\n")
   }
-
+  
 }
 
 # ------------------------------------------------------------------------------
@@ -700,20 +711,20 @@ set_progress_bar <- function(verbose) {
 #' @importFrom stringr str_detect str_sub
 #'
 process_vector <- function(vector) {
-
+  
   # Identify indices for items marked with '-' or '+'
   drop_idx <- str_detect(vector, "^\\-")  # Index for items marked with '-'
   add_idx <- str_detect(vector, "^\\+")   # Index for items marked with '+'
-
+  
   # Filter out items not marked with '-'
   use <- vector[!drop_idx]
-
+  
   # Identify indices of items in 'use' marked with '+'
   use_add <- str_detect(use, "^\\+")
-
+  
   # Remove '+' prefix from items marked with '+'
   use[use_add] <- str_sub(use[use_add], 2)
-
+  
   return(list(
     drop = str_sub(vector[drop_idx], 2),  # Extract items marked with '-'
     add = str_sub(vector[add_idx], 2),    # Extract items marked with '+'
@@ -786,7 +797,7 @@ remove_tables <- function(tables_drop) {
 #'
 get_cases <- function(database_new, dataset_new, band_new, stats_new,
                       regions_new) {
-
+  
   if (database_new || all(regions_new) || dataset_new || band_new ||
       all(stats_new)) {
     cases <- 1
@@ -795,7 +806,7 @@ get_cases <- function(database_new, dataset_new, band_new, stats_new,
   } else {
     cases <- 3
   }
-
+  
   return(cases)
 }
 
@@ -829,28 +840,28 @@ get_cases <- function(database_new, dataset_new, band_new, stats_new,
 #' @importFrom tidyrgee as_tidyee
 #'
 get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
-
+  
   # Initialize the images list and logical parameters
   images <- list()
   skip_band <- FALSE
   skip_update <- FALSE
-
+  
   if (cases == 1) {
-
+    
     # Case 1: All build - Collect images from the starting date
     images$build <- as_tidyee(
       rgee::ee$ImageCollection(dataset)$select(band)
     ) %>% filter(date >= task$start)
     # Calculate batch size
     images$batch_size <- floor(task$limit / length(images$build$vrt$date))
-
+    
   } else if (cases == 2) {
-
+    
     # Case 2: All update - Collect images starting from the last available data
     images$update <- as_tidyee(
       rgee::ee$ImageCollection(dataset)$select(band)
     ) %>% filter(date >= task$start)
-
+    
     # Check if the latest date in the dataset is up to date
     if (latest_date >= max(as.Date(images$update$vrt$date))) {
       # Skip update if there is no new data
@@ -865,16 +876,16 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
       # Calculate batch size
       images$batch_size <- floor(task$limit / length(images$update$vrt$date))
     }
-
+    
   } else if (cases == 3) {
-
+    
     # Case 3: Mixed - Collect images from the starting date
     images$build <- as_tidyee(
       rgee::ee$ImageCollection(dataset)$select(band)
     ) %>% filter(date >= task$start)
     # Calculate batch size
     images$batch_size <- floor(task$limit / length(images$build$vrt$date))
-
+    
     # Check if there are images newer than the latest processed date
     if (latest_date < max(as.Date(images$build$vrt$date))) {
       # Collect images newer than the latest processed date
@@ -886,11 +897,11 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
       skip_update <- TRUE
     }
   }
-
+  
   # Add logical parameters to the images list
   images$skip_band <- skip_band
   images$skip_update <- skip_update
-
+  
   return(images)
 }
 
@@ -913,25 +924,25 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
 #' @keywords internal
 #'
 get_batches <- function(cases, grid, batch_size) {
-
+  
   if (cases %in% c(1, 2)) {
-
+    
     # Get batch for primary data (no additional batch needed)
     b1 <- get_batch(grid = grid, batch_size = batch_size)
     b2 <- NULL
-
+    
   } else if (cases == 3) {
-
+    
     # Calculate the maximum number of bins and batch number
     bin_num_max <- max(sum(!grid$add), sum(grid$add))
     batch_num <- ceiling(bin_num_max / batch_size)
-
+    
     # Get batch for primary and additional data
     b1 <- get_batch(grid = grid[!grid$add, ], batch_num = batch_num)
     b2 <- get_batch(grid = grid[grid$add, ], batch_num = batch_num)
-
+    
   }
-
+  
   return(list(
     b1 = b1,
     b2 = b2
@@ -954,10 +965,10 @@ get_batches <- function(cases, grid, batch_size) {
 #' @keywords internal
 #'
 get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
-
+  
   # Determine the number of bins
   bin_num <- nrow(grid)
-
+  
   if (is.null(batch_num)) {
     # Calculate 'batch_num' based on the specified 'batch_size'
     batch_num <- ceiling(bin_num / batch_size)
@@ -965,10 +976,10 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
     # Calculate 'batch_size' based on the specified 'batch_num'
     batch_size <- ceiling(bin_num / batch_num)
   }
-
+  
   # Divide bins into batches
   batch_id <- split(1:bin_num, rep(1:batch_num, each = batch_size)[1:bin_num])
-
+  
   return(batch_id)
 }
 
@@ -1009,12 +1020,12 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
                                stat, stat_fun, scale, region_new, skip_update,
                                grid_stats) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   add <- NULL
-
+  
   if (case == 1) { # Build
-
+    
     # Extract statistics for building procedure
     batch_stat_build <- extract_batch_stat(
       imgs = images$build$ee_ob,
@@ -1025,17 +1036,17 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
       stat_fun = stat_fun,
       scale = scale
     )
-
+    
     # Update grid statistics for building procedure
     grid_stats_build <- update_grid_stats(
       grid_stat = grid_stats$build,
       batch_stat = batch_stat_build
     )
-
+    
   } else if (case == 2) { # Update
-
+    
     if (!skip_update) {
-
+      
       # Extract statistics for updating procedure (existing regions)
       batch_stat_update <- extract_batch_stat(
         imgs = images$update$ee_ob,
@@ -1046,14 +1057,14 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
         stat_fun = stat_fun,
         scale = scale
       )
-
+      
       # Update grid statistics for updating procedure (existing regions)
       grid_stats_update <- update_grid_stats(
         grid_stat = grid_stats$update,
         batch_stat = batch_stat_update
       )
     }
-
+    
     # Extract statistics for additional new regions (if any)
     if (any(region_new)) {
       batch_stat_build <- extract_batch_stat(
@@ -1065,7 +1076,7 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
         stat_fun = stat_fun,
         scale = scale
       )
-
+      
       # Update grid statistics for additional new regions
       grid_stats_build <- update_grid_stats(
         grid_stat = grid_stats$build,
@@ -1073,7 +1084,7 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
       )
     }
   }
-
+  
   return(list(
     build = get0("grid_stats_build", ifnotfound = NULL),
     update = get0("grid_stats_update", ifnotfound = NULL)
@@ -1107,10 +1118,10 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
 #' @importFrom dplyr everything mutate rename_all select
 #'
 extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
-
+  
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   id <- NULL
-
+  
   # Extract grid statistics from images
   suppressMessages(
     batch_stat <- ee_extract(
@@ -1122,7 +1133,7 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
       quiet = TRUE
     )
   )
-
+  
   batch_stat <- batch_stat %>%
     # Add 'id', 'band', and 'stat' columns
     mutate(id = grid$id, band = band, stat = stat) %>%
@@ -1130,7 +1141,7 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
     select(id, band, stat, everything()) %>%
     # Rename columns by replacing hyphens with underscores in dates
     rename_all( ~ c("id", "band", "stat", gsub("-", "_", as.character(dates))))
-
+  
   return(batch_stat)
 }
 
@@ -1147,7 +1158,7 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
 #' @keywords internal
 #'
 update_grid_stats <- function(grid_stat, batch_stat) {
-
+  
   # Check if 'grid_stats' is NULL
   if (is.null(grid_stat)) {
     # If not, return 'batch_stat'
@@ -1156,7 +1167,7 @@ update_grid_stats <- function(grid_stat, batch_stat) {
     # If it exists, append 'batch_stat' to 'grid_stats'
     grid_stats <- rbind(grid_stat, batch_stat)
   }
-
+  
   return(grid_stats)
 }
 
@@ -1181,43 +1192,43 @@ update_grid_stats <- function(grid_stat, batch_stat) {
 #'
 write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
                              grid_stats) {
-
+  
   # Check if 'database' or dataset is new
   if (database_new || dataset_new) {
-
+    
     # Write the 'grid_stats$build' data to the specified dataset
     con <- dbConnect(RSQLite::SQLite(), dbname = "data/geelite.db")
     dbWriteTable(conn = con, name = dataset, value = grid_stats$build,
                  append = TRUE, row.names = FALSE)
     dbDisconnect(con)
-
+    
   } else {
-
+    
     # Check if 'grid_stats$update' is not NULL
     if (!is.null(grid_stats$update)) {
       # Merge the existing table with 'grid_stats$update'
       db_table <- merge(db_table, grid_stats$update,
                         by = c("id", "band", "stat"), all.x = TRUE)
     }
-
+    
     # Check if 'grid_stats$build' is not NULL
     if (!is.null(grid_stats$build)) {
       # Append grid_stats_build to the table
       db_table <- rbind(db_table, grid_stats$build)
     }
-
+    
     # Write the updated table to the specified dataset
     con <- dbConnect(SQLite(), dbname = "data/geelite.db")
     dbWriteTable(conn = con, name = dataset, value = db_table,
                  row.names = FALSE, overwrite = TRUE)
     dbDisconnect(con)
-
+    
   }
-
+  
   # Remove 'grid_stats' and 'table' objects from memory
   rm(grid_stats)
   rm(db_table)
-
+  
 }
 
 # ------------------------------------------------------------------------------
@@ -1254,17 +1265,17 @@ write_state_file <- function(task, regions, source_for_state) {
 #' @keywords internal
 #'
 write_log_file <- function(database_new) {
-
+  
   # Get current system time in the format "YYYY-MM-DD HH:MM"
   sys_time <- format(Sys.time(), "%Y-%m-%d %H:%M")
-
+  
   # Determine log message based on whether database is new or updated
   if (database_new) {
     log_message <- paste0("[Build]:   ", sys_time)
   } else {
     log_message <- paste0("[Update]: ", sys_time)
   }
-
+  
   # Check if the log file exists
   if (file.exists("log/log.txt")) {
     # Append log message to the existing log file
@@ -1273,7 +1284,7 @@ write_log_file <- function(database_new) {
     # Create a new log file and write the log message
     cat(sprintf("%s\n", log_message), file = "log/log.txt")
   }
-
+  
 }
 
 # ------------------------------------------------------------------------------
@@ -1287,7 +1298,7 @@ write_log_file <- function(database_new) {
 #' @return A list of output messages.
 #'
 gen_messages <- function(database_new) {
-
+  
   if (database_new) {
     message <- list(
       "Database successfully built: 'data/geelite.db'.",
@@ -1301,6 +1312,6 @@ gen_messages <- function(database_new) {
       "CLI scripts updated: 'cli/R functions'."
     )
   }
-
+  
   return(message)
 }

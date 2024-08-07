@@ -4,7 +4,7 @@
 \alias{read_db}
 \title{Read Selected SQLite Tables}
 \usage{
-read_db(path, tables = "all")
+read_db(path, tables = "all", freq = NULL, freq_stats = NULL)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
@@ -13,6 +13,15 @@ generated database.}
 \item{tables}{[optional] (character or integer) Names or IDs of the tables
 to be read. Use the \code{fetch_tables} function to identify available table
 names and IDs (default: \code{"all"}).}
+
+\item{freq}{[optional] (character) Specifies the frequency to aggregate the
+data (options: \code{NULL}, \code{"month"}, \code{"year"}). Default is
+\code{NULL}, which means no aggregation.}
+
+\item{freq_stats}{[optional] (character) A character vector of statistical
+functions aggregation is based on (options: \code{NULL}, \code{"mean"},
+\code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}). Default is
+\code{NULL}, which means no aggregation.}
 }
 \value{
 A list where the first element ('grid') is an simple feature (sf)

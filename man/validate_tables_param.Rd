@@ -4,13 +4,20 @@
 \alias{validate_tables_param}
 \title{Validate Tables Parameter}
 \usage{
-validate_tables_param(tables, tables_all)
+validate_tables_param(tables, tables_all, freq, freq_stats)
 }
 \arguments{
 \item{tables}{[mandatory] (character or integer) A vector specifying tables
 to be read.}
 
 \item{tables_all}{[mandatory] (data.frame) All available tables.}
+
+\item{freq}{[mandatory] (character) Specifies the frequency for aggregation
+(options: \code{NULL}, \code{"month"}, \code{"year"}).}
+
+\item{freq_stats}{[optional] (character) A character vector of statistical
+functions aggregation is based on (options: \code{NULL}, \code{"mean"},
+\code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
 }
 \value{
 A character vector of valid table names.
