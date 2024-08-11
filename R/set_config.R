@@ -44,7 +44,7 @@
 #'   set_config(path = "path/to/root/directory",
 #'              regions = c("SO", "YM"),
 #'              source = list(
-#'               "MODIS/006/MOD13A2" = list(
+#'               "MODIS/061/MOD13A1" = list(
 #'                 "NDVI" = c("mean", "sd")
 #'              )
 #'             ),
