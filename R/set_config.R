@@ -2,8 +2,9 @@
 
 #' Initialize the Configuration File
 #'
-#' Creates the configuration file in the specified directory of the generated
-#' database (\code{config/config.json}).
+#' Creates a configuration file in the specified directory of the generated
+#' database (\code{config/config.json}). If the specified directory does not
+#' exist but its parent directory does, it will be created.
 #' @param path [mandatory] (character) The path to the root directory of the
 #' generated database.
 #' @param regions [mandatory] (character) ISO 3166-2 codes of the regions of
@@ -56,11 +57,25 @@ set_config <- function(path, regions, source, start = "2010-01-01", resol,
                        scale = NULL, limit = 10000, crs = NULL,
                        verbose = TRUE) {
 
-  # Validate parameters
-  params <- list(path = path, regions = regions, source = source, start = start,
+  # Validate all parameters except 'path'
+  params <- list(regions = regions, source = source, start = start,
                  resol = resol, scale = scale, limit = limit, crs = crs,
                  verbose = verbose)
   validate_params(params)
+
+  # Extract the parent directory from the given 'path'
+  parent_dir <- dirname(path)
+
+  # Check if the parent directory exists
+  if (!dir.exists(parent_dir)) {
+    stop("The parent directory is not accessible: ", parent_dir)
+  }
+
+  # Check if the path itself exists
+  if (!dir.exists(path)) {
+    # Create the directory if it does not exist
+    dir.create(path, recursive = TRUE)
+  }
 
   # Create configuration list
   config <- params[!names(params) %in% c("path", "verbose")]
