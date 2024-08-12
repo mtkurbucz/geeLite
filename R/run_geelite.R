@@ -120,7 +120,6 @@ get_task <- function() {
     task$scale <- state$scale
     task$resol <- state$resol
     task$limit <- config$limit
-    task$crs <- state$crs
   }
 
   return(task)
@@ -286,7 +285,7 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 #' @return A simple features (sf) object containing grid data.
 #' @importFrom dplyr filter
 #' @importFrom magrittr %>%
-#' @importFrom sf st_crs st_geometry st_transform
+#' @importFrom sf st_crs st_geometry
 #'
 get_grid <- function(task) {
 
@@ -334,11 +333,6 @@ get_grid <- function(task) {
     # Define shapes of regions and create bins based on them
     shapes <- get_shapes(regions$use)
     grid <- get_bins(shapes, task$resol)
-
-    # Set CRS if specified
-    if (length(task$crs) > 0) {
-      sf::st_crs(grid$geometry) <- task$crs
-    }
 
     # Write grid
     write_grid(grid)
@@ -616,13 +610,13 @@ compile_db <- function(task, grid, verbose) {
       images <- get_images(task, cases, dataset, band, regions_new,
                            get0("latest_date", ifnotfound = NULL))
 
-      # Divide 'grid' into batches:
-      # - $b1: Batch_1
-      # - $b2: Batch_2 (only if some, but not all, regs: '+')
-      batches <- get_batches(cases, grid, images$batch_size)
-
       # Skip 'band' if it is up-to-date and 'regions' and 'stats' are unmarked
       if (!images$skip_band) {
+
+        # Divide 'grid' into batches:
+        # - $b1: Batch_1
+        # - $b2: Batch_2 (only if some, but not all, regs: '+')
+        batches <- get_batches(cases, grid, images$batch_size)
 
         # Remove unmarked 'stats' if 'band' is up-to-date and no new regs added
         if (images$skip_update && !any(regions_new)) {

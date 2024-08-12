@@ -24,7 +24,7 @@ test_that("Testing geeLite Package Pipeline", {
 
   regions <- c("SO", "YE")
   source <- list(
-    "MODIS/006/MOD13A2" = list(
+    "MODIS/061/MOD13A2" = list(
       "NDVI" = c("mean", "sd")
     )
   )
@@ -55,7 +55,7 @@ test_that("Testing geeLite Package Pipeline", {
 
   # Check the content of the database
   con <- dbConnect(SQLite(), dbname = db_file)
-  df <- dbReadTable(con, "MODIS/006/MOD13A2")
+  df <- dbReadTable(con, "MODIS/061/MOD13A2")
   expect_equal(sort(unique(df$band)), sort("NDVI"))
   expect_equal(sort(unique(df$stat)), sort(c("mean", "sd")))
   dbDisconnect(con)
@@ -67,22 +67,24 @@ test_that("Testing geeLite Package Pipeline", {
 
   # Testing read_db function
   db <- read_db(path = test_path)
-  expect_equal(names(db), c("grid", "MODIS/006/MOD13A2"))
+  expect_equal(names(db), c("grid", "MODIS/061/MOD13A2"))
   rm(db)
 
   # ----------------------------------------------------------------------------
   # Step 3: Modify configuration file
   # ----------------------------------------------------------------------------
 
-  modify_config(path = test_path,
-                keys = list("regions", c("source", "MODIS/006/MOD13A2", "NDVI")),
-                new_values = list(c("SO", "KE"), c("mean", "max")),
-                verbose = FALSE)
+  modify_config(
+    path = test_path,
+    keys = list("regions", c("source", "MODIS/061/MOD13A2", "NDVI")),
+    new_values = list(c("SO", "KE"), c("mean", "max")),
+    verbose = FALSE
+  )
 
   # Check if the config file is updated
   config <- fromJSON(config_file)
   expected_source <- list(
-    `MODIS/006/MOD13A2` = list(
+    `MODIS/061/MOD13A2` = list(
       NDVI = c("mean", "max")
     )
   )
@@ -96,7 +98,7 @@ test_that("Testing geeLite Package Pipeline", {
 
   # Check the content of the updated database
   con <- dbConnect(SQLite(), dbname = db_file)
-  df <- dbReadTable(con, "MODIS/006/MOD13A2")
+  df <- dbReadTable(con, "MODIS/061/MOD13A2")
   expect_equal(sort(unique(df$band)), sort(c("NDVI")))
   expect_equal(sort(unique(df$stat)), sort(c("mean", "max")))
   grid <- dbReadTable(con, "grid")

@@ -33,9 +33,6 @@
 #' @param limit [optional] (integer) Limit on concurrent zonal statistics
 #' calculations. \code{Limit - 1} bins will be processed at the same time
 #' (default: \code{10000}).
-#' @param crs [optional] (integer) CRS to be assigned to the dataset (default
-#' is the shapefile's original CRS: \code{NULL}). Note: Reprojection is not
-#' recommended unless essential.
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @export
 #' @examples
@@ -54,13 +51,11 @@
 #' @importFrom jsonlite write_json
 #'
 set_config <- function(path, regions, source, start = "2010-01-01", resol,
-                       scale = NULL, limit = 10000, crs = NULL,
-                       verbose = TRUE) {
+                       scale = NULL, limit = 10000, verbose = TRUE) {
 
   # Validate all parameters except 'path'
   params <- list(regions = regions, source = source, start = start,
-                 resol = resol, scale = scale, limit = limit, crs = crs,
-                 verbose = verbose)
+                 resol = resol, scale = scale, limit = limit, verbose = verbose)
   validate_params(params)
 
   # Extract the parent directory from the given 'path'

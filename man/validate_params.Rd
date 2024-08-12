@@ -19,7 +19,6 @@ Validates multiple parameters.
 Validations performed:
 - 'admin_lvl': Validates if it is \code{NULL}, \code{0}, or \code{1}.
 - 'conda': Checks if it is an available Conda environment.
-- 'crs': Checks if it can be recognized by the \code{sf} package.
 - 'file_path': Constructs a file path and checks if the file exists.
 - 'keys': Ensures it is a non-empty list with valid entries.
 - 'limit': Checks if it is a positive numeric value.

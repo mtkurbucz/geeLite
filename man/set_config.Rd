@@ -12,7 +12,6 @@ set_config(
   resol,
   scale = NULL,
   limit = 10000,
-  crs = NULL,
   verbose = TRUE
 )
 }
@@ -51,10 +50,6 @@ datasets of interest. It is a nested list with three levels:
 \item{limit}{[optional] (integer) Limit on concurrent zonal statistics
 calculations. \code{Limit - 1} bins will be processed at the same time
 (default: \code{10000}).}
-
-\item{crs}{[optional] (integer) CRS to be assigned to the dataset (default
-is the shapefile's original CRS: \code{NULL}). Note: Reprojection is not
-recommended unless essential.}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }

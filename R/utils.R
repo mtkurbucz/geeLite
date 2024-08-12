@@ -6,7 +6,6 @@
 #' @details Validations performed:
 #' - 'admin_lvl': Validates if it is \code{NULL}, \code{0}, or \code{1}.
 #' - 'conda': Checks if it is an available Conda environment.
-#' - 'crs': Checks if it can be recognized by the \code{sf} package.
 #' - 'file_path': Constructs a file path and checks if the file exists.
 #' - 'keys': Ensures it is a non-empty list with valid entries.
 #' - 'limit': Checks if it is a positive numeric value.
@@ -20,7 +19,6 @@
 #' @param params [mandatory] (list) Parameters to be validated.
 #' @return Invisible \code{NULL} if all validations pass.
 #' @keywords internal
-#' @importFrom sf st_crs
 #' @importFrom reticulate conda_list
 #'
 validate_params <- function(params) {
@@ -41,18 +39,6 @@ validate_params <- function(params) {
         stop(paste0("Invalid 'conda' parameter.\n",
              "Use 'reticulate::conda_list()$name' to retrieve available Conda ",
              "environments."))
-      }
-
-    } else if (name == "crs") {
-
-      if (length(value) > 0) {
-        crs_obj <- tryCatch({
-          st_crs(value)
-        }, warning = function(warn) {
-          stop("Invalid 'crs' parameter.")
-        }, error = function(err) {
-          stop("Invalid 'crs' parameter.")
-        })
       }
 
     } else if (name == "file_path") {
