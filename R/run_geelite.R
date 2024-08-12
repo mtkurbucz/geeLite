@@ -213,8 +213,8 @@ compare_lists <- function(list_1, list_2) {
 #' @keywords internal
 #' @importFrom cli rule
 #' @importFrom crayon bold blue green
-#' @importFrom rgee ee_Initialize ee_user_info
 #' @importFrom reticulate use_condaenv py_config py_run_string
+#' @importFrom rgee ee_get_earthengine_path() ee_Initialize ee_user_info
 #'
 set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
@@ -228,8 +228,22 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
   }, error = function(e) {
 
-    # If an error occurs, try initializing GEE through Python
-    py_run_string("import ee; ee.Initialize()")
+    # Define the GEE credentials path based on the user's subfolder.
+    if (!is.null(user)) {
+      # Construct the full path to the user's credentials
+      credentials_path <- paste0(
+        gsub("\\\\", "/", ee_get_earthengine_path()), user, "/credentials"
+      )
+
+      # Run Python code to initialize GEE using the custom credentials path
+      py_run_string(paste0(
+        "import ee; ee.Initialize(credentials='", credentials_path, "')"
+      ))
+
+    } else {
+      # If no user is specified, initialize GEE with default credentials
+      py_run_string("import ee; ee.Initialize()")
+    }
 
     # Display session information if verbose is TRUE
     if (verbose) {
