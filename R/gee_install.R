@@ -14,8 +14,9 @@
 #' \dontrun{
 #'   gee_install()
 #' }
-#' @importFrom rgee ee_install
+#' @importFrom rgee ee_install ee_install_upgrade
 #'
 gee_install <- function(conda = "rgee") {
-  ee_install(py_env = conda, earthengine_version = "0.1.370")
+  ee_install(py_env = conda, confirm = FALSE)
+  ee_install_upgrade(version = "0.1.370")
 }

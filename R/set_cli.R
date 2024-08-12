@@ -67,7 +67,7 @@ process_source_files <- function(src_files_path, path) {
 process_single_file <- function(src_file_path, path) {
   src_name <- basename(src_file_path)
   src_content <- readLines(src_file_path)
-  if (src_name != "fetch_regions.R") {
+  if (!src_name %in% c("fetch_regions.R", "gee_install.R")) {
     src_content[1] <- paste0("path <- '", path, "'")
   }
   writeLines(src_content, con = file.path(path, "cli", src_name))

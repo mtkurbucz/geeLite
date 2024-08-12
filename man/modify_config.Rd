@@ -28,7 +28,7 @@ specified keys.
 \dontrun{
   modify_config(
     path = "path/to/root/directory",
-    keys = list("limit", c("source", "MODIS/006/MOD13A2", "NDVI")),
+    keys = list("limit", c("source", "MODIS/061/MOD13A2", "NDVI")),
     new_values = list(1000, "mean")
   )
 }

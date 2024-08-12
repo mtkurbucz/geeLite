@@ -227,7 +227,7 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
   }, error = function(e) {
 
-    # Define the GEE credentials path based on the user's subfolder.
+    # Define the GEE credentials path based on the user's subfolder
     if (!is.null(user)) {
       # Construct the full path to the user's credentials
       credentials_path <- paste0(
