@@ -34,7 +34,7 @@ path <- "path/where/the/database/will/be/generated/"
 set_config(path = path,
            regions = c("SO", "YE"),
            source = list(
-              "MODIS/006/MOD13A2" = list(
+              "MODIS/061/MOD13A2" = list(
                 "NDVI" = c("mean", "sd")
               )
            ),
@@ -66,8 +66,8 @@ run_geelite(path = path)
 ``` r
 modify_config(path = path,
               target = list(
-                c("source", "MODIS/006/MOD13A2", "NDVI"),
-                c("source", "MODIS/006/MOD13A2", "EVI")
+                c("source", "MODIS/061/MOD13A2", "NDVI"),
+                c("source", "MODIS/061/MOD13A2", "EVI")
               ),
               values = list(
                 c("mean", "min", "max"),
@@ -106,13 +106,13 @@ Rscript /path/to/geeLite/cli/set_cli.R --path "path/where/the/database/will/be/g
 cd "path/where/the/database/will/be/generated/"
 
 # Setting the configuration file:
-Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/006/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
+Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
 
 # Collecting GEE data based on the configuration file:
 Rscript cli/run_geelite.R
 
 # Modifying the configuration file:
-Rscript cli/modify_config.R --target "list(c('source', 'MODIS/006/MOD13A2', 'NDVI'), c('source', 'MODIS/006/MOD13A2', 'EVI'))" --values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
+Rscript cli/modify_config.R --target "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'), c('source', 'MODIS/061/MOD13A2', 'EVI'))" --values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
 
 # Updating the database based on the configuration file:
 Rscript cli/run_geelite.R
