@@ -19,6 +19,7 @@ Imports:
   tidyrgee,
   RSQLite,
   stringr,
+  crayon,
   dplyr,
   h3jsr,
   utils,

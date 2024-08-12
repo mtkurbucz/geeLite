@@ -59,8 +59,9 @@ recommended unless essential.}
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
 \description{
-Creates the configuration file in the specified directory of the generated
-database (\code{config/config.json}).
+Creates a configuration file in the specified directory of the generated
+database (\code{config/config.json}). If the specified directory does not
+exist but its parent directory does, it will be created.
 }
 \examples{
 # Example: Setting up the configuration file
@@ -68,7 +69,7 @@ database (\code{config/config.json}).
   set_config(path = "path/to/root/directory",
              regions = c("SO", "YM"),
              source = list(
-              "MODIS/006/MOD13A2" = list(
+              "MODIS/061/MOD13A1" = list(
                 "NDVI" = c("mean", "sd")
              )
             ),

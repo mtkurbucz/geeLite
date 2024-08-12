@@ -214,7 +214,7 @@ compare_lists <- function(list_1, list_2) {
 #' @importFrom cli rule
 #' @importFrom crayon bold blue green
 #' @importFrom reticulate use_condaenv py_config py_run_string
-#' @importFrom rgee ee_get_earthengine_path() ee_Initialize ee_user_info
+#' @importFrom rgee ee_get_earthengine_path ee_Initialize ee_user_info
 #'
 set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
