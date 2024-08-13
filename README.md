@@ -53,7 +53,7 @@ run_geelite(path = path)
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
 #>  ✔ User: not defined 
-#>  ✔ Initializing Google Earth Engine: ✔ Initializing Google Earth Engine:  DONE!
+#>  ✔ Initializing Google Earth Engine:  DONE!
 #>  ✔ Earth Engine account: user
 #>  ✔ Python path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe 
 #> ────────────────────────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ run_geelite(path = path)
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
 #>  ✔ User: not defined 
-#>  ✔ Initializing Google Earth Engine: ✔ Initializing Google Earth Engine:  DONE!
+#>  ✔ Initializing Google Earth Engine:  DONE!
 #>  ✔ Earth Engine account: user
 #>  ✔ Python path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe
 #> ────────────────────────────────────────────────────────────────────────────────
