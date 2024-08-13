@@ -52,10 +52,10 @@ run_geelite(path = path)
 #> ────────────────────────────────────────────────────────────────────────────────
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
-#>  ✔ user: not_defined 
+#>  ✔ User: not defined 
 #>  ✔ Initializing Google Earth Engine: ✔ Initializing Google Earth Engine:  DONE!
 #>  ✔ Earth Engine account: user
-#>  ✔ Python Path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe 
+#>  ✔ Python path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe 
 #> ────────────────────────────────────────────────────────────────────────────────
 #>
 #> ℹ Database built successfully.
@@ -85,10 +85,10 @@ run_geelite(path = path)
 #> ────────────────────────────────────────────────────────────────────────────────
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
-#>  ✔ user: not_defined 
+#>  ✔ User: not defined 
 #>  ✔ Initializing Google Earth Engine: ✔ Initializing Google Earth Engine:  DONE!
 #>  ✔ Earth Engine account: user
-#>  ✔ Python Path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe
+#>  ✔ Python path: C:/.../AppData/Local/r-miniconda/envs/rgee/python.exe
 #> ────────────────────────────────────────────────────────────────────────────────
 #>
 #> ℹ Database updated successfully.
