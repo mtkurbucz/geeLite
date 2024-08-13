@@ -38,10 +38,10 @@ run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
 
   # Collect and store grid statistics and create or update supplementary files
   print_version(verbose)            # Display version if 'verbose' is TRUE
+  set_depend(conda, user, verbose)  # Activate necessary dependencies
   set_dirs(rebuild)                 # Create required subdirectories in the path
   task <- get_task()                # Define task using config and state files
   grid <- get_grid(task)            # Generate the grid based on the task
-  set_depend(conda, user, verbose)  # Activate necessary dependencies
   compile_db(task, grid, verbose)   # Build or update the database
   set_cli(path, FALSE)              # Initialize CLI files
 
@@ -67,6 +67,145 @@ print_version <- function(verbose) {
     cli_h1("")
     cat("\n")
   }
+}
+
+# ------------------------------------------------------------------------------
+
+#' Set Dependencies
+#'
+#' Authenticates the GEE account and activates the specified Conda environment.
+#' @param conda [optional] (character) Name of the virtual Conda environment
+#' installed and used by the \code{rgee} package (default: \code{"rgee"}).
+#' @param user [optional] (character) Used to create a directory within the
+#' path \code{~/.config/earthengine/}. This directory stores all the
+#' credentials associated with a specific Google account (default: \code{NULL}).
+#' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
+#' @keywords internal
+#' @importFrom reticulate use_condaenv py_run_string
+#' @importFrom rgee ee_clean_user_credentials ee_get_earthengine_path
+#' @importFrom rgee ee_Initialize
+#'
+set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
+
+  # Activate the specified Conda environment
+  use_condaenv(conda, required = TRUE)
+
+  attempt <- 1
+  success <- FALSE
+
+  while (attempt <= 3 && !success) {
+    tryCatch({
+      # Attempt to authenticate and initialize GEE
+      ee_Initialize(user = user, quiet = TRUE)
+      success <- TRUE # Mark success and exit the loop
+
+    }, error = function(e) {
+      tryCatch({
+        if (!is.null(user)) {
+          # Construct the full path to the user's credentials if missing
+          if (!exists("credentials_path")) {
+            credentials_path <- paste0(
+              gsub("\\\\", "/", ee_get_earthengine_path()), user, "/credentials"
+            )
+          }
+          # Run Python code to initialize GEE using the custom credentials path
+          py_run_string(paste0(
+            "import ee; ee.Initialize(credentials='", credentials_path, "')"
+          ))
+        } else {
+          # If no user is specified, initialize GEE with default credentials
+          py_run_string("import ee; ee.Initialize()")
+        }
+        success <- TRUE # Mark success and exit the loop
+
+      }, error = function(e) {
+        # Remove expired user credentials
+        ee_clean_user_credentials(user = user)
+      })
+    })
+
+    attempt <- attempt + 1
+  }
+
+  if (!success) {
+    stop(paste0("It looks like your EE credential has expired.\n",
+                "Try running rgee::ee_Authenticate() again or clean your ",
+                "credentials rgee::ee_clean_user_credentials()."))
+  }
+
+  if (verbose) {
+    # Print GEE and Python environment information
+    gee_message(user)
+  }
+}
+
+# ------------------------------------------------------------------------------
+
+#' Print Google Earth Engine and Python Environment Information
+#'
+#' This function prints out information related to the Google Earth Engine
+#' (GEE) and Python environment setup.
+#' @param user [mandatory] (character) Used to create a directory within the
+#' path \code{~/.config/earthengine/}. This directory stores all the
+#' credentials associated with a specific Google account.
+#' @keywords internal
+#' @importFrom cli rule
+#' @importFrom crayon green blue
+#' @importFrom reticulate py_config
+#' @importFrom rgee ee_version ee_user_info
+#'
+gee_message <- function (user) {
+
+  # Collect information for output
+  rgee_version <- as.character(packageVersion("rgee"))
+  ee_version <- as.character(ee_version())
+  user_info <- if (is.null(user)) "not defined" else user
+  account_info <- ee_user_info(quiet = TRUE)[1]
+  py_path_info <- py_config()$python
+
+  # Print the header with rgee and Earth Engine versions
+  header <- rule(
+    left = paste0("rgee ", rgee_version),
+    right = paste0("earthengine-api ", ee_version)
+  )
+
+  cat(header, "\n")
+
+  # Print user information
+  cat(
+    green("\u2714"),
+    blue("User:"),
+    green(user_info),
+    "\n"
+  )
+
+  # Confirm Google Earth Engine initialization
+  cat(
+    green("\u2714"),
+    blue("Initializing Google Earth Engine:"),
+    green("DONE!"),
+    "\n"
+  )
+
+  # Print Earth Engine account information
+  cat(
+    green("\u2714"),
+    blue("Earth Engine account:"),
+    green(account_info),
+    "\n"
+  )
+
+  # Print Python path
+  cat(
+    green("\u2714"),
+    blue("Python path:"),
+    green(py_path_info),
+    "\n"
+  )
+
+  # Print a concluding rule for visual separation
+  cat(rule(), "\n\n")
+
 }
 
 # ------------------------------------------------------------------------------
@@ -196,81 +335,6 @@ compare_lists <- function(list_1, list_2) {
   }
 
   return(result)
-}
-
-# ------------------------------------------------------------------------------
-
-#' Set Dependencies
-#'
-#' Authenticates the GEE account and activates the specified Conda environment.
-#' @param conda [optional] (character) Name of the virtual Conda environment
-#' installed and used by the \code{rgee} package (default: \code{"rgee"}).
-#' @param user [optional] (character) Used to create a directory within the
-#' path \code{~/.config/earthengine/}. This directory stores all the
-#' credentials associated with a specific Google account (default: \code{NULL}).
-#' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
-#' @keywords internal
-#' @importFrom cli rule
-#' @importFrom crayon bold blue green
-#' @importFrom reticulate use_condaenv py_config py_run_string
-#' @importFrom rgee ee_get_earthengine_path ee_Initialize ee_user_info
-#'
-set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
-
-  # Activate the specified Conda environment
-  use_condaenv(conda, required = TRUE)
-
-  tryCatch({
-
-    # Attempt to authenticate and initialize GEE
-    ee_Initialize(user = user, quiet = !verbose)
-
-  }, error = function(e) {
-
-    # Define the GEE credentials path based on the user's subfolder
-    if (!is.null(user)) {
-      # Construct the full path to the user's credentials
-      credentials_path <- paste0(
-        gsub("\\\\", "/", ee_get_earthengine_path()), user, "/credentials"
-      )
-
-      # Run Python code to initialize GEE using the custom credentials path
-      py_run_string(paste0(
-        "import ee; ee.Initialize(credentials='", credentials_path, "')"
-      ))
-
-    } else {
-      # If no user is specified, initialize GEE with default credentials
-      py_run_string("import ee; ee.Initialize()")
-    }
-
-    # Display session information if verbose is TRUE
-    if (verbose) {
-      account_info <- ee_user_info(quiet = TRUE)[1]
-      py_path_info <- py_config()$python
-
-      cat(
-        green("\u2714"),
-        blue("Earth Engine account:"),
-        bold(green(account_info)),
-        "\n"
-      )
-
-      cat(
-        green("\u2714"),
-        blue("Python Path:"),
-        bold(green(py_path_info)),
-        "\n"
-      )
-
-      cat("\n", rule(), "\n")
-    }
-
-  })
-
-  if (verbose) {
-    cat("\n")
-  }
 }
 
 # ------------------------------------------------------------------------------
