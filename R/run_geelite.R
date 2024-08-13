@@ -93,13 +93,19 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
   attempt <- 1
   success <- FALSE
 
-  while (attempt <= 3 && !success) {
+  while (attempt <= 2 && !success) {
     tryCatch({
       # Attempt to authenticate and initialize GEE
       ee_Initialize(user = user, quiet = TRUE)
       success <- TRUE # Mark success and exit the loop
 
     }, error = function(e) {
+
+      # Stop if interrupted
+      if (grepl("KeyboardInterrupt", e$message)) {
+        stop(e)
+      }
+
       tryCatch({
         if (!is.null(user)) {
           # Construct the full path to the user's credentials if missing
@@ -109,8 +115,8 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
             )
           }
           # Run Python code to initialize GEE using the custom credentials path
-          py_run_string(paste0(
-            "import ee; ee.Initialize(credentials='", credentials_path, "')"
+          py_run_string(sprintf(
+            "import ee; ee.Initialize(credentials='%s')", credentials_path
           ))
         } else {
           # If no user is specified, initialize GEE with default credentials
