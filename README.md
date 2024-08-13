@@ -15,7 +15,7 @@ Google Earth Engine (GEE).
 ``` r
 # install.packages("devtools")
 devtools::install_github("mtkurbucz/geeLite")
-rgee::ee_install(py_env = "rgee")
+geeLite::gee_install()
 ```
 
 ## Usage
