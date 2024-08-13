@@ -2,7 +2,7 @@ Package: geeLite
 Type: Package
 Title: Building Custom SQLite Databases from Google Earth Engine
 Version: 0.1.0
-Author: Marcell T. Kurbucz <kurbucz.marcell@worldbank.org>, Bo Pieter Johannes Andrée <bandree@worldbank.org>
+Author: Marcell T. Kurbucz <mkurbucz@worldbank.org>, Bo Pieter Johannes Andrée <bandree@worldbank.org>
 Maintainer: Marcell T. Kurbucz <mkurbucz@worldbank.org>
 Description: This package streamlines the process of building, managing, and updating local SQLite databases that contain geospatial features extracted from Google Earth Engine.
 License: Mozilla Public License 2.0 | file LICENSE
@@ -29,7 +29,7 @@ Imports:
   rgee,
   cli,
   sf
-Suggests: 
+Suggests:
   testthat (>= 3.0.0),
   rnaturalearthdata,
   geojsonio,
