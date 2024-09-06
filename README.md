@@ -97,7 +97,7 @@ run_geelite(path = path)
 6) Reading the generated database:
 
 ``` r
-# Reading SQLite tables:
+# Reading SQLite tables without aggregation:
 db <- read_db(path = "path/to/db")
 
 # Reading SQLite tables aggregated by monthly mean:
