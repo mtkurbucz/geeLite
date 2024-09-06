@@ -29,7 +29,7 @@ library(geeLite)
 2) Setting the configuration file:
 
 ``` r
-path <- "path/where/the/database/will/be/generated/"
+path <- "path/to/db"
 
 set_config(path = path,
            regions = c("SO", "YE"),
@@ -39,7 +39,7 @@ set_config(path = path,
               )
            ),
            resol = 3,
-           start = "2020-01-01")
+           start = "2010-01-01")
 ```
 
 3) Collecting GEE data based on the configuration file:
@@ -94,16 +94,26 @@ run_geelite(path = path)
 #> ℹ Database updated successfully.
 ```
 
+6) Reading the Generated Database:
+
+``` r
+# Reading SQLite tables:
+db <- read_db(path = "path/to/db")
+
+# Reading SQLite tables aggregated by monthly mean:
+db_aggr <- read_db(path = "path/to/db", freq = "month", temp_stats = "mean")
+```
+
 ## Command-Line Interface (CLI) Usage
 
 You can execute the previous example using the command-line interface (CLI) as follows:
 
 ``` bash
 # Setting the CLI files:
-Rscript /path/to/geeLite/cli/set_cli.R --path "path/where/the/database/will/be/generated/"
+Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
 
 # Change directory to where the database will be generated:
-cd "path/where/the/database/will/be/generated/"
+cd "path/to/db"
 
 # Setting the configuration file:
 Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
