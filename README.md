@@ -94,7 +94,7 @@ run_geelite(path = path)
 #> ℹ Database updated successfully.
 ```
 
-6) Reading the Generated Database:
+6) Reading the generated database:
 
 ``` r
 # Reading SQLite tables:
