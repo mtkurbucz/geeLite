@@ -112,7 +112,7 @@ db <- read_db(path = path, freq = "month", funs = list(
 You can execute the previous example using the command-line interface (CLI) as follows:
 
 ``` bash
-# Setting the CLI files:
+# Setting the CLI files
 Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
 
 # Change directory to where the database will be generated
