@@ -13,7 +13,7 @@ option_list <- list(
   "by an optional two-digit state code).")),
   make_option(c("--source"), type = "character", help = paste0("[mandatory] ",
   "Description of GEE datasets of interest. It is a nested list with three ",
-  "levels ('datasets', 'bands', and 'spat_stats').")),
+  "levels ('datasets', 'bands', and 'zonal_stats').")),
   make_option(c("--resol"), type = "integer", help = paste0("[mandatory] ",
   "Resolution of the H3 bin.")),
   make_option(c("--scale"), type = "integer", default = NULL,

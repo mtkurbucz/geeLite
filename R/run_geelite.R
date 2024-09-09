@@ -392,6 +392,12 @@ get_grid <- function(task) {
 
     # Update grid if new regions ('+') or removed regions ('-') exist
     if (length(regions$add) > 0 || length(regions$drop) > 0) {
+
+      # Set the CRS to WGS 84 (EPSG:4326)
+      grid <- st_as_sf(grid, sf_column_name = "geometry")
+      sf::st_crs(grid) <- 4326
+
+      # Write grid
       write_grid(grid)
     }
 
@@ -405,10 +411,6 @@ get_grid <- function(task) {
     write_grid(grid)
 
   }
-
-  # Set the CRS to WGS 84 (EPSG:4326)
-  grid <- st_as_sf(grid, sf_column_name = "geometry")
-  sf::st_crs(grid) <- 4326
 
   return(grid)
 }
@@ -590,7 +592,7 @@ write_grid <- function(grid) {
 compile_db <- function(task, grid, verbose) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  id <- spat_stat <- NULL
+  id <- zonal_stat <- NULL
 
   # Initialize an empty list to track 'datasets', 'bands', and 'stats'
   source_for_state <- list()
@@ -665,7 +667,7 @@ compile_db <- function(task, grid, verbose) {
       if (j == 1) {
         if (length(bands$drop) > 0 || length(stats$drop) > 0) {
           db_table <- db_table %>%
-            filter(!(band %in% bands$drop) & !(spat_stat %in% stats$drop))
+            filter(!(band %in% bands$drop) & !(zonal_stat %in% stats$drop))
         }
       }
 
@@ -1250,7 +1252,7 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
     # Reorder columns
     select(id, band, stat, everything()) %>%
     # Rename columns by replacing hyphens with underscores in dates
-    rename_all( ~ c("id", "band", "spat_stat",
+    rename_all( ~ c("id", "band", "zonal_stat",
                     gsub("-", "_", as.character(dates))))
 
   return(batch_stat)
@@ -1319,7 +1321,7 @@ write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
     if (!is.null(grid_stats$update)) {
       # Merge the existing table with 'grid_stats$update'
       db_table <- merge(db_table, grid_stats$update,
-                        by = c("id", "band", "spat_stat"), all.x = TRUE)
+                        by = c("id", "band", "zonal_stat"), all.x = TRUE)
     }
 
     # Check if 'grid_stats$build' is not NULL

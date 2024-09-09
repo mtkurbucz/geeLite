@@ -30,7 +30,7 @@ datasets of interest. It is a nested list with three levels:
     \describe{
       \item{bands}{(list) Bands of interest (e.g., \code{"NDVI"}).
         \describe{
-          \item{spat_stats}{(character) Statistics of interest
+          \item{zonal_stats}{(character) Statistics of interest
           (options: \code{"mean"}, \code{"median"}, \code{"min"},
           \code{"max"}, \code{"sd"}).}
         }

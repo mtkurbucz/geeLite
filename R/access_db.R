@@ -47,7 +47,7 @@ fetch_tables <- function(path) {
 #' @param freq [optional] (character) Specifies the frequency to aggregate the
 #' data (options: \code{NULL}, \code{"month"}, \code{"year"}). Default is
 #' \code{NULL}, which means no aggregation.
-#' @param temp_stats [optional] (character) A character vector of statistical
+#' @param funs [optional] (character) A character vector of statistical
 #' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 #' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}). Default is
 #' \code{NULL}, which means no aggregation.
@@ -61,16 +61,21 @@ fetch_tables <- function(path) {
 #'                      tables = "grid")
 #' }
 #'
-read_db <- function(path, tables = "all", freq = NULL, temp_stats = NULL) {
+read_db <- function(path, tables = "all", freq = "month",
+                    funs = function(x) mean(x, na.rm = TRUE)) {
+
+  if (is.function(funs)) {
+    funs <- list(funs)
+  }
 
   # Validate the 'path' parameter and retrieve the list of all tables
   tables_all <- fetch_tables(path)
 
   # Determine which tables to read and validate the 'tables' parameter
-  tables <- validate_tables_param(tables, tables_all, freq, temp_stats)
+  tables <- validate_tables_param(tables, tables_all, freq, funs)
 
   # Read tables from the database
-  db_list <- read_tables(path, tables, freq, temp_stats)
+  db_list <- read_tables(path, tables = tables, freq, funs)
 
   return(db_list)
 }
@@ -104,7 +109,7 @@ filter_and_sort_tables <- function(tables) {
 #' @param tables [mandatory] (character) A vector of table names to be read.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
 #' data (options: \code{"month"}, \code{"year"}).
-#' @param temp_stats [optional] (character) A character vector of statistical
+#' @param funs [optional] (character) A character vector of statistical
 #' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 #' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
 #' @return A list of tables read from the database.
@@ -114,7 +119,7 @@ filter_and_sort_tables <- function(tables) {
 #' @importFrom dplyr rename select
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
 #'
-read_tables <- function(path, tables, freq = NULL, temp_stats = NULL) {
+read_tables <- function(path, tables, freq, funs) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   GEOMETRY <- NULL
@@ -137,7 +142,7 @@ read_tables <- function(path, tables, freq = NULL, temp_stats = NULL) {
         db_list[[table]] <- aggr_by_freq(
           table = dbReadTable(con, table, check.names = FALSE),
           freq = freq,
-          temp_stats = temp_stats
+          funs = funs
         )
       }
     }
@@ -158,7 +163,7 @@ read_tables <- function(path, tables, freq = NULL, temp_stats = NULL) {
 #' generated SQLite table.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
 #' data (options: \code{"month"}, \code{"year"}).
-#' @param temp_stats [optional] (character) A character vector of statistical
+#' @param funs [optional] (character) A character vector of statistical
 #' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 #' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
 #' @return A data frame in wide format where columns represent aggregated values
@@ -169,15 +174,15 @@ read_tables <- function(path, tables, freq = NULL, temp_stats = NULL) {
 #' @importFrom tidyr all_of pivot_longer pivot_wider
 #' @importFrom dplyr arrange bind_rows group_by mutate summarise
 #'
-aggr_by_freq <- function(table, freq, temp_stats) {
+aggr_by_freq <- function(table, freq, funs) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  . <- band <- freq_date <- id <- spat_stat <- value <- NULL
+  . <- band <- freq_date <- id <- zonal_stat <- value <- NULL
 
   # Identify date columns
   date_cols <- names(table) %>%
     grep("_", ., value = TRUE) %>%
-    grep("spat_stat", ., value = TRUE, invert = TRUE)
+    grep("zonal_stat", ., value = TRUE, invert = TRUE)
 
   # Convert to long format
   df_long <- table %>%
@@ -197,15 +202,19 @@ aggr_by_freq <- function(table, freq, temp_stats) {
   list_aggr <- list()
 
   # Loop through each statistic and aggregate the data
-  for (temp_stat in temp_stats) {
-    fun <- match.fun(temp_stat)
+  for (fun in funs) {
+
+    # Extract the body of the function and convert it to a string
+    fun_name <- deparse(body(fun))
+
+    # Apply the function to summarize and group the data
     df_aggr <- df_long %>%
-      group_by(id, band, spat_stat, freq_date) %>%
-      summarise(value = fun(value, na.rm = TRUE), .groups = "drop") %>%
-      mutate(temp_stat = temp_stat)
+      group_by(id, band, zonal_stat, freq_date) %>%
+      summarise(value = fun(value), .groups = "drop") %>%
+      mutate(fun = fun_name)
 
     # Append the result to the list
-    list_aggr[[temp_stat]] <- df_aggr
+    list_aggr[[fun_name]] <- df_aggr
   }
 
   # Combine all results into a single data frame
@@ -215,7 +224,7 @@ aggr_by_freq <- function(table, freq, temp_stats) {
   df_wide <- df_aggr %>%
     mutate(freq_date = format(freq_date, "%Y_%m_%d")) %>%
     pivot_wider(names_from = freq_date, values_from = value) %>%
-    arrange(id, band, spat_stat, temp_stat)
+    arrange(id, band, zonal_stat, fun)
 
   return(df_wide)
 }

@@ -4,7 +4,7 @@
 \alias{validate_tables_param}
 \title{Validate Tables Parameter}
 \usage{
-validate_tables_param(tables, tables_all, freq, temp_stats)
+validate_tables_param(tables, tables_all, freq, funs)
 }
 \arguments{
 \item{tables}{[mandatory] (character or integer) A vector specifying tables
@@ -15,7 +15,7 @@ to be read.}
 \item{freq}{[mandatory] (character) Specifies the frequency for aggregation
 (options: \code{NULL}, \code{"month"}, \code{"year"}).}
 
-\item{temp_stats}{[optional] (character) A character vector of statistical
+\item{funs}{[optional] (character) A character vector of statistical
 functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
 }

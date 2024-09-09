@@ -4,7 +4,7 @@
 \alias{read_tables}
 \title{Read Tables from Database}
 \usage{
-read_tables(path, tables, freq = NULL, temp_stats = NULL)
+read_tables(path, tables, freq, funs)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
@@ -15,7 +15,7 @@ generated database.}
 \item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
 data (options: \code{"month"}, \code{"year"}).}
 
-\item{temp_stats}{[optional] (character) A character vector of statistical
+\item{funs}{[optional] (character) A character vector of statistical
 functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
 }

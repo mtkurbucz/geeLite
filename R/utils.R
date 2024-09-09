@@ -37,8 +37,8 @@ validate_params <- function(params) {
 
       if (!any(value %in% conda_list()$name)) {
         stop(paste0("Invalid 'conda' parameter.\n",
-             "Use 'reticulate::conda_list()$name' to retrieve available Conda ",
-             "environments."))
+                    "Use 'reticulate::conda_list()$name' to retrieve available Conda ",
+                    "environments."))
       }
 
     } else if (name == "file_path") {
@@ -51,7 +51,7 @@ validate_params <- function(params) {
         } else {
           stop(sprintf("File not found: %s", value),
                paste0("\nUse 'run_geelite' to generate the database and its ",
-               "supplementary files."))
+                      "supplementary files."))
         }
       }
 
@@ -179,10 +179,10 @@ validate_source_param <- function(source) {
                     "'.\nIt must contain non-empty character vectors."))
       }
 
-      # Check each statistic (spat_stats) in the band
-      for (spat_stat in band) {
-        if (!is.character(spat_stat) || spat_stat == "") {
-          stop(paste0("Invalid statistic '", spat_stat, "' in band '",
+      # Check each statistic (zonal_stats) in the band
+      for (zonal_stat in band) {
+        if (!is.character(zonal_stat) || zonal_stat == "") {
+          stop(paste0("Invalid statistic '", zonal_stat, "' in band '",
                       band_name, "' of dataset '", dataset_name,
                       "'.\nIt must be a non-empty character string."))
         }
@@ -203,22 +203,16 @@ validate_source_param <- function(source) {
 #' @param tables_all [mandatory] (data.frame) All available tables.
 #' @param freq [mandatory] (character) Specifies the frequency for aggregation
 #' (options: \code{NULL}, \code{"month"}, \code{"year"}).
-#' @param temp_stats [optional] (character) A character vector of statistical
+#' @param funs [optional] (character) A character vector of statistical
 #' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 #' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
 #' @return A character vector of valid table names.
 #' @keywords internal
 #'
-validate_tables_param <- function(tables, tables_all, freq, temp_stats) {
+validate_tables_param <- function(tables, tables_all, freq, funs) {
 
   # Define valid options for 'freq' and 'temp_stats'
-  valid_freq <- c(NULL, "month", "year")
-  valid_temp_stats <- c(NULL, "mean", "median", "min", "max", "sd")
-
-  # Check if only one of 'freq' or 'temp_stats' is specified
-  if (is.null(freq) != is.null(temp_stats)) {
-    stop("Both 'freq' and 'temp_stats' must either be both NULL or both specified.")
-  }
+  valid_freq <- c("month", "year")
 
   # Validate 'freq' if it is not NULL
   if (!is.null(freq)) {
@@ -230,14 +224,10 @@ validate_tables_param <- function(tables, tables_all, freq, temp_stats) {
     }
   }
 
-  # Validate 'temp_stats' if it is not NULL
-  if (!is.null(temp_stats)) {
-    if (!all(temp_stats %in% valid_temp_stats)) {
-      stop("Invalid 'temp_stats' parameter.\n",
-           "Valid options are ",
-           paste(sprintf("'%s'", valid_temp_stats[!is.null(valid_temp_stats)]),
-                 collapse = ", "), ".")
-    }
+  # Validate 'funs': it should be a list of functions
+  if (!is.list(funs) || !all(sapply(funs, is.function))) {
+    stop("Invalid 'funs' parameter.\n",
+         "It must be a function or a list of functions.")
   }
 
   if (any(tables == "all")) {
@@ -254,13 +244,6 @@ validate_tables_param <- function(tables, tables_all, freq, temp_stats) {
   if (length(tables) == 0) {
     stop("Invalid 'tables' parameter.\n",
          "Use 'fetch_tables' to retrieve valid table names.")
-  }
-
-  if (!is.null(temp_stats)) {
-    if (!all(temp_stats %in% valid_temp_stats)) {
-      stop("Invalid 'temp_stats' parameter. Valid entries are ",
-           paste(valid_temp_stats, collapse = ", "), ".")
-    }
   }
 
   return(tables)
