@@ -97,11 +97,14 @@ run_geelite(path = path)
 6) Reading the generated database:
 
 ``` r
-# Reading SQLite tables without aggregation:
+# Reading SQLite tables aggregated by the monthly mean
 db <- read_db(path = path)
 
-# Reading SQLite tables aggregated by monthly mean:
-db_aggr <- read_db(path = path, freq = "month", temp_stats = "mean")
+# Reading SQLite tables with multiple aggregation functions applied
+db <- read_db(path = path, freq = "month", funs = list(
+  function(x) mean(x, na.rm = TRUE),
+  function(x) sd(x, na.rm = TRUE)
+))
 ```
 
 ## Command-Line Interface (CLI) Usage
@@ -112,18 +115,18 @@ You can execute the previous example using the command-line interface (CLI) as f
 # Setting the CLI files:
 Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
 
-# Change directory to where the database will be generated:
+# Change directory to where the database will be generated
 cd "path/to/db"
 
-# Setting the configuration file:
+# Setting the configuration file
 Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
 
-# Collecting GEE data based on the configuration file:
+# Collecting GEE data based on the configuration file
 Rscript cli/run_geelite.R
 
-# Modifying the configuration file:
+# Modifying the configuration file
 Rscript cli/modify_config.R --keys "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'), c('source', 'MODIS/061/MOD13A2', 'EVI'))" --new_values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
 
-# Updating the database based on the configuration file:
+# Updating the database based on the configuration file
 Rscript cli/run_geelite.R
 ```
