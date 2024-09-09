@@ -50,7 +50,7 @@
 #' @importFrom cli cli_alert_info
 #' @importFrom jsonlite write_json
 #'
-set_config <- function(path, regions, source, start = "2010-01-01", resol,
+set_config <- function(path, regions, source, start = "2020-01-01", resol,
                        scale = NULL, limit = 10000, verbose = TRUE) {
 
   # Validate all parameters except 'path'
