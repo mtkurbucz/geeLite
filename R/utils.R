@@ -179,11 +179,11 @@ validate_source_param <- function(source) {
                     "'.\nIt must contain non-empty character vectors."))
       }
 
-      # Check each statistic (stats) in the band
-      for (stat in band) {
-        if (!is.character(stat) || stat == "") {
-          stop(paste0("Invalid statistic '", stat, "' in band '", band_name,
-                      "' of dataset '", dataset_name,
+      # Check each statistic (spat_stats) in the band
+      for (spat_stat in band) {
+        if (!is.character(spat_stat) || spat_stat == "") {
+          stop(paste0("Invalid statistic '", spat_stat, "' in band '",
+                      band_name, "' of dataset '", dataset_name,
                       "'.\nIt must be a non-empty character string."))
         }
       }
@@ -203,23 +203,23 @@ validate_source_param <- function(source) {
 #' @param tables_all [mandatory] (data.frame) All available tables.
 #' @param freq [mandatory] (character) Specifies the frequency for aggregation
 #' (options: \code{NULL}, \code{"month"}, \code{"year"}).
-#' @param freq_stats [optional] (character) A character vector of statistical
+#' @param temp_stats [optional] (character) A character vector of statistical
 #' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 #' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
 #' @return A character vector of valid table names.
 #' @keywords internal
 #'
-validate_tables_param <- function(tables, tables_all, freq, freq_stats) {
-  
-  # Define valid options for 'freq' and 'freq_stats'
+validate_tables_param <- function(tables, tables_all, freq, temp_stats) {
+
+  # Define valid options for 'freq' and 'temp_stats'
   valid_freq <- c(NULL, "month", "year")
-  valid_freq_stats <- c(NULL, "mean", "median", "min", "max", "sd")
-  
-  # Check if only one of 'freq' or 'freq_stats' is specified
-  if (is.null(freq) != is.null(freq_stats)) {
-    stop("Both 'freq' and 'freq_stats' must either be both NULL or both specified.")
+  valid_temp_stats <- c(NULL, "mean", "median", "min", "max", "sd")
+
+  # Check if only one of 'freq' or 'temp_stats' is specified
+  if (is.null(freq) != is.null(temp_stats)) {
+    stop("Both 'freq' and 'temp_stats' must either be both NULL or both specified.")
   }
-  
+
   # Validate 'freq' if it is not NULL
   if (!is.null(freq)) {
     if (!(freq %in% valid_freq)) {
@@ -229,17 +229,17 @@ validate_tables_param <- function(tables, tables_all, freq, freq_stats) {
                  collapse = ", "), ".")
     }
   }
-  
-  # Validate 'freq_stats' if it is not NULL
-  if (!is.null(freq_stats)) {
-    if (!all(freq_stats %in% valid_freq_stats)) {
-      stop("Invalid 'freq_stats' parameter.\n",
+
+  # Validate 'temp_stats' if it is not NULL
+  if (!is.null(temp_stats)) {
+    if (!all(temp_stats %in% valid_temp_stats)) {
+      stop("Invalid 'temp_stats' parameter.\n",
            "Valid options are ",
-           paste(sprintf("'%s'", valid_freq_stats[!is.null(valid_freq_stats)]),
+           paste(sprintf("'%s'", valid_temp_stats[!is.null(valid_temp_stats)]),
                  collapse = ", "), ".")
     }
   }
-  
+
   if (any(tables == "all")) {
     tables <- tables_all$name
   } else if (is.numeric(tables)) {
@@ -250,19 +250,19 @@ validate_tables_param <- function(tables, tables_all, freq, freq_stats) {
   } else {
     tables <- NULL
   }
-  
+
   if (length(tables) == 0) {
     stop("Invalid 'tables' parameter.\n",
          "Use 'fetch_tables' to retrieve valid table names.")
   }
-  
-  if (!is.null(freq_stats)) {
-    if (!all(freq_stats %in% valid_freq_stats)) {
-      stop("Invalid 'freq_stats' parameter. Valid entries are ",
-           paste(valid_freq_stats, collapse = ", "), ".")
+
+  if (!is.null(temp_stats)) {
+    if (!all(temp_stats %in% valid_temp_stats)) {
+      stop("Invalid 'temp_stats' parameter. Valid entries are ",
+           paste(valid_temp_stats, collapse = ", "), ".")
     }
   }
-  
+
   return(tables)
 }
 

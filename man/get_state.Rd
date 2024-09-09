@@ -19,7 +19,7 @@ Reads and prints the state file in a human-readable format.
 \examples{
 # Example: Printing the state file
 \dontrun{
-  get_state(path = "path/to/root/directory")
+  get_state(path = "path/to/db")
 }
 
 }

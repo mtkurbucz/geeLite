@@ -4,7 +4,7 @@
 \alias{aggr_by_freq}
 \title{Aggregate Data by Frequency}
 \usage{
-aggr_by_freq(table, freq, freq_stats)
+aggr_by_freq(table, freq, temp_stats)
 }
 \arguments{
 \item{table}{[mandatory] (data.frame) A wide-format data frame object of the
@@ -13,7 +13,7 @@ generated SQLite table.}
 \item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
 data (options: \code{"month"}, \code{"year"}).}
 
-\item{freq_stats}{[optional] (character) A character vector of statistical
+\item{temp_stats}{[optional] (character) A character vector of statistical
 functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
 }

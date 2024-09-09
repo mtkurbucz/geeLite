@@ -13,19 +13,16 @@ option_list <- list(
   "by an optional two-digit state code).")),
   make_option(c("--source"), type = "character", help = paste0("[mandatory] ",
   "Description of GEE datasets of interest. It is a nested list with three ",
-  "levels ('datasets', 'bands', and 'stats').")),
+  "levels ('datasets', 'bands', and 'spat_stats').")),
   make_option(c("--resol"), type = "integer", help = paste0("[mandatory] ",
   "Resolution of the H3 bin.")),
   make_option(c("--scale"), type = "integer", default = NULL,
   help = "[optional] Scale of images before processing."),
-  make_option(c("--start"), type = "character", default = "2000-01-01",
+  make_option(c("--start"), type = "character", default = "2020-01-01",
   help = "[optional] First date of the data collection."),
   make_option(c("--limit"), type = "integer", default = 10000, help = paste0(
   "[optional] GEE’s limit to process multiple bins simultaneously. Limit - 1 ",
   "bins will be processed at the same time.")),
-  make_option(c("--crs"), type = "integer", default = NULL, help = paste0(
-  "[optional] CRS to be assigned to the dataset (default is the shapefile's ",
-  "CRS).")),
   make_option(c("--verbose"), type = "logical", default = TRUE,
   help = "[optional] Display messages.")
 )

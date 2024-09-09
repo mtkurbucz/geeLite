@@ -20,6 +20,6 @@ directory of the generated database (\code{data/geelite.db}).
 \examples{
 # Example: Printing the names of available SQLite tables
 \dontrun{
-  fetch_tables(path = "path/to/root/directory")
+  fetch_tables(path = "path/to/db")
 }
 }

@@ -14,11 +14,10 @@
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @export
 #' @examples
-# <-------------------------- Expand this code code example to 1) create a config, 2) read that config, 3) modify the config, 4) read the modified config to confirm the modification. 
 #' # Example: Modifying the configuration file
 #' \dontrun{
 #'   modify_config(
-#'     path = "path/to/root/directory",
+#'     path = "path/to/db",
 #'     keys = list("limit", c("source", "MODIS/061/MOD13A2", "NDVI")),
 #'     new_values = list(1000, "mean")
 #'   )

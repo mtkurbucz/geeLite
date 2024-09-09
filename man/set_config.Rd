@@ -8,7 +8,7 @@ set_config(
   path,
   regions,
   source,
-  start = "2010-01-01",
+  start = "2020-01-01",
   resol,
   scale = NULL,
   limit = 10000,
@@ -30,7 +30,7 @@ datasets of interest. It is a nested list with three levels:
     \describe{
       \item{bands}{(list) Bands of interest (e.g., \code{"NDVI"}).
         \describe{
-          \item{stats}{(character) Statistics of interest
+          \item{spat_stats}{(character) Statistics of interest
           (options: \code{"mean"}, \code{"median"}, \code{"min"},
           \code{"max"}, \code{"sd"}).}
         }
@@ -61,7 +61,7 @@ exist but its parent directory does, it will be created.
 \examples{
 # Example: Setting up the configuration file
 \dontrun{
-  set_config(path = "path/to/root/directory",
+  set_config(path = "path/to/db",
              regions = c("SO", "YM"),
              source = list(
               "MODIS/061/MOD13A1" = list(

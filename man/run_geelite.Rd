@@ -33,7 +33,7 @@ SQLite format (\code{data/geelite.db}), initializes CLI files
 \examples{
 # Example: Build a Grid Statistics Database
 \dontrun{
-  run_geelite(path = "path/to/root/directory")
+  run_geelite(path = "path/to/db")
 }
 
 }

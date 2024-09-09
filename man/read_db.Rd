@@ -4,7 +4,7 @@
 \alias{read_db}
 \title{Read Selected SQLite Tables}
 \usage{
-read_db(path, tables = "all", freq = NULL, freq_stats = NULL)
+read_db(path, tables = "all", freq = NULL, temp_stats = NULL)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
@@ -18,7 +18,7 @@ names and IDs (default: \code{"all"}).}
 data (options: \code{NULL}, \code{"month"}, \code{"year"}). Default is
 \code{NULL}, which means no aggregation.}
 
-\item{freq_stats}{[optional] (character) A character vector of statistical
+\item{temp_stats}{[optional] (character) A character vector of statistical
 functions aggregation is based on (options: \code{NULL}, \code{"mean"},
 \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}). Default is
 \code{NULL}, which means no aggregation.}
@@ -34,7 +34,7 @@ Reads SQLite tables from the specified directory of the generated database
 \examples{
 # Example: Reading the 'grid' table
 \dontrun{
-  db_list <- read_db(path = "path/to/root/directory",
+  db_list <- read_db(path = "path/to/db",
                      tables = "grid")
 }
 

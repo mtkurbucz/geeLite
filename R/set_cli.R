@@ -12,7 +12,7 @@
 #' @examples
 #' # Example: Setting up CLI files
 #' \dontrun{
-#'   set_cli(path = "path/to/root/directory")
+#'   set_cli(path = "path/to/db")
 #' }
 #'
 set_cli <- function(path, verbose = TRUE) {

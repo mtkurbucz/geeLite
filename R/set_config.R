@@ -17,7 +17,7 @@
 #'     \describe{
 #'       \item{bands}{(list) Bands of interest (e.g., \code{"NDVI"}).
 #'         \describe{
-#'           \item{stats}{(character) Statistics of interest
+#'           \item{spat_stats}{(character) Statistics of interest
 #'           (options: \code{"mean"}, \code{"median"}, \code{"min"},
 #'           \code{"max"}, \code{"sd"}).}
 #'         }
@@ -29,7 +29,7 @@
 #' @param scale [optional] (integer) Scale of images before processing
 #' (default: \code{NULL}).
 #' @param start [optional] (date) First date of the data collection
-#' (default: \code{"2020-01-01"}).
+#' (default: \code{"2010-01-01"}).
 #' @param limit [optional] (integer) Limit on concurrent zonal statistics
 #' calculations. \code{Limit - 1} bins will be processed at the same time
 #' (default: \code{10000}).
@@ -38,7 +38,7 @@
 #' @examples
 #' # Example: Setting up the configuration file
 #' \dontrun{
-#'   set_config(path = "path/to/root/directory",
+#'   set_config(path = "path/to/db",
 #'              regions = c("SO", "YM"),
 #'              source = list(
 #'               "MODIS/061/MOD13A1" = list(

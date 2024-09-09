@@ -10,7 +10,7 @@
 #' @examples
 #' # Example: Printing the configuration file
 #' \dontrun{
-#'   get_config(path = "path/to/root/directory")
+#'   get_config(path = "path/to/db")
 #' }
 #'
 get_config <- function(path) {
@@ -29,7 +29,7 @@ get_config <- function(path) {
 #' @examples
 #' # Example: Printing the state file
 #' \dontrun{
-#'   get_state(path = "path/to/root/directory")
+#'   get_state(path = "path/to/db")
 #' }
 #'
 get_state <- function(path) {

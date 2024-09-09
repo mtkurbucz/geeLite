@@ -15,21 +15,21 @@
 #'   gee_install()
 #' }
 #' @importFrom rgee ee_install ee_install_upgrade
-#' @importFrom utils installed.packages install.packages
+#' @importFrom utils old.packages install.packages installed.packages
 #'
 gee_install <- function(conda = "rgee") {
 
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  install_packages_updates <- NULL
+
   # Install any missing required packages
   pkgs <- c("geojsonio", "rnaturalearthdata")
-  #if (length(pkgs <- setdiff(pkgs, rownames(installed.packages()))))
-  #install.packages(pkgs)
-  #rm(pkgs)
-  install.package.updates <- function(packages) {
+  install_package_updates <- function(packages) {
     # Function to check if a package is installed
     is_installed <- function(pkg) {
       is.element(pkg, installed.packages()[, "Package"])
     }
-    
+
     # Function to detach a package if it is loaded
     detach_package <- function(pkg) {
       pkg_name <- paste("package:", pkg, sep = "")
@@ -38,7 +38,7 @@ gee_install <- function(conda = "rgee") {
         message(sprintf("Package '%s' has been detached.", pkg))
       }
     }
-    
+
     # Function to install or update a package
     install_or_update <- function(pkg) {
       if (!is_installed(pkg)) {
@@ -48,7 +48,7 @@ gee_install <- function(conda = "rgee") {
       } else {
         # Detach the package if it is loaded
         detach_package(pkg)
-        
+
         # Check for available updates
         update_needed <- old.packages()
         if (!is.null(update_needed) && pkg %in% rownames(update_needed)) {
@@ -60,15 +60,15 @@ gee_install <- function(conda = "rgee") {
         }
       }
     }
-    
+
     # Apply the function to all packages
     sapply(packages, install_or_update)
-    
+
     # Reload the packages
     lapply(packages, library, character.only = TRUE)
   }
-  install.packages.updates(pkgs)
-  
+  install_packages_updates(pkgs)
+
   # Install 'rgee' dependencies and specify the 'earthengine-api' version
   ee_install(py_env = conda, confirm = FALSE)
   ee_install_upgrade(version = "0.1.370")

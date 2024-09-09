@@ -20,7 +20,7 @@ directory of the generated database (\code{cli/...}).
 \examples{
 # Example: Setting up CLI files
 \dontrun{
-  set_cli(path = "path/to/root/directory")
+  set_cli(path = "path/to/db")
 }
 
 }

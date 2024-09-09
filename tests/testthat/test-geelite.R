@@ -57,7 +57,7 @@ test_that("Testing geeLite Package Pipeline", {
   con <- dbConnect(SQLite(), dbname = db_file)
   df <- dbReadTable(con, "MODIS/061/MOD13A2")
   expect_equal(sort(unique(df$band)), sort("NDVI"))
-  expect_equal(sort(unique(df$stat)), sort(c("mean", "sd")))
+  expect_equal(sort(unique(df$spat_stat)), sort(c("mean", "sd")))
   dbDisconnect(con)
 
   # Testing get_config and get_state functions
@@ -100,7 +100,7 @@ test_that("Testing geeLite Package Pipeline", {
   con <- dbConnect(SQLite(), dbname = db_file)
   df <- dbReadTable(con, "MODIS/061/MOD13A2")
   expect_equal(sort(unique(df$band)), sort(c("NDVI")))
-  expect_equal(sort(unique(df$stat)), sort(c("mean", "max")))
+  expect_equal(sort(unique(df$spat_stat)), sort(c("mean", "max")))
   grid <- dbReadTable(con, "grid")
   expect_equal(sort(unique(grid$iso)), sort(c("SO", "KE")))
   dbDisconnect(con)

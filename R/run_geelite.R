@@ -22,7 +22,7 @@
 #' @examples
 #' # Example: Build a Grid Statistics Database
 #' \dontrun{
-#'   run_geelite(path = "path/to/root/directory")
+#'   run_geelite(path = "path/to/db")
 #' }
 #'
 run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
@@ -226,9 +226,11 @@ gee_message <- function (user) {
 #'
 set_dirs <- function(rebuild) {
   dirs <- c("data", "log", "cli", "state")
+  state_path <- "state/state.json"
   for (dir in dirs) {
-    if (dir.exists(dir) && rebuild) {
-      # If the directory exists and rebuild is TRUE, remove and recreate it
+    if (dir.exists(dir) && (rebuild || !file.exists(state_path))) {
+      # If the directory exists and either rebuild is TRUE or the state file is
+      # missing, remove the existing directory and recreate it
       unlink(dir, recursive = TRUE)
       dir.create(dir)
     } else if (!dir.exists(dir)) {
@@ -353,9 +355,10 @@ compare_lists <- function(list_1, list_2) {
 #' for data collection.
 #' @keywords internal
 #' @return A simple features (sf) object containing grid data.
+#' @importFrom sf st_crs
 #' @importFrom dplyr filter
 #' @importFrom magrittr %>%
-#' @importFrom sf st_crs st_geometry
+#' @importFrom sf st_crs st_as_sf st_geometry
 #'
 get_grid <- function(task) {
 
@@ -378,18 +381,12 @@ get_grid <- function(task) {
     # Add new regions ('+')
     if (length(regions$add) > 0) {
 
-      # Transform the grid format to facilitate merge with added bins
-      grid <- grid %>%
-        select(-attr(st_geometry(grid), "geometry")) %>%
-        as.data.frame()
-
       # Define shapes of added regions and create bins based on them
       shapes <- get_shapes(regions$add)
       grid_add <- get_bins(shapes, task$resol)
 
       # Combine existing grid with newly added bins
       grid <- rbind(grid, grid_add)
-      sf::st_crs(grid$geometry) <- sf::st_crs(grid_add$geometry)$input
 
     }
 
@@ -408,6 +405,10 @@ get_grid <- function(task) {
     write_grid(grid)
 
   }
+
+  # Set the CRS to WGS 84 (EPSG:4326)
+  grid <- st_as_sf(grid, sf_column_name = "geometry")
+  sf::st_crs(grid) <- 4326
 
   return(grid)
 }
@@ -541,7 +542,11 @@ read_grid <- function() {
   # Disconnect from the database
   dbDisconnect(con)
 
-  return(grid)
+  # Transform the grid format to facilitate merge with added bins
+  grid_df <- as.data.frame(grid)
+  grid_df$geometry <- sf::st_geometry(grid)
+
+  return(grid_df)
 }
 
 # ------------------------------------------------------------------------------
@@ -585,7 +590,7 @@ write_grid <- function(grid) {
 compile_db <- function(task, grid, verbose) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  id <- stat <- NULL
+  id <- spat_stat <- NULL
 
   # Initialize an empty list to track 'datasets', 'bands', and 'stats'
   source_for_state <- list()
@@ -660,7 +665,7 @@ compile_db <- function(task, grid, verbose) {
       if (j == 1) {
         if (length(bands$drop) > 0 || length(stats$drop) > 0) {
           db_table <- db_table %>%
-            filter(!(band %in% bands$drop) & !(stat %in% stats$drop))
+            filter(!(band %in% bands$drop) & !(spat_stat %in% stats$drop))
         }
       }
 
@@ -1245,7 +1250,8 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
     # Reorder columns
     select(id, band, stat, everything()) %>%
     # Rename columns by replacing hyphens with underscores in dates
-    rename_all( ~ c("id", "band", "stat", gsub("-", "_", as.character(dates))))
+    rename_all( ~ c("id", "band", "spat_stat",
+                    gsub("-", "_", as.character(dates))))
 
   return(batch_stat)
 }
@@ -1313,7 +1319,7 @@ write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
     if (!is.null(grid_stats$update)) {
       # Merge the existing table with 'grid_stats$update'
       db_table <- merge(db_table, grid_stats$update,
-                        by = c("id", "band", "stat"), all.x = TRUE)
+                        by = c("id", "band", "spat_stat"), all.x = TRUE)
     }
 
     # Check if 'grid_stats$build' is not NULL

@@ -19,7 +19,7 @@ Reads and prints the configuration file in a human-readable format.
 \examples{
 # Example: Printing the configuration file
 \dontrun{
-  get_config(path = "path/to/root/directory")
+  get_config(path = "path/to/db")
 }
 
 }
