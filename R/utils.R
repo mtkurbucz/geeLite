@@ -195,6 +195,79 @@ validate_source_param <- function(source) {
 
 # ------------------------------------------------------------------------------
 
+#' Validate Tables Parameter
+#'
+#' Validates the 'tables' parameter and determines which tables to read.
+#' @param tables [mandatory] (character or integer) A vector specifying tables
+#' to be read.
+#' @param tables_all [mandatory] (data.frame) All available tables.
+#' @param freq [mandatory] (character) Specifies the frequency for aggregation
+#' (options: \code{NULL}, \code{"month"}, \code{"year"}).
+#' @param freq_stats [optional] (character) A character vector of statistical
+#' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
+#' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
+#' @return A character vector of valid table names.
+#' @keywords internal
+#'
+validate_tables_param <- function(tables, tables_all, freq, freq_stats) {
+  
+  # Define valid options for 'freq' and 'freq_stats'
+  valid_freq <- c(NULL, "month", "year")
+  valid_freq_stats <- c(NULL, "mean", "median", "min", "max", "sd")
+  
+  # Check if only one of 'freq' or 'freq_stats' is specified
+  if (is.null(freq) != is.null(freq_stats)) {
+    stop("Both 'freq' and 'freq_stats' must either be both NULL or both specified.")
+  }
+  
+  # Validate 'freq' if it is not NULL
+  if (!is.null(freq)) {
+    if (!(freq %in% valid_freq)) {
+      stop("Invalid 'freq' parameter.\n",
+           "Valid options are ",
+           paste(sprintf("'%s'", valid_freq[!is.null(valid_freq)]),
+                 collapse = ", "), ".")
+    }
+  }
+  
+  # Validate 'freq_stats' if it is not NULL
+  if (!is.null(freq_stats)) {
+    if (!all(freq_stats %in% valid_freq_stats)) {
+      stop("Invalid 'freq_stats' parameter.\n",
+           "Valid options are ",
+           paste(sprintf("'%s'", valid_freq_stats[!is.null(valid_freq_stats)]),
+                 collapse = ", "), ".")
+    }
+  }
+  
+  if (any(tables == "all")) {
+    tables <- tables_all$name
+  } else if (is.numeric(tables)) {
+    tables <- tables_all$name[tables]
+    tables <- tables[!is.na(tables)]
+  } else if (is.character(tables)) {
+    tables <- intersect(tables, tables_all$name)
+  } else {
+    tables <- NULL
+  }
+  
+  if (length(tables) == 0) {
+    stop("Invalid 'tables' parameter.\n",
+         "Use 'fetch_tables' to retrieve valid table names.")
+  }
+  
+  if (!is.null(freq_stats)) {
+    if (!all(freq_stats %in% valid_freq_stats)) {
+      stop("Invalid 'freq_stats' parameter. Valid entries are ",
+           paste(valid_freq_stats, collapse = ", "), ".")
+    }
+  }
+  
+  return(tables)
+}
+
+# ------------------------------------------------------------------------------
+
 #' Output Message
 #'
 #' Outputs message if verbose mode is \code{TRUE}.
