@@ -14,6 +14,7 @@
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @export
 #' @examples
+# <-------------------------- Expand this code code example to 1) create a config, 2) read that config, 3) modify the config, 4) read the modified config to confirm the modification. 
 #' # Example: Modifying the configuration file
 #' \dontrun{
 #'   modify_config(
