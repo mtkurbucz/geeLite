@@ -102,7 +102,7 @@ run_geelite(path = path)
 # 2) Aggregate data to default monthly frequency ('freq') using default mean aggregation ('aggr_funs').
 db <- read_db(path = path)
 
-# Fetch SQLite with multiple aggregation functions applied:
+# Fetch SQLite with multiple aggregation functions applied
 db <- read_db(path = path, aggr_funs = list(
   function(x) mean(x, na.rm = TRUE),
   function(x) sd(x, na.rm = TRUE)
