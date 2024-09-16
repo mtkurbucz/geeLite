@@ -35,22 +35,29 @@ fetch_tables <- function(path) {
 
 # ------------------------------------------------------------------------------
 
-#' Read Selected SQLite Tables
+#' Read and Transform SQLite Tables
 #'
 #' Reads SQLite tables from the specified directory of the generated database
-#' (\code{data/geelite.db}) into a list object.
+#' (\code{data/geelite.db}), transforms the data into a daily frequency, then
+#' reprojects it to the desired frequency (e.g., weekly, monthly). The result
+#' is returned as a list object.
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
 #' @param tables [optional] (character or integer) Names or IDs of the tables
 #' to be read. Use the \code{fetch_tables} function to identify available table
 #' names and IDs (default: \code{"all"}).
 #' @param freq [optional] (character) Specifies the frequency to aggregate the
-#' data (options: \code{NULL}, \code{"month"}, \code{"year"}). Default is
-#' \code{NULL}, which means no aggregation.
-#' @param funs [optional] (character) A character vector of statistical
-#' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-#' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}). Default is
-#' \code{NULL}, which means no aggregation.
+#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
+#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+#' \code{"year"}). The default is \code{"month"}.
+#' @param prep_fun [optional] (function) A single function used for
+#' pre-processing the time series data before aggregation. This function
+#' converts the data to a daily frequency and applies any necessary data
+#' transformation or imputation. Default is linear interpolation:
+#' \code{imputeTS::na_interpolation(x, option = "linear")}.
+#' @param aggr_funs [optional] (function or list) Specifies the aggregation
+#' function(s) to be applied to the data. This can be a single function or a
+#' list of functions (default: \code{mean(x, na.rm = TRUE)}).
 #' @return A list where the first element ('grid') is an simple feature (sf)
 #' object, and subsequent elements are data frame objects.
 #' @export
@@ -60,22 +67,26 @@ fetch_tables <- function(path) {
 #'   db_list <- read_db(path = "path/to/db",
 #'                      tables = "grid")
 #' }
+#' @importFrom imputeTS na_interpolation
 #'
 read_db <- function(path, tables = "all", freq = "month",
-                    funs = function(x) mean(x, na.rm = TRUE)) {
+                    prep_fun = function(x)
+                    na_interpolation(x, option = "linear"),
+                    aggr_funs = function(x) mean(x, na.rm = TRUE)) {
 
-  if (is.function(funs)) {
-    funs <- list(funs)
+  # Convert 'aggr_funs' to a list if a single function is provided
+  if (is.function(aggr_funs)) {
+    aggr_funs <- list(aggr_funs)
   }
 
   # Validate the 'path' parameter and retrieve the list of all tables
   tables_all <- fetch_tables(path)
 
   # Determine which tables to read and validate the 'tables' parameter
-  tables <- validate_tables_param(tables, tables_all, freq, funs)
+  tables <- validate_tables_param(tables, tables_all, freq, prep_fun, aggr_funs)
 
   # Read tables from the database
-  db_list <- read_tables(path, tables = tables, freq, funs)
+  db_list <- read_tables(path, tables = tables, freq, prep_fun, aggr_funs)
 
   return(db_list)
 }
@@ -108,10 +119,16 @@ filter_and_sort_tables <- function(tables) {
 #' generated database.
 #' @param tables [mandatory] (character) A vector of table names to be read.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"month"}, \code{"year"}).
-#' @param funs [optional] (character) A character vector of statistical
-#' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-#' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
+#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
+#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+#' \code{"year"}).
+#' @param prep_fun [mandatory] (function) A single function used for
+#' pre-processing the time series data before aggregation. This function
+#' converts the data to a daily frequency and applies any necessary data
+#' transformation or imputation.
+#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
+#' function(s) to be applied to the data. This can be a single function or a
+#' list of functions.
 #' @return A list of tables read from the database.
 #' @keywords internal
 #' @importFrom sf st_read
@@ -119,7 +136,7 @@ filter_and_sort_tables <- function(tables) {
 #' @importFrom dplyr rename select
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
 #'
-read_tables <- function(path, tables, freq, funs) {
+read_tables <- function(path, tables, freq, prep_fun, aggr_funs) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   GEOMETRY <- NULL
@@ -142,7 +159,8 @@ read_tables <- function(path, tables, freq, funs) {
         db_list[[table]] <- aggr_by_freq(
           table = dbReadTable(con, table, check.names = FALSE),
           freq = freq,
-          funs = funs
+          prep_fun = prep_fun,
+          aggr_funs = aggr_funs
         )
       }
     }
@@ -162,10 +180,16 @@ read_tables <- function(path, tables, freq, funs) {
 #' @param table [mandatory] (data.frame) A wide-format data frame object of the
 #' generated SQLite table.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"month"}, \code{"year"}).
-#' @param funs [optional] (character) A character vector of statistical
-#' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-#' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
+#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
+#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+#' \code{"year"}).
+#' @param prep_fun [mandatory] (function) A single function used for
+#' pre-processing the time series data before aggregation. This function
+#' converts the data to a daily frequency and applies any necessary data
+#' transformation or imputation.
+#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
+#' function(s) to be applied to the data. This can be a single function or a
+#' list of functions.
 #' @return A data frame in wide format where columns represent aggregated values
 #' for each frequency period and statistic applied.
 #' @keywords internal
@@ -174,7 +198,7 @@ read_tables <- function(path, tables, freq, funs) {
 #' @importFrom tidyr all_of pivot_longer pivot_wider
 #' @importFrom dplyr arrange bind_rows group_by mutate summarise
 #'
-aggr_by_freq <- function(table, freq, funs) {
+aggr_by_freq <- function(table, freq, prep_fun, aggr_funs) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   . <- band <- freq_date <- id <- zonal_stat <- value <- NULL
@@ -189,32 +213,32 @@ aggr_by_freq <- function(table, freq, funs) {
     pivot_longer(all_of(date_cols), names_to = "date", values_to = "value") %>%
     mutate(date = ymd(gsub("_", "-", date)))
 
+  # Expand to daily frequency, filling in missing dates
+  df_exp <- expand_to_daily(df_long, prep_fun)
+
   # Define the frequency
-  if (freq == "month") {
-    df_long <- df_long %>%
-      mutate(freq_date = floor_date(date, "month"))
-  } else if (freq == "year") {
-    df_long <- df_long %>%
-      mutate(freq_date = floor_date(date, "year"))
-  }
+  df_exp <- df_exp %>%
+    mutate(freq_date = floor_date(date, freq))
 
   # Initialize an empty list to store the aggregated data frames
   list_aggr <- list()
 
   # Loop through each statistic and aggregate the data
-  for (fun in funs) {
+  for (aggr_fun in aggr_funs) {
 
     # Extract the body of the function and convert it to a string
-    fun_name <- deparse(body(fun))
+    prep_fun_name <- deparse(body(prep_fun))
+    aggr_fun_name <- deparse(body(aggr_fun))
 
     # Apply the function to summarize and group the data
-    df_aggr <- df_long %>%
+    df_aggr <- df_exp %>%
       group_by(id, band, zonal_stat, freq_date) %>%
-      summarise(value = fun(value), .groups = "drop") %>%
-      mutate(fun = fun_name)
+      summarise(value = aggr_fun(value), .groups = "drop") %>%
+      mutate(prep_fun = prep_fun_name,
+             aggr_fun = aggr_fun_name)
 
     # Append the result to the list
-    list_aggr[[fun_name]] <- df_aggr
+    list_aggr[[aggr_fun_name]] <- df_aggr
   }
 
   # Combine all results into a single data frame
@@ -224,7 +248,44 @@ aggr_by_freq <- function(table, freq, funs) {
   df_wide <- df_aggr %>%
     mutate(freq_date = format(freq_date, "%Y_%m_%d")) %>%
     pivot_wider(names_from = freq_date, values_from = value) %>%
-    arrange(id, band, zonal_stat, fun)
+    arrange(id, band, zonal_stat, prep_fun, aggr_fun)
 
   return(df_wide)
+}
+
+# ------------------------------------------------------------------------------
+
+#' Expand Data to Daily Frequency
+#'
+#' This function expands the input data frame (\code{df_long}) to a daily
+#' frequency, filling in any missing dates within the observed range. A
+#' preprocessing function (\code{prep_fun}) is applied to handle missing or
+#' interpolated values.
+#' @param df_long [mandatory] (data.frame) A long-format data frame with at
+#' least the columns \code{id}, \code{band}, \code{zonal_stat}, and \code{date}.
+#' @param prep_fun [mandatory] (function) A single function used for
+#' pre-processing the time series data before aggregation. This function
+#' converts the data to a daily frequency and applies any necessary data
+#' transformation or imputation.
+#' @return A data frame with daily dates and preprocessed \code{value} column.
+#' @keywords internal
+#' @importFrom dplyr group_by mutate ungroup
+#' @importFrom tidyr complete
+#'
+expand_to_daily <- function(df_long, prep_fun) {
+
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  id <- band <- value <- zonal_stat <- NULL
+
+  # Generate the full range of dates
+  date_range <- seq(min(df_long$date), max(df_long$date), by = "day")
+
+  # Expand the data to daily frequency and applying the preprocessing function
+  df_exp <- df_long %>%
+    group_by(id, band, zonal_stat) %>%
+    complete(date = date_range) %>%
+    mutate(value = prep_fun(value)) %>%
+    ungroup()
+
+  return(df_exp)
 }

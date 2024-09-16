@@ -10,7 +10,9 @@
 #' @param regions [mandatory] (character) ISO 3166-2 codes of the regions of
 #' interest (two letters for countries and additional characters for states).
 #' @param source [mandatory] (list) Description of Google Earth Engine (GEE)
-#' datasets of interest. It is a nested list with three levels:
+#' datasets of interest (the complete data catalog of GEE is accessible at:
+#' \url{https://developers.google.com/earth-engine/datasets/catalog}). It is a
+#' nested list with three levels:
 #' \describe{
 #'   \item{names}{(list) Datasets of interest (e.g.,
 #'   \code{"MODIS/061/MOD13A1"}).

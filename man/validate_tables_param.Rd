@@ -4,7 +4,7 @@
 \alias{validate_tables_param}
 \title{Validate Tables Parameter}
 \usage{
-validate_tables_param(tables, tables_all, freq, funs)
+validate_tables_param(tables, tables_all, freq, prep_fun, aggr_funs)
 }
 \arguments{
 \item{tables}{[mandatory] (character or integer) A vector specifying tables
@@ -12,12 +12,19 @@ to be read.}
 
 \item{tables_all}{[mandatory] (data.frame) All available tables.}
 
-\item{freq}{[mandatory] (character) Specifies the frequency for aggregation
-(options: \code{NULL}, \code{"month"}, \code{"year"}).}
+\item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
+data (options: \code{"day"}, \code{"week"}, \code{"month"},
+\code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+\code{"year"}).}
 
-\item{funs}{[optional] (character) A character vector of statistical
-functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-\code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
+\item{prep_fun}{[mandatory] (function) A single function used for
+pre-processing the time series data before aggregation. This function
+converts the data to a daily frequency and applies any necessary data
+transformation or imputation.}
+
+\item{aggr_funs}{[mandatory] (function or list) Specifies the aggregation
+function(s) to be applied to the data. This can be a single function or a
+list of functions.}
 }
 \value{
 A character vector of valid table names.

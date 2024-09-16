@@ -4,18 +4,25 @@
 \alias{aggr_by_freq}
 \title{Aggregate Data by Frequency}
 \usage{
-aggr_by_freq(table, freq, funs)
+aggr_by_freq(table, freq, prep_fun, aggr_funs)
 }
 \arguments{
 \item{table}{[mandatory] (data.frame) A wide-format data frame object of the
 generated SQLite table.}
 
 \item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
-data (options: \code{"month"}, \code{"year"}).}
+data (options: \code{"day"}, \code{"week"}, \code{"month"},
+\code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+\code{"year"}).}
 
-\item{funs}{[optional] (character) A character vector of statistical
-functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-\code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).}
+\item{prep_fun}{[mandatory] (function) A single function used for
+pre-processing the time series data before aggregation. This function
+converts the data to a daily frequency and applies any necessary data
+transformation or imputation.}
+
+\item{aggr_funs}{[mandatory] (function or list) Specifies the aggregation
+function(s) to be applied to the data. This can be a single function or a
+list of functions.}
 }
 \value{
 A data frame in wide format where columns represent aggregated values

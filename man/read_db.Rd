@@ -2,13 +2,14 @@
 % Please edit documentation in R/access_db.R
 \name{read_db}
 \alias{read_db}
-\title{Read Selected SQLite Tables}
+\title{Read and Transform SQLite Tables}
 \usage{
 read_db(
   path,
   tables = "all",
   freq = "month",
-  funs = function(x) mean(x, na.rm = TRUE)
+  prep_fun = function(x) na_interpolation(x, option = "linear"),
+  aggr_funs = function(x) mean(x, na.rm = TRUE)
 )
 }
 \arguments{
@@ -20,13 +21,19 @@ to be read. Use the \code{fetch_tables} function to identify available table
 names and IDs (default: \code{"all"}).}
 
 \item{freq}{[optional] (character) Specifies the frequency to aggregate the
-data (options: \code{NULL}, \code{"month"}, \code{"year"}). Default is
-\code{NULL}, which means no aggregation.}
+data (options: \code{"day"}, \code{"week"}, \code{"month"},
+\code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+\code{"year"}). The default is \code{"month"}.}
 
-\item{funs}{[optional] (character) A character vector of statistical
-functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-\code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}). Default is
-\code{NULL}, which means no aggregation.}
+\item{prep_fun}{[optional] (function) A single function used for
+pre-processing the time series data before aggregation. This function
+converts the data to a daily frequency and applies any necessary data
+transformation or imputation. Default is linear interpolation:
+\code{imputeTS::na_interpolation(x, option = "linear")}.}
+
+\item{aggr_funs}{[optional] (function or list) Specifies the aggregation
+function(s) to be applied to the data. This can be a single function or a
+list of functions (default: \code{mean(x, na.rm = TRUE)}).}
 }
 \value{
 A list where the first element ('grid') is an simple feature (sf)
@@ -34,7 +41,9 @@ object, and subsequent elements are data frame objects.
 }
 \description{
 Reads SQLite tables from the specified directory of the generated database
-(\code{data/geelite.db}) into a list object.
+(\code{data/geelite.db}), transforms the data into a daily frequency, then
+reprojects it to the desired frequency (e.g., weekly, monthly). The result
+is returned as a list object.
 }
 \examples{
 # Example: Reading the 'grid' table
@@ -42,5 +51,4 @@ Reads SQLite tables from the specified directory of the generated database
   db_list <- read_db(path = "path/to/db",
                      tables = "grid")
 }
-
 }

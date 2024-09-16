@@ -37,8 +37,8 @@ validate_params <- function(params) {
 
       if (!any(value %in% conda_list()$name)) {
         stop(paste0("Invalid 'conda' parameter.\n",
-                    "Use 'reticulate::conda_list()$name' to retrieve available Conda ",
-                    "environments."))
+                    "Use 'reticulate::conda_list()$name' to retrieve ",
+                    "available Conda environments."))
       }
 
     } else if (name == "file_path") {
@@ -201,18 +201,26 @@ validate_source_param <- function(source) {
 #' @param tables [mandatory] (character or integer) A vector specifying tables
 #' to be read.
 #' @param tables_all [mandatory] (data.frame) All available tables.
-#' @param freq [mandatory] (character) Specifies the frequency for aggregation
-#' (options: \code{NULL}, \code{"month"}, \code{"year"}).
-#' @param funs [optional] (character) A character vector of statistical
-#' functions aggregation is based on (options: \code{NULL}, \code{"mean"},
-#' \code{"median"}, \code{"min"}, \code{"max"}, \code{"sd"}).
+#' @param freq [mandatory] (character) Specifies the frequency to aggregate the
+#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
+#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
+#' \code{"year"}).
+#' @param prep_fun [mandatory] (function) A single function used for
+#' pre-processing the time series data before aggregation. This function
+#' converts the data to a daily frequency and applies any necessary data
+#' transformation or imputation.
+#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
+#' function(s) to be applied to the data. This can be a single function or a
+#' list of functions.
 #' @return A character vector of valid table names.
 #' @keywords internal
 #'
-validate_tables_param <- function(tables, tables_all, freq, funs) {
+validate_tables_param <- function(tables, tables_all, freq, prep_fun,
+                                  aggr_funs) {
 
   # Define valid options for 'freq' and 'temp_stats'
-  valid_freq <- c("month", "year")
+  valid_freq <- c("day", "week", "month", "bimonth", "quarter", "season",
+                  "halfyear", "year")
 
   # Validate 'freq' if it is not NULL
   if (!is.null(freq)) {
@@ -224,9 +232,15 @@ validate_tables_param <- function(tables, tables_all, freq, funs) {
     }
   }
 
-  # Validate 'funs': it should be a list of functions
-  if (!is.list(funs) || !all(sapply(funs, is.function))) {
-    stop("Invalid 'funs' parameter.\n",
+  # Validate 'prep_fun': it should be a function
+  if (!is.function(prep_fun)) {
+    stop("Invalid 'prep_fun' parameter.\n",
+         "It must be a function.")
+  }
+
+  # Validate 'aggr_funs': it should be a function or a list of functions
+  if (!is.list(aggr_funs) || !all(sapply(aggr_funs, is.function))) {
+    stop("Invalid 'aggr_funs' parameter.\n",
          "It must be a function or a list of functions.")
   }
 
