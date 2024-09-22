@@ -2,20 +2,25 @@
 % Please edit documentation in R/access_db.R
 \name{fetch_tables}
 \alias{fetch_tables}
-\title{Fetch Names of SQLite Tables}
+\title{Fetch Table Names Along with Band Information from an SQLite Database}
 \usage{
-fetch_tables(path)
+fetch_tables(path, print_output = TRUE)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
 generated database.}
+
+\item{print_output}{(logical) If \code{TRUE}, prints the output in a
+markdown format; if \code{FALSE}, returns a data frame object (default:
+\code{TRUE}).}
 }
 \value{
 A data frame containing the table names.
 }
 \description{
-Reads and prints the names of available SQLite tables in the specified
-directory of the generated database (\code{data/geelite.db}).
+Reads and prints the names of available SQLite tables and their associated
+bands in the specified directory of the generated database
+(\code{data/geelite.db}).
 }
 \examples{
 # Example: Printing the names of available SQLite tables

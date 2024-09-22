@@ -23,6 +23,7 @@ Imports:
   crayon,
   dplyr,
   h3jsr,
+  knitr,
   utils,
   purrr,
   stats,

@@ -1,11 +1,15 @@
 # Main Functions ---------------------------------------------------------------
 
-#' Fetch Names of SQLite Tables
+#' Fetch Table Names Along with Band Information from an SQLite Database
 #'
-#' Reads and prints the names of available SQLite tables in the specified
-#' directory of the generated database (\code{data/geelite.db}).
+#' Reads and prints the names of available SQLite tables and their associated
+#' bands in the specified directory of the generated database
+#' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
+#' @param print_output (logical) If \code{TRUE}, prints the output in a
+#' markdown format; if \code{FALSE}, returns a data frame object (default:
+#' \code{TRUE}).
 #' @return A data frame containing the table names.
 #' @export
 #' @examples
@@ -13,9 +17,14 @@
 #' \dontrun{
 #'   fetch_tables(path = "path/to/db")
 #' }
-#' @importFrom RSQLite dbConnect dbDisconnect dbListTables SQLite
+#' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
+#' @importFrom dplyr arrange distinct pull select
+#' @importFrom knitr kable
 #'
-fetch_tables <- function(path) {
+fetch_tables <- function(path, print_output = TRUE) {
+
+  # To avoid 'no visible binding for global variable' messages (CRAN test)
+  band <- NULL
 
   # Validate parameters
   params <- list(path = path, file_path = "data/geelite.db")
@@ -25,12 +34,39 @@ fetch_tables <- function(path) {
   db_path <- file.path(path, "data/geelite.db")
   con <- dbConnect(SQLite(), dbname = db_path)
   tables <- dbListTables(conn = con)
-  dbDisconnect(con)
 
   # Filter out system tables and sort the table names
-  tables <- filter_and_sort_tables(tables)
+  tables_drop <- c("grid", "spatial_ref_sys", "sqlite_sequence",
+                   "geometry_columns")
+  tables <- append("grid", sort(setdiff(tables, tables_drop)))
+  tables <- data.frame(id = 1:length(tables), name = tables)
 
-  return(tables)
+  # Initialize bands column
+  tables$bands <- "-"
+  number_of_tables <- nrow(tables)
+
+  # Add available bands for each table
+  if (number_of_tables > 1) {
+    for (i in 2:number_of_tables) {
+      unique_bands <- dbReadTable(con, tables$name[i], check.names = FALSE) %>%
+        select(band) %>%
+        distinct() %>%
+        arrange(band) %>%
+        pull(band)
+      tables$bands[i] <- list(unique_bands)
+    }
+  }
+
+  dbDisconnect(con)
+
+  # Print or return the output based on user preference
+  if (print_output) {
+    print(
+      kable(tables, format = "markdown", col.names = c("ID", "Table", "Bands"))
+    )
+  } else {
+    return(tables)
+  }
 }
 
 # ------------------------------------------------------------------------------
@@ -80,7 +116,7 @@ read_db <- function(path, tables = "all", freq = "month",
   }
 
   # Validate the 'path' parameter and retrieve the list of all tables
-  tables_all <- fetch_tables(path)
+  tables_all <- fetch_tables(path, print_output = FALSE)
 
   # Determine which tables to read and validate the 'tables' parameter
   tables <- validate_tables_param(tables, tables_all, freq, prep_fun, aggr_funs)
@@ -92,25 +128,6 @@ read_db <- function(path, tables = "all", freq = "month",
 }
 
 # Internal Functions -----------------------------------------------------------
-
-#' Filter and Sort Tables
-#'
-#' Filters out system tables and sorts the table names.
-#' @param tables [mandatory] (character or integer) A vector of table names.
-#' @return A data frame with filtered and sorted table names.
-#' @keywords internal
-#'
-filter_and_sort_tables <- function(tables) {
-
-  tables_drop <- c("grid", "spatial_ref_sys", "sqlite_sequence",
-                   "geometry_columns")
-  tables <- append("grid", sort(setdiff(tables, tables_drop)))
-  tables <- data.frame(id = 1:length(tables), name = tables)
-
-  return(tables)
-}
-
-# ------------------------------------------------------------------------------
 
 #' Read Tables from Database
 #'

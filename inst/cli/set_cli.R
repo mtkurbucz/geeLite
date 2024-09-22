@@ -2,7 +2,6 @@ pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
 install.packages(pkg)
 rm(pkg)
-
 library(optparse)
 library(geeLite)
 
