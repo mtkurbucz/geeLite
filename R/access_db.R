@@ -6,12 +6,8 @@
 #' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#' @param print_output [optional] (logical) If \code{TRUE}, prints the output
-#' in a markdown format; if \code{FALSE}, returns a data frame object (default:
-#' \code{TRUE}).
+#' @param format [mandatory] (character) A character string. Possible values are data.frame (default) to return a data.frame object, or one of latex, html, pipe (Pandoc's pipe tables), simple (Pandoc's simple tables), and rst to be passed on to knitr for formatting. 
 #' @return If \code{print_output = TRUE}, the function prints the variable
-#' information in a markdown format. If \code{print_output = FALSE}, it returns
-#' a data frame object.
 #' @export
 #' @examples
 #' # Example: Printing the available variables
@@ -23,14 +19,17 @@
 #' @importFrom lubridate ymd
 #' @importFrom knitr kable
 #'
-fetch_vars <- function(path, print_output = TRUE) {
+fetch_vars <- function(path, format = c("data.frame", "markdown", "latex", "html", "pipe", "simple", "rst")) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   band <- zonal_stat <- NULL
 
+  # Ensure that 'format' is one of the allowed options
+  format <- match.arg(format)
+
   # Validate parameters
   params <- list(
-    path = path, file_path = "data/geelite.db", print_output = print_output
+    path = path, file_path = "data/geelite.db", format = format
   )
   validate_params(params)
 
@@ -93,9 +92,9 @@ fetch_vars <- function(path, print_output = TRUE) {
   dbDisconnect(con)
 
   # Print or return the output based on user preference
-  if (print_output) {
+  if (format != "data.frame") {
     print(
-      kable(detailed_info, format = "markdown",
+      kable(detailed_info, format = format,
             col.names = c("ID", "Variable", "Table", "Band", "Stat", "Start",
                           "End", "Freq (Days)"))
     )
