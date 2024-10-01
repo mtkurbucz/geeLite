@@ -1,33 +1,37 @@
 # Main Functions ---------------------------------------------------------------
 
-#' Fetch Table Names Along with Band Information from an SQLite Database
+#' Fetch Variable Information from an SQLite Database
 #'
-#' Reads and prints the names of available SQLite tables and their associated
-#' bands in the specified directory of the generated database
+#' Displays information on the available variables in the SQLite database
 #' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#' @param print_output (logical) If \code{TRUE}, prints the output in a
-#' markdown format; if \code{FALSE}, returns a data frame object (default:
+#' @param print_output [optional] (logical) If \code{TRUE}, prints the output
+#' in a markdown format; if \code{FALSE}, returns a data frame object (default:
 #' \code{TRUE}).
-#' @return A data frame containing the table names.
+#' @return If \code{print_output = TRUE}, the function prints the variable
+#' information in a markdown format. If \code{print_output = FALSE}, it returns
+#' a data frame object.
 #' @export
 #' @examples
-#' # Example: Printing the names of available SQLite tables
+#' # Example: Printing the available variables
 #' \dontrun{
-#'   fetch_tables(path = "path/to/db")
+#'   fetch_vars(path = "path/to/db")
 #' }
 #' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
-#' @importFrom dplyr arrange distinct pull select
+#' @importFrom dplyr arrange distinct pull select filter
+#' @importFrom lubridate ymd
 #' @importFrom knitr kable
 #'
-fetch_tables <- function(path, print_output = TRUE) {
+fetch_vars <- function(path, print_output = TRUE) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  band <- NULL
+  band <- zonal_stat <- NULL
 
   # Validate parameters
-  params <- list(path = path, file_path = "data/geelite.db")
+  params <- list(
+    path = path, file_path = "data/geelite.db", print_output = print_output
+  )
   validate_params(params)
 
   # Retrieve the list of tables
@@ -35,25 +39,54 @@ fetch_tables <- function(path, print_output = TRUE) {
   con <- dbConnect(SQLite(), dbname = db_path)
   tables <- dbListTables(conn = con)
 
-  # Filter out system tables and sort the table names
+  # Filter out system tables, the 'grid' table, and sort the table names
   tables_drop <- c("grid", "spatial_ref_sys", "sqlite_sequence",
                    "geometry_columns")
-  tables <- append("grid", sort(setdiff(tables, tables_drop)))
-  tables <- data.frame(id = 1:length(tables), name = tables)
+  tables <- sort(setdiff(tables, tables_drop))
+  tables_df <- data.frame(Table = tables, stringsAsFactors = FALSE)
 
-  # Initialize bands column
-  tables$bands <- "-"
-  number_of_tables <- nrow(tables)
+  # Initialize a data frame to hold the detailed information
+  detailed_info <- data.frame()
 
-  # Add available bands for each table
-  if (number_of_tables > 1) {
-    for (i in 2:number_of_tables) {
-      unique_bands <- dbReadTable(con, tables$name[i], check.names = FALSE) %>%
-        select(band) %>%
-        distinct() %>%
-        arrange(band) %>%
-        pull(band)
-      tables$bands[i] <- list(unique_bands)
+  id_counter <- 1 # Start ID counter from 1
+
+  # Process each table
+  for (i in seq_len(nrow(tables_df))) {
+    table_name <- tables_df$Table[i]
+
+    # Read the table, extract date columns, and get unique bands and statistics
+    table_data <- dbReadTable(con, table_name, check.names = FALSE)
+    date_cols <- grep("^\\d{4}_\\d{2}_\\d{2}$", names(table_data), value = TRUE)
+    dates <- ymd(date_cols)
+
+    # Find the first and last date, and calculate the native frequency
+    first_date <- min(dates)
+    last_date <- max(dates)
+    mean_interval <- round(mean(as.numeric(diff(dates))),2)
+
+    unique_bands_stats <- table_data %>%
+      select(band, zonal_stat) %>%
+      distinct() %>%
+      arrange(band, zonal_stat)
+
+    # For each combination of band and stat, create a row
+    for (j in seq_len(nrow(unique_bands_stats))) {
+      band_name <- unique_bands_stats$band[j]
+      stat_name <- unique_bands_stats$zonal_stat[j]
+      variable_name <- paste(table_name, band_name, stat_name, sep = "/")
+      tmp <- data.frame(
+        ID = id_counter,
+        Variable = variable_name,
+        Table = table_name,
+        Band = band_name,
+        Stat = stat_name,
+        Start = first_date,
+        End = last_date,
+        Freq_Days = mean_interval,
+        stringsAsFactors = FALSE
+      )
+      detailed_info <- rbind(detailed_info, tmp)
+      id_counter <- id_counter + 1
     }
   }
 
@@ -62,101 +95,110 @@ fetch_tables <- function(path, print_output = TRUE) {
   # Print or return the output based on user preference
   if (print_output) {
     print(
-      kable(tables, format = "markdown", col.names = c("ID", "Table", "Bands"))
+      kable(detailed_info, format = "markdown",
+            col.names = c("ID", "Variable", "Table", "Band", "Stat", "Start",
+                          "End", "Freq (Days)"))
     )
   } else {
-    return(tables)
+    return(detailed_info)
   }
 }
 
 # ------------------------------------------------------------------------------
 
-#' Read and Transform SQLite Tables
+#' Reading, Aggregating, and Processing the SQLite Database
 #'
-#' Reads SQLite tables from the specified directory of the generated database
-#' (\code{data/geelite.db}), transforms the data into a daily frequency, then
-#' reprojects it to the desired frequency (e.g., weekly, monthly). The result
-#' is returned as a list object.
+#' Reads, aggregates, and processes the SQLite database
+#' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#' @param tables [optional] (character or integer) Names or IDs of the tables
-#' to be read. Use the \code{fetch_tables} function to identify available table
-#' names and IDs (default: \code{"all"}).
-#' @param freq [optional] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
+#' @param variables [optional] (character or integer) Names or IDs of the
+#' variables to be read. Use the \code{fetch_vars} function to identify
+#' available variables and IDs (default: \code{"all"}).
+#' @param freq [optional] (character) The frequency for data aggregation.
+#' Options include \code{"day"}, \code{"week"}, \code{"month"},
 #' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-#' \code{"year"}). The default is \code{"month"}.
-#' @param prep_fun [optional] (function) A single function used for
-#' pre-processing the time series data before aggregation. This function
-#' converts the data to a daily frequency and applies any necessary data
-#' transformation or imputation. Default is linear interpolation:
-#' \code{imputeTS::na_interpolation(x, option = "linear")}.
-#' @param aggr_funs [optional] (function or list) Specifies the aggregation
-#' function(s) to be applied to the data. This can be a single function or a
-#' list of functions (default: \code{mean(x, na.rm = TRUE)}).
-#' @return A list where the first element ('grid') is an simple feature (sf)
-#' object, and subsequent elements are data frame objects.
+#' \code{"year"} (default: \code{"month"}).
+#' @param prep_fun [optional] (function) A function for pre-processing time
+#' series data prior to aggregation. For daily frequency, it handles missing
+#' values using the specified method. The default is linear interpolation:
+#' \code{function(x) na_interpolation(x, option = "linear")}, from the
+#' \code{imputeTS} package.
+#' @param aggr_funs [optional] (function or list) A function or a list of
+#' functions for aggregating data to the specified frequency (\code{freq}).
+#' Users can directly refer to variable names or IDs. The default function is
+#' the mean: \code{function(x) mean(x, na.rm = TRUE)}.
+#' @param postp_funs [optional] (function or list) A function or list of
+#' functions applied to the time series data of a single bin after aggregation.
+#' Users can directly refer to variable names or IDs. The default is
+#' \code{NULL}, indicating no post-processing.
+#' @return A list where the first element ('grid') is a simple feature (sf)
+#' object, and subsequent elements are data frame objects corresponding to the
+#' variables.
 #' @export
 #' @examples
-#' # Example: Reading the 'grid' table
+#' # Example: Reading variables by IDs
 #' \dontrun{
-#'   db_list <- read_db(path = "path/to/db",
-#'                      tables = "grid")
+#' db_list <- read_db(path = "path/to/db",
+#' variables = c(1, 3))
 #' }
 #' @importFrom imputeTS na_interpolation
 #'
-read_db <- function(path, tables = "all", freq = "month",
+read_db <- function(path, variables = "all", freq = "month",
                     prep_fun = function(x)
-                    na_interpolation(x, option = "linear"),
-                    aggr_funs = function(x) mean(x, na.rm = TRUE)) {
+                      na_interpolation(x, option = "linear"),
+                    aggr_funs = function(x) mean(x, na.rm = TRUE),
+                    postp_funs = NULL) {
 
-  # Convert 'aggr_funs' to a list if a single function is provided
-  if (is.function(aggr_funs)) {
-    aggr_funs <- list(aggr_funs)
+  # Ensure 'aggr_funs' and 'postp_funs' are lists, name 'default' if unnamed
+  if (is.function(aggr_funs) || all(sapply(aggr_funs, is.function))) {
+    aggr_funs <- list(default = aggr_funs)
+  }
+  if (is.function(postp_funs) || all(sapply(postp_funs, is.function)) ||
+      is.null(postp_funs)) {
+    postp_funs <- list(default = postp_funs)
   }
 
-  # Validate the 'path' parameter and retrieve the list of all tables
-  tables_all <- fetch_tables(path, print_output = FALSE)
+  # Validate the 'path' parameter and retrieve the list of all variables
+  variables_all <- fetch_vars(path, print_output = FALSE)
 
-  # Determine which tables to read and validate the 'tables' parameter
-  tables <- validate_tables_param(tables, tables_all, freq, prep_fun, aggr_funs)
+  # Validate parameters and determine which variables to read
+  variables <- validate_variables_param(variables, variables_all, freq,
+                                        prep_fun, aggr_funs, postp_funs)
 
-  # Read tables from the database
-  db_list <- read_tables(path, tables = tables, freq, prep_fun, aggr_funs)
+  # Read data from the database for the selected variables
+  db_list <- read_variables(path, variables, freq, prep_fun,
+                            aggr_funs, postp_funs)
 
   return(db_list)
 }
 
 # Internal Functions -----------------------------------------------------------
 
-#' Read Tables from Database
+#' Read Variables from Database
 #'
-#' Reads the specified tables from the SQLite database.
+#' Reads the specified variables from the SQLite database.
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#' @param tables [mandatory] (character) A vector of table names to be read.
+#' @param variables [mandatory] (character) A vector of variable names to read.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
-#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-#' \code{"year"}).
-#' @param prep_fun [mandatory] (function) A single function used for
-#' pre-processing the time series data before aggregation. This function
-#' converts the data to a daily frequency and applies any necessary data
-#' transformation or imputation.
-#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
-#' function(s) to be applied to the data. This can be a single function or a
-#' list of functions.
-#' @return A list of tables read from the database.
+#' data.
+#' @param prep_fun [mandatory] (function) Function used for pre-processing.
+#' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
+#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @return A list of variables read from the database.
 #' @keywords internal
 #' @importFrom sf st_read
 #' @importFrom magrittr %>%
-#' @importFrom dplyr rename select
-#' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
+#' @importFrom dplyr rename select filter
+#' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
 #'
-read_tables <- function(path, tables, freq, prep_fun, aggr_funs) {
+read_variables <- function(path, variables, freq, prep_fun,
+                           aggr_funs, postp_funs) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  GEOMETRY <- NULL
+  id <- band <- GEOMETRY <- zonal_stat <- aggregation <- preprocess <- NULL
+  postprocess <- NULL
 
   # Connect to the SQLite database
   db_path <- file.path(path, "data/geelite.db")
@@ -166,25 +208,73 @@ read_tables <- function(path, tables, freq, prep_fun, aggr_funs) {
   db_list <- list(grid = st_read(con, "grid", quiet = TRUE) %>%
                     select(-1) %>% rename(geometry = GEOMETRY))
 
-  # Read other specified tables as data frames
-  if (any(!tables == "grid")) {
-    tables <- setdiff(tables, "grid")
-    for (table in tables) {
-      if (is.null(freq)) {
-        db_list[[table]] <- dbReadTable(con, table, check.names = FALSE)
-      } else {
-        db_list[[table]] <- aggr_by_freq(
-          table = dbReadTable(con, table, check.names = FALSE),
-          freq = freq,
-          prep_fun = prep_fun,
-          aggr_funs = aggr_funs
-        )
-      }
+  # Get the mapping of variables to tables, bands, and stats
+  variables_all <- fetch_vars(path, print_output = FALSE)
+  variables_info <- variables_all[match(variables, variables_all$Variable), ]
+
+  # Initialize a list to store variables data
+  variables_data <- vector("list", length(variables))
+
+  last_table_read <- NULL
+
+  # Process each variable
+  for (i in seq_len(nrow(variables_info))) {
+    var_info <- variables_info[i, ]
+    variable_name <- var_info$Variable
+    table_name <- var_info$Table
+    band_name <- var_info$Band
+    stat_name <- var_info$Stat
+
+    # Read the table data if not already read
+    if (is.null(last_table_read) || last_table_read != table_name) {
+      table_data <- dbReadTable(con, table_name, check.names = FALSE)
+      last_table_read <- table_name
     }
+
+    # Filter the data for this variable
+    table_data_subset <- table_data %>%
+      filter(band == band_name & zonal_stat == stat_name)
+
+    if (nrow(table_data_subset) == 0) {
+      warning(paste("No data found for variable", variable_name))
+      next
+    }
+
+    if (is.null(freq)) {
+      # No aggregation, set preprocess, aggregation, postprocess to NA
+      variable_data <- table_data_subset %>%
+        select(-band, -zonal_stat) %>%
+        mutate(preprocess = NA_character_,
+               aggregation = NA_character_,
+               postprocess = NA_character_) %>%
+        select(id, aggregation, preprocess, postprocess, everything())
+    } else {
+      # Get the body of the prep_fun as text
+      preprocess_body <- paste(deparse(body(prep_fun)), collapse = "\n")
+      # Perform aggregation
+      variable_data <- aggr_by_freq(
+        table = table_data_subset,
+        freq = freq,
+        prep_fun = prep_fun,
+        aggr_funs = aggr_funs,
+        postp_funs = postp_funs,
+        variable_name = variable_name,
+        preprocess_body = preprocess_body
+      )
+    }
+
+    # Store the data in the list, maintaining the order
+    variables_data[[i]] <- variable_data
   }
+
+  names(variables_data) <- variables
 
   # Disconnect from the SQLite database
   dbDisconnect(con)
+
+  # Combine the grid and variables data
+  db_list <- c(db_list, variables_data)
+
   return(db_list)
 }
 
@@ -192,33 +282,28 @@ read_tables <- function(path, tables, freq, prep_fun, aggr_funs) {
 
 #' Aggregate Data by Frequency
 #'
-#' This function aggregates data from a wide-format data frame according to a
-#' specified frequency and selected statistical functions.
-#' @param table [mandatory] (data.frame) A wide-format data frame object of the
-#' generated SQLite table.
+#' Aggregates data from a wide-format data frame according to a specified
+#' frequency and applies aggregation and post-processing functions.
+#' @param table [mandatory] (data.frame) A wide-format data frame.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
-#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-#' \code{"year"}).
-#' @param prep_fun [mandatory] (function) A single function used for
-#' pre-processing the time series data before aggregation. This function
-#' converts the data to a daily frequency and applies any necessary data
-#' transformation or imputation.
-#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
-#' function(s) to be applied to the data. This can be a single function or a
-#' list of functions.
-#' @return A data frame in wide format where columns represent aggregated values
-#' for each frequency period and statistic applied.
+#' data.
+#' @param prep_fun [mandatory] (function) Function used for pre-processing.
+#' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
+#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @param variable_name [mandatory] (character) Name of the current variable.
+#' @param preprocess_body [mandatory] (character) Body of the prep_fun function.
+#' @return A data frame in wide format with aggregated values.
 #' @keywords internal
 #' @importFrom magrittr %>%
 #' @importFrom lubridate floor_date ymd
 #' @importFrom tidyr all_of pivot_longer pivot_wider
 #' @importFrom dplyr arrange bind_rows group_by mutate summarise
 #'
-aggr_by_freq <- function(table, freq, prep_fun, aggr_funs) {
+aggr_by_freq <- function(table, freq, prep_fun, aggr_funs,
+                         postp_funs, variable_name, preprocess_body) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  . <- band <- freq_date <- id <- zonal_stat <- value <- NULL
+  . <- id <- value <- freq_date <- aggregation <- postprocess <- NULL
 
   # Identify date columns
   date_cols <- names(table) %>%
@@ -237,35 +322,62 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs) {
   df_exp <- df_exp %>%
     mutate(freq_date = floor_date(date, freq))
 
-  # Initialize an empty list to store the aggregated data frames
-  list_aggr <- list()
-
-  # Loop through each statistic and aggregate the data
-  for (aggr_fun in aggr_funs) {
-
-    # Extract the body of the function and convert it to a string
-    prep_fun_name <- deparse(body(prep_fun))
-    aggr_fun_name <- deparse(body(aggr_fun))
-
-    # Apply the function to summarize and group the data
-    df_aggr <- df_exp %>%
-      group_by(id, band, zonal_stat, freq_date) %>%
-      summarise(value = aggr_fun(value), .groups = "drop") %>%
-      mutate(prep_fun = prep_fun_name,
-             aggr_fun = aggr_fun_name)
-
-    # Append the result to the list
-    list_aggr[[aggr_fun_name]] <- df_aggr
+  # Get the aggregation function(s)
+  funcs <- aggr_funs[[variable_name]]
+  if (is.null(funcs)) {
+    funcs <- aggr_funs[["default"]]
+  }
+  if (is.null(funcs)) {
+    stop(paste("No aggregation function specified for variable",
+               variable_name))
+  }
+  if (is.function(funcs)) {
+    funcs <- list(funcs)
   }
 
-  # Combine all results into a single data frame
-  df_aggr <- bind_rows(list_aggr)
+  aggr_results <- list()
+  for (i in seq_along(funcs)) {
+    aggr_fun <- funcs[[i]]
+    aggregation_body <- paste(deparse(body(aggr_fun)), collapse = "\n")
+    df_group <- df_exp %>%
+      group_by(id, freq_date) %>%
+      summarise(value = aggr_fun(value), .groups = "drop") %>%
+      mutate(aggregation = aggregation_body,
+             preprocess = preprocess_body)
+    aggr_results[[i]] <- df_group
+  }
+  df_combined_aggr <- bind_rows(aggr_results)
 
-  # Convert back to wide format if needed and format the date columns
-  df_wide <- df_aggr %>%
+  # Apply post-processing functions independently and store results
+  postp_funcs <- postp_funs[[variable_name]]
+  if (is.null(postp_funcs)) {
+    postp_funcs <- postp_funs[["default"]]
+  }
+  if (is.null(postp_funcs)) {
+    # No post-processing functions, keep the aggregated data as is
+    df_final <- df_combined_aggr %>%
+      mutate(postprocess = NA_character_)
+  } else {
+    if (is.function(postp_funcs)) {
+      postp_funcs <- list(postp_funcs)
+    }
+    postp_results <- list()
+    for (i in seq_along(postp_funcs)) {
+      postp_fun <- postp_funcs[[i]]
+      postprocess_body <- paste(deparse(body(postp_fun)), collapse = "\n")
+      df_postp <- df_combined_aggr %>%
+        mutate(value = postp_fun(value),
+               postprocess = postprocess_body)
+      postp_results[[i]] <- df_postp
+    }
+    df_final <- bind_rows(postp_results)
+  }
+
+  # Convert back to wide format and format the date columns
+  df_wide <- df_final %>%
     mutate(freq_date = format(freq_date, "%Y_%m_%d")) %>%
     pivot_wider(names_from = freq_date, values_from = value) %>%
-    arrange(id, band, zonal_stat, prep_fun, aggr_fun)
+    arrange(id, aggregation, postprocess)
 
   return(df_wide)
 }
@@ -274,16 +386,11 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs) {
 
 #' Expand Data to Daily Frequency
 #'
-#' This function expands the input data frame (\code{df_long}) to a daily
-#' frequency, filling in any missing dates within the observed range. A
-#' preprocessing function (\code{prep_fun}) is applied to handle missing or
-#' interpolated values.
+#' Expands the input data frame to a daily frequency, filling in any missing
+#' dates within the observed range.
 #' @param df_long [mandatory] (data.frame) A long-format data frame with at
-#' least the columns \code{id}, \code{band}, \code{zonal_stat}, and \code{date}.
-#' @param prep_fun [mandatory] (function) A single function used for
-#' pre-processing the time series data before aggregation. This function
-#' converts the data to a daily frequency and applies any necessary data
-#' transformation or imputation.
+#' least the columns \code{id} and \code{date}.
+#' @param prep_fun [mandatory] (function) Function used for pre-processing.
 #' @return A data frame with daily dates and preprocessed \code{value} column.
 #' @keywords internal
 #' @importFrom dplyr group_by mutate ungroup
@@ -292,14 +399,14 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs) {
 expand_to_daily <- function(df_long, prep_fun) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  id <- band <- value <- zonal_stat <- NULL
+  id <- value <- NULL
 
   # Generate the full range of dates
   date_range <- seq(min(df_long$date), max(df_long$date), by = "day")
 
-  # Expand the data to daily frequency and applying the preprocessing function
+  # Expand the data to daily frequency and apply the preprocessing function
   df_exp <- df_long %>%
-    group_by(id, band, zonal_stat) %>%
+    group_by(id) %>%
     complete(date = date_range) %>%
     mutate(value = prep_fun(value)) %>%
     ungroup()

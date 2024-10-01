@@ -67,7 +67,8 @@ test_that("Testing geeLite Package Pipeline", {
 
   # Testing read_db function
   db <- read_db(path = test_path)
-  expect_equal(names(db), c("grid", "MODIS/061/MOD13A2"))
+  expect_equal(names(db), c("grid", "MODIS/061/MOD13A2/NDVI/mean",
+                            "MODIS/061/MOD13A2/NDVI/sd"))
   rm(db)
 
   # ----------------------------------------------------------------------------

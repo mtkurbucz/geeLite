@@ -12,6 +12,7 @@
 #' - 'new_values': Verifies it is a list with the same length as 'keys'.
 #' - 'user': Checks if it is \code{NULL} or a character value.
 #' - 'path': Checks if the directory exists.
+#' - 'print_output': Checks if it is a logical value.
 #' - 'rebuild': Checks if it is a logical value.
 #' - 'regions': Checks if the first two characters are letters.
 #' - 'start': Checks if it is a valid date.
@@ -92,6 +93,13 @@ validate_params <- function(params) {
 
       if (!dir.exists(value)) {
         stop(sprintf("Directory not found: %s", value))
+      }
+
+    } else if (name == "print_output") {
+
+      if (!is.logical(value)) {
+        stop("Invalid 'print_output' parameter.\n",
+             "It must be a logical value.")
       }
 
     } else if (name == "rebuild") {
@@ -195,32 +203,31 @@ validate_source_param <- function(source) {
 
 # ------------------------------------------------------------------------------
 
-#' Validate Tables Parameter
+#' Validate and Process Parameters for Variable Selection and Data Processing
 #'
-#' Validates the 'tables' parameter and determines which tables to read.
-#' @param tables [mandatory] (character or integer) A vector specifying tables
-#' to be read.
-#' @param tables_all [mandatory] (data.frame) All available tables.
+#' Validates and processes the input parameters related to variable selection
+#' and data processing in the \code{\link{read_db}} function. It ensures that
+#' the variables, frequency, and functions provided are valid, correctly
+#' formatted, and compatible with the available data.
+#' @param variables [mandatory] (character or integer) Variable IDs or names to
+#' be processed. Use \code{\link{fetch_vars}} to obtain valid variable names or
+#' IDs. Accepts \code{"all"} to select all available variables.
+#' @param variables_all [mandatory] (data.frame) Data frame containing all
+#' available variables, typically obtained from \code{\link{fetch_vars}}.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data (options: \code{"day"}, \code{"week"}, \code{"month"},
-#' \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-#' \code{"year"}).
-#' @param prep_fun [mandatory] (function) A single function used for
-#' pre-processing the time series data before aggregation. This function
-#' converts the data to a daily frequency and applies any necessary data
-#' transformation or imputation.
-#' @param aggr_funs [mandatory] (function or list) Specifies the aggregation
-#' function(s) to be applied to the data. This can be a single function or a
-#' list of functions.
-#' @return A character vector of valid table names.
+#' data.
+#' @param prep_fun [mandatory] (function) Function used for pre-processing.
+#' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
+#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @return A character vector of variable names to process.
 #' @keywords internal
 #'
-validate_tables_param <- function(tables, tables_all, freq, prep_fun,
-                                  aggr_funs) {
+validate_variables_param <- function(variables, variables_all, freq, prep_fun,
+                                     aggr_funs, postp_funs) {
 
   # Define valid options for 'freq' and 'temp_stats'
   valid_freq <- c("day", "week", "month", "bimonth", "quarter", "season",
-                  "halfyear", "year")
+                  "halfyear", "year", "NULL")
 
   # Validate 'freq' if it is not NULL
   if (!is.null(freq)) {
@@ -238,29 +245,53 @@ validate_tables_param <- function(tables, tables_all, freq, prep_fun,
          "It must be a function.")
   }
 
-  # Validate 'aggr_funs': it should be a function or a list of functions
-  if (!is.list(aggr_funs) || !all(sapply(aggr_funs, is.function))) {
+  # Append 'default' to the list of valid variable names
+  valid_names <- append(variables_all$Variable, "default")
+
+  # Validate 'aggr_funs'
+  if (!is.list(aggr_funs)) {
     stop("Invalid 'aggr_funs' parameter.\n",
          "It must be a function or a list of functions.")
   }
 
-  if (any(tables == "all")) {
-    tables <- tables_all$name
-  } else if (is.numeric(tables)) {
-    tables <- tables_all$name[tables]
-    tables <- tables[!is.na(tables)]
-  } else if (is.character(tables)) {
-    tables <- intersect(tables, tables_all$name)
+  if (!all(names(aggr_funs) %in% valid_names)){
+    stop("Invalid 'aggr_funs' parameter.\n",
+         "Use 'fetch_vars' to obtain valid variable names.")
+  }
+
+  # Validate 'postp_funs'
+  if (!is.list(postp_funs)) {
+    stop("Invalid 'postp_funs' parameter.\n",
+         "It must be a function or a list of functions.")
+  }
+
+  if (!all(sapply(names(postp_funs),
+                  function(x) any(startsWith(x, valid_names))))) {
+    stop("Invalid 'postp_funs' parameter.\n",
+         "Use 'fetch_vars' to obtain valid variable names. If needed, refer to
+         'aggr_funs' by their specified index.")
+  }
+
+  if (is.character(variables) && length(variables) == 1 && variables == "all") {
+    variables <- variables_all$Variable
   } else {
-    tables <- NULL
+    # variables can be IDs or Variable names
+    if (is.numeric(variables)) {
+      # IDs
+      if (!all(variables %in% variables_all$ID)) {
+        stop("Some variable IDs not found in the database.")
+      }
+      variables <- variables_all$Variable[
+        match(variables, variables_all$ID)]
+    } else if (is.character(variables)) {
+      if (!all(variables %in% variables_all$Variable)) {
+        stop("Some variable names not found in the database.")
+      }
+    } else {
+      stop("Variables parameter should be 'all', variable IDs, or names.")
+    }
   }
-
-  if (length(tables) == 0) {
-    stop("Invalid 'tables' parameter.\n",
-         "Use 'fetch_tables' to retrieve valid table names.")
-  }
-
-  return(tables)
+  return(variables)
 }
 
 # ------------------------------------------------------------------------------

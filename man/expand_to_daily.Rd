@@ -8,20 +8,15 @@ expand_to_daily(df_long, prep_fun)
 }
 \arguments{
 \item{df_long}{[mandatory] (data.frame) A long-format data frame with at
-least the columns \code{id}, \code{band}, \code{zonal_stat}, and \code{date}.}
+least the columns \code{id} and \code{date}.}
 
-\item{prep_fun}{[mandatory] (function) A single function used for
-pre-processing the time series data before aggregation. This function
-converts the data to a daily frequency and applies any necessary data
-transformation or imputation.}
+\item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
 }
 \value{
 A data frame with daily dates and preprocessed \code{value} column.
 }
 \description{
-This function expands the input data frame (\code{df_long}) to a daily
-frequency, filling in any missing dates within the observed range. A
-preprocessing function (\code{prep_fun}) is applied to handle missing or
-interpolated values.
+Expands the input data frame to a daily frequency, filling in any missing
+dates within the observed range.
 }
 \keyword{internal}

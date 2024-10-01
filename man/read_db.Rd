@@ -2,53 +2,59 @@
 % Please edit documentation in R/access_db.R
 \name{read_db}
 \alias{read_db}
-\title{Read and Transform SQLite Tables}
+\title{Reading, Aggregating, and Processing the SQLite Database}
 \usage{
 read_db(
   path,
-  tables = "all",
+  variables = "all",
   freq = "month",
   prep_fun = function(x) na_interpolation(x, option = "linear"),
-  aggr_funs = function(x) mean(x, na.rm = TRUE)
+  aggr_funs = function(x) mean(x, na.rm = TRUE),
+  postp_funs = NULL
 )
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
 generated database.}
 
-\item{tables}{[optional] (character or integer) Names or IDs of the tables
-to be read. Use the \code{fetch_tables} function to identify available table
-names and IDs (default: \code{"all"}).}
+\item{variables}{[optional] (character or integer) Names or IDs of the
+variables to be read. Use the \code{fetch_vars} function to identify
+available variables and IDs (default: \code{"all"}).}
 
-\item{freq}{[optional] (character) Specifies the frequency to aggregate the
-data (options: \code{"day"}, \code{"week"}, \code{"month"},
+\item{freq}{[optional] (character) The frequency for data aggregation.
+Options include \code{"day"}, \code{"week"}, \code{"month"},
 \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-\code{"year"}). The default is \code{"month"}.}
+\code{"year"} (default: \code{"month"}).}
 
-\item{prep_fun}{[optional] (function) A single function used for
-pre-processing the time series data before aggregation. This function
-converts the data to a daily frequency and applies any necessary data
-transformation or imputation. Default is linear interpolation:
-\code{imputeTS::na_interpolation(x, option = "linear")}.}
+\item{prep_fun}{[optional] (function) A function for pre-processing time
+series data prior to aggregation. For daily frequency, it handles missing
+values using the specified method. The default is linear interpolation:
+\code{function(x) na_interpolation(x, option = "linear")}, from the
+\code{imputeTS} package.}
 
-\item{aggr_funs}{[optional] (function or list) Specifies the aggregation
-function(s) to be applied to the data. This can be a single function or a
-list of functions (default: \code{mean(x, na.rm = TRUE)}).}
+\item{aggr_funs}{[optional] (function or list) A function or a list of
+functions for aggregating data to the specified frequency (\code{freq}).
+Users can directly refer to variable names or IDs. The default function is
+the mean: \code{function(x) mean(x, na.rm = TRUE)}.}
+
+\item{postp_funs}{[optional] (function or list) A function or list of
+functions applied to the time series data of a single bin after aggregation.
+Users can directly refer to variable names or IDs. The default is
+\code{NULL}, indicating no post-processing.}
 }
 \value{
-A list where the first element ('grid') is an simple feature (sf)
-object, and subsequent elements are data frame objects.
+A list where the first element ('grid') is a simple feature (sf)
+object, and subsequent elements are data frame objects corresponding to the
+variables.
 }
 \description{
-Reads SQLite tables from the specified directory of the generated database
-(\code{data/geelite.db}), transforms the data into a daily frequency, then
-reprojects it to the desired frequency (e.g., weekly, monthly). The result
-is returned as a list object.
+Reads, aggregates, and processes the SQLite database
+(\code{data/geelite.db}).
 }
 \examples{
-# Example: Reading the 'grid' table
+# Example: Reading variables by IDs
 \dontrun{
-  db_list <- read_db(path = "path/to/db",
-                     tables = "grid")
+db_list <- read_db(path = "path/to/db",
+variables = c(1, 3))
 }
 }

@@ -20,5 +20,5 @@ option_parser <- OptionParser(
 
 args <- parse_args(option_parser)
 
-fetch_tables(path = path,
-             print_output = args$print_output)
+fetch_vars(path = path,
+           print_output = args$print_output)

@@ -4,32 +4,37 @@
 \alias{aggr_by_freq}
 \title{Aggregate Data by Frequency}
 \usage{
-aggr_by_freq(table, freq, prep_fun, aggr_funs)
+aggr_by_freq(
+  table,
+  freq,
+  prep_fun,
+  aggr_funs,
+  postp_funs,
+  variable_name,
+  preprocess_body
+)
 }
 \arguments{
-\item{table}{[mandatory] (data.frame) A wide-format data frame object of the
-generated SQLite table.}
+\item{table}{[mandatory] (data.frame) A wide-format data frame.}
 
 \item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
-data (options: \code{"day"}, \code{"week"}, \code{"month"},
-\code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-\code{"year"}).}
+data.}
 
-\item{prep_fun}{[mandatory] (function) A single function used for
-pre-processing the time series data before aggregation. This function
-converts the data to a daily frequency and applies any necessary data
-transformation or imputation.}
+\item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
 
-\item{aggr_funs}{[mandatory] (function or list) Specifies the aggregation
-function(s) to be applied to the data. This can be a single function or a
-list of functions.}
+\item{aggr_funs}{[mandatory] (function or list) Aggregation function(s).}
+
+\item{postp_funs}{[mandatory] (function or list) Post-processing function(s).}
+
+\item{variable_name}{[mandatory] (character) Name of the current variable.}
+
+\item{preprocess_body}{[mandatory] (character) Body of the prep_fun function.}
 }
 \value{
-A data frame in wide format where columns represent aggregated values
-for each frequency period and statistic applied.
+A data frame in wide format with aggregated values.
 }
 \description{
-This function aggregates data from a wide-format data frame according to a
-specified frequency and selected statistical functions.
+Aggregates data from a wide-format data frame according to a specified
+frequency and applies aggregation and post-processing functions.
 }
 \keyword{internal}
