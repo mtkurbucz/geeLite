@@ -7,7 +7,7 @@
 read_db(
   path,
   variables = "all",
-  freq = "month",
+  freq = c("month", "day", "week", "bimonth", "quarter", "season", "halfyear", "year"),
   prep_fun = function(x) na_interpolation(x, option = "linear"),
   aggr_funs = function(x) mean(x, na.rm = TRUE),
   postp_funs = NULL

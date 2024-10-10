@@ -6,8 +6,15 @@
 #' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #' generated database.
-#' @param format [mandatory] (character) A character string. Possible values are data.frame (default) to return a data.frame object, or one of latex, html, pipe (Pandoc's pipe tables), simple (Pandoc's simple tables), and rst to be passed on to knitr for formatting. 
-#' @return If \code{print_output = TRUE}, the function prints the variable
+#' @param format [mandatory] (character) A character string. Possible values
+#' are data.frame (default) to return a \code{data.frame} object, or one of
+#' \code{latex}, \code{html}, \code{pipe} (Pandoc's pipe tables), \code{simple}
+#' (Pandoc's simple tables), and \code{rst} to be passed on to knitr for
+#' formatting.
+#' @return Returns the variable information in the selected format. If
+#' \code{format = "data.frame"}, a \code{data.frame} is returned. For other
+#' formats, the output is printed in the specified format and \code{NULL} is
+#' returned.
 #' @export
 #' @examples
 #' # Example: Printing the available variables
@@ -19,7 +26,8 @@
 #' @importFrom lubridate ymd
 #' @importFrom knitr kable
 #'
-fetch_vars <- function(path, format = c("data.frame", "markdown", "latex", "html", "pipe", "simple", "rst")) {
+fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
+                                        "html", "pipe", "simple", "rst")) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   band <- zonal_stat <- NULL
@@ -28,9 +36,7 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex", "html
   format <- match.arg(format)
 
   # Validate parameters
-  params <- list(
-    path = path, file_path = "data/geelite.db", format = format
-  )
+  params <- list(path = path, file_path = "data/geelite.db")
   validate_params(params)
 
   # Retrieve the list of tables
@@ -143,11 +149,20 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex", "html
 #' }
 #' @importFrom imputeTS na_interpolation
 #'
-read_db <- function(path, variables = "all", freq = "month",
+read_db <- function(path, variables = "all", freq = c("month", "day", "week",
+                    "bimonth", "quarter", "season", "halfyear", "year"),
                     prep_fun = function(x)
                       na_interpolation(x, option = "linear"),
                     aggr_funs = function(x) mean(x, na.rm = TRUE),
                     postp_funs = NULL) {
+
+  # Validate 'freq' parameter
+  freq <- match.arg(freq)
+
+  # Check if the 'postp_funs' is set to "external"
+  if (identical(postp_funs, "external")) {
+    postp_funs <- load_external_postp(path)
+  }
 
   # Ensure 'aggr_funs' and 'postp_funs' are lists, name 'default' if unnamed
   if (is.function(aggr_funs) || all(sapply(aggr_funs, is.function))) {
@@ -159,11 +174,11 @@ read_db <- function(path, variables = "all", freq = "month",
   }
 
   # Validate the 'path' parameter and retrieve the list of all variables
-  variables_all <- fetch_vars(path, print_output = FALSE)
+  variables_all <- fetch_vars(path, format = "data.frame")
 
   # Validate parameters and determine which variables to read
-  variables <- validate_variables_param(variables, variables_all, freq,
-                                        prep_fun, aggr_funs, postp_funs)
+  variables <- validate_variables_param(variables, variables_all, prep_fun,
+                                        aggr_funs, postp_funs)
 
   # Read data from the database for the selected variables
   db_list <- read_variables(path, variables, freq, prep_fun,
@@ -171,6 +186,68 @@ read_db <- function(path, variables = "all", freq = "month",
 
   return(db_list)
 }
+
+# ------------------------------------------------------------------------------
+
+#' Initialize post-processing folder and files
+#'
+#' This function creates a \code{postp} folder at the specified path and adds
+#' two empty files: \code{structure.json} and \code{functions.R}. These files
+#' are intended to hold the configuration and post-processing functions used in
+#' the application.
+#' @param path \code{character}. The path to the root directory where the
+#' \code{postp} folder should be created. The \code{postp} folder will contain
+#' the \code{structure.json} and \code{functions.R} files.
+#' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
+#' @return This function does not return a value. It creates a folder and files
+#' as a side effect.
+#' @details
+#' The \code{structure.json} file is initialized with a default JSON structure:
+#' \code{"default": null}. This file is intended for mapping variables to
+#' post-processing functions. The \code{functions.R} file is created with a
+#' placeholder comment indicating where to define the R functions for
+#' post-processing. If the `\code{postp} folder already exists, an error will
+#' be thrown to prevent overwriting existing files.
+#' @examples
+#' \dontrun{
+#' # Initialize post-processing folder and files in the database root directory
+#' init_postp("/path/to/database")
+#' }
+#' @export
+#'
+init_postp <- function(path, verbose = TRUE) {
+
+  # Define the 'postp' folder and file paths
+  postp_folder <- file.path(path, "postp")
+  json_file <- file.path(postp_folder, "structure.json")
+  r_script_file <- file.path(postp_folder, "functions.R")
+
+  # Check if the 'postp' folder already exists
+  if (dir.exists(postp_folder)) {
+    stop(paste0("The 'postp' folder already exists at: ", postp_folder))
+  }
+
+  # Create the 'postp' folder
+  dir.create(postp_folder, showWarnings = FALSE)
+  message(paste0("Created 'postp' folder at: ", postp_folder))
+
+  # Create an empty 'structure.json' file
+  writeLines('{\n  "default": null\n}', json_file)
+
+  # Create an empty 'functions.R' file
+  writeLines("# Define your post-processing functions here\n", r_script_file)
+
+  # Prepare messages for structure and functions file initialization
+  message <- list(
+    "Structure file initialized: 'postp/structure.json'.",
+    "Function file initialized: 'postp/functions.R'."
+  )
+
+  # Output information if 'verbose' is TRUE
+  output_message(message, verbose)
+
+}
+
 
 # Internal Functions -----------------------------------------------------------
 
@@ -208,7 +285,7 @@ read_variables <- function(path, variables, freq, prep_fun,
                     select(-1) %>% rename(geometry = GEOMETRY))
 
   # Get the mapping of variables to tables, bands, and stats
-  variables_all <- fetch_vars(path, print_output = FALSE)
+  variables_all <- fetch_vars(path, format = "data.frame")
   variables_info <- variables_all[match(variables, variables_all$Variable), ]
 
   # Initialize a list to store variables data
@@ -411,4 +488,101 @@ expand_to_daily <- function(df_long, prep_fun) {
     ungroup()
 
   return(df_exp)
+}
+
+# ------------------------------------------------------------------------------
+
+#' Load External Post-Processing Functions
+#'
+#' This function loads post-processing functions and their configuration from
+#' an external folder named \code{postp}, located in the root directory of the
+#' database. The folder must contain two files: \code{structure.json} (which
+#' defines the post-processing configuration) and \code{functions.R} (which
+#' contains the R function definitions to be used for post-processing).
+#'
+#' The function checks for these files and loads the JSON configuration and
+#' sources the R script. If the required files are missing, it stops execution
+#' and notifies the user with instructions on how to set up the files correctly.
+#'
+#' @param path \code{character}. The path to the root directory where the
+#' database is located.
+#'
+#' @return Returns a list of post-processing functions loaded from the
+#' \code{structure.json} file. The functions defined in \code{functions.R} are
+#' sourced and made available in the global environment.
+#'
+#' @note The \code{postp} folder must contain two files: \code{structure.json}
+#' and \code{functions.R}. The \code{structure.json} file contains mappings of
+#' variables to the post-processing functions, while \code{functions.R}
+#' contains the actual function definitions that will be used for
+#' post-processing.
+#'
+#' @keywords internal
+#' @importFrom jsonlite fromJSON
+#'
+library(jsonlite)
+
+load_external_postp <- function(path) {
+
+  # Define the postp folder and file paths
+  postp_folder <- file.path(path, "postp")
+  json_file <- file.path(postp_folder, "structure.json")
+  r_script_file <- file.path(postp_folder, "functions.R")
+
+  # Check if the 'postp' folder exists
+  if (!dir.exists(postp_folder)) {
+    stop(paste0(
+      "The 'postp' folder is missing in the database root directory.\n",
+      "Run 'init_postp()' to create the folder and initialize ",
+      "'structure.json' and 'functions.R'."
+    ))
+  }
+
+  # Check if the JSON file exists
+  if (!file.exists(json_file)) {
+    stop(paste0(
+      "The 'structure.json' file is missing in the 'postp' folder.\n",
+      "To use 'external', make sure to include a valid 'structure.json' file ",
+      "in the 'postp' folder."
+    ))
+  }
+
+  # Check if the R script file exists
+  if (!file.exists(r_script_file)) {
+    stop(paste0(
+      "The 'functions.R' file is missing in the 'postp' folder.\n",
+      "To use 'external', make sure to include a valid 'functions.R' file ",
+      "in the 'postp' folder."
+    ))
+  }
+
+  # Load the post-processing functions configuration from the JSON file
+  postp_funs_json <- fromJSON(json_file)
+
+  # Source the R script to load function definitions
+  source(r_script_file)
+
+  # Convert function names from JSON to actual function objects in R
+  postp_funs <- lapply(postp_funs_json, function(fun_list) {
+    if (is.null(fun_list)) {
+      return(NULL)
+    }
+    # Flatten and map each function name to an actual R function object
+    unlist(lapply(fun_list, function(fun_names) {
+      lapply(fun_names, function(fun_name) {
+        if (!exists(fun_name, envir = .GlobalEnv)) {
+          stop(paste0("Function '", fun_name,
+                      "' not found in the global environment."))
+        }
+        fun_obj <- get(fun_name, envir = .GlobalEnv)
+        if (!is.function(fun_obj)) {
+          stop(paste0("'", fun_name, "' is not a valid function."))
+        }
+        return(fun_obj)
+      })
+    }), recursive = FALSE)
+  })
+
+  # Return the loaded post-processing functions for use in the main function
+  return(postp_funs)
 }

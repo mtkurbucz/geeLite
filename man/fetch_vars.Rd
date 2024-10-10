@@ -4,20 +4,26 @@
 \alias{fetch_vars}
 \title{Fetch Variable Information from an SQLite Database}
 \usage{
-fetch_vars(path, print_output = TRUE)
+fetch_vars(
+  path,
+  format = c("data.frame", "markdown", "latex", "html", "pipe", "simple", "rst")
+)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
 generated database.}
 
-\item{print_output}{[optional] (logical) If \code{TRUE}, prints the output
-in a markdown format; if \code{FALSE}, returns a data frame object (default:
-\code{TRUE}).}
+\item{format}{[mandatory] (character) A character string. Possible values
+are data.frame (default) to return a \code{data.frame} object, or one of
+\code{latex}, \code{html}, \code{pipe} (Pandoc's pipe tables), \code{simple}
+(Pandoc's simple tables), and \code{rst} to be passed on to knitr for
+formatting.}
 }
 \value{
-If \code{print_output = TRUE}, the function prints the variable
-information in a markdown format. If \code{print_output = FALSE}, it returns
-a data frame object.
+Returns the variable information in the selected format. If
+\code{format = "data.frame"}, a \code{data.frame} is returned. For other
+formats, the output is printed in the specified format and \code{NULL} is
+returned.
 }
 \description{
 Displays information on the available variables in the SQLite database

@@ -25,7 +25,6 @@ Validations performed:
 - 'new_values': Verifies it is a list with the same length as 'keys'.
 - 'user': Checks if it is \code{NULL} or a character value.
 - 'path': Checks if the directory exists.
-- 'print_output': Checks if it is a logical value.
 - 'rebuild': Checks if it is a logical value.
 - 'regions': Checks if the first two characters are letters.
 - 'start': Checks if it is a valid date.

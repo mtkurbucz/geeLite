@@ -8,17 +8,19 @@ library(optparse)
 library(geeLite)
 
 option_list <- list(
-  make_option(c("--print_output"), type = "logical", default = TRUE, help =
-  paste0("[optional] Set to TRUE to print output in markdown format; set to ",
-  "FALSE to return a data frame object."))
+  make_option(c("--format"), type = "character", default = "data.frame", help =
+  paste0("[optional] Possible values are 'data.frame' to return a ",
+         "'data.frame' object, or one of 'latex', 'html', 'pipe' (Pandoc's ",
+         "pipe tables), 'simple' (Pandoc's simple tables), and 'rst' for ",
+         "formatting with knitr."))
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: fetch_tables.R --print_output [print_output]"),
+  usage = paste0("Usage: fetch_tables.R --format [format]"),
   option_list = option_list
 )
 
 args <- parse_args(option_parser)
 
 fetch_vars(path = path,
-           print_output = args$print_output)
+           format = args$format)

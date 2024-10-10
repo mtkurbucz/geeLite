@@ -12,7 +12,6 @@
 #' - 'new_values': Verifies it is a list with the same length as 'keys'.
 #' - 'user': Checks if it is \code{NULL} or a character value.
 #' - 'path': Checks if the directory exists.
-#' - 'print_output': Checks if it is a logical value.
 #' - 'rebuild': Checks if it is a logical value.
 #' - 'regions': Checks if the first two characters are letters.
 #' - 'start': Checks if it is a valid date.
@@ -93,13 +92,6 @@ validate_params <- function(params) {
 
       if (!dir.exists(value)) {
         stop(sprintf("Directory not found: %s", value))
-      }
-
-    } else if (name == "print_output") {
-
-      if (!is.logical(value)) {
-        stop("Invalid 'print_output' parameter.\n",
-             "It must be a logical value.")
       }
 
     } else if (name == "rebuild") {
@@ -214,30 +206,14 @@ validate_source_param <- function(source) {
 #' IDs. Accepts \code{"all"} to select all available variables.
 #' @param variables_all [mandatory] (data.frame) Data frame containing all
 #' available variables, typically obtained from \code{\link{fetch_vars}}.
-#' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#' data.
 #' @param prep_fun [mandatory] (function) Function used for pre-processing.
 #' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
 #' @param postp_funs [mandatory] (function or list) Post-processing function(s).
 #' @return A character vector of variable names to process.
 #' @keywords internal
 #'
-validate_variables_param <- function(variables, variables_all, freq, prep_fun,
+validate_variables_param <- function(variables, variables_all, prep_fun,
                                      aggr_funs, postp_funs) {
-
-  # Define valid options for 'freq' and 'temp_stats'
-  valid_freq <- c("day", "week", "month", "bimonth", "quarter", "season",
-                  "halfyear", "year", "NULL")
-
-  # Validate 'freq' if it is not NULL
-  if (!is.null(freq)) {
-    if (!(freq %in% valid_freq)) {
-      stop("Invalid 'freq' parameter.\n",
-           "Valid options are ",
-           paste(sprintf("'%s'", valid_freq[!is.null(valid_freq)]),
-                 collapse = ", "), ".")
-    }
-  }
 
   # Validate 'prep_fun': it should be a function
   if (!is.function(prep_fun)) {

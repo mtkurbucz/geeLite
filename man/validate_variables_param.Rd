@@ -7,7 +7,6 @@
 validate_variables_param(
   variables,
   variables_all,
-  freq,
   prep_fun,
   aggr_funs,
   postp_funs
@@ -20,9 +19,6 @@ IDs. Accepts \code{"all"} to select all available variables.}
 
 \item{variables_all}{[mandatory] (data.frame) Data frame containing all
 available variables, typically obtained from \code{\link{fetch_vars}}.}
-
-\item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
-data.}
 
 \item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
 
