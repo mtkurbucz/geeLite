@@ -229,7 +229,6 @@ init_postp <- function(path, verbose = TRUE) {
 
   # Create the 'postp' folder
   dir.create(postp_folder, showWarnings = FALSE)
-  message(paste0("Created 'postp' folder at: ", postp_folder))
 
   # Create an empty 'structure.json' file
   writeLines('{\n  "default": null\n}', json_file)
