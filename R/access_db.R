@@ -511,7 +511,7 @@ expand_to_daily <- function(df_long, prep_fun) {
 #'   source_with_notification("functions.R")
 #' }
 #' 
-#' @export
+##' @export
 source_with_notification <- function(file) {
   # Get the list of functions in the global environment before sourcing
   before <- ls(envir = .GlobalEnv, pattern = "function$")
