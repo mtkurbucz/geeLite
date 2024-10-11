@@ -259,7 +259,7 @@ init_postp <- function(path, verbose = TRUE) {
 #' data.
 #' @param prep_fun [mandatory] (function) Function used for pre-processing.
 #' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
-#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @param postp_funs [optional] (function or list) Post-processing function(s).
 #' @return A list of variables read from the database.
 #' @keywords internal
 #' @importFrom sf st_read
@@ -363,7 +363,7 @@ read_variables <- function(path, variables, freq, prep_fun,
 #' data.
 #' @param prep_fun [mandatory] (function) Function used for pre-processing.
 #' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
-#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @param postp_funs [optional] (function or list) Post-processing function(s).
 #' @param variable_name [mandatory] (character) Name of the current variable.
 #' @param preprocess_body [mandatory] (character) Body of the prep_fun function.
 #' @return A data frame in wide format with aggregated values.
