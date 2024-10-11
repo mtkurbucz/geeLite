@@ -490,6 +490,58 @@ expand_to_daily <- function(df_long, prep_fun) {
 
 # ------------------------------------------------------------------------------
 
+#' Source an R script with notifications about functions loaded and overwritten
+#'
+#' This function sources an R script, listing the functions that have been loaded 
+#' into the global environment. It also notifies the user if any functions 
+#' from the sourced file overwrite existing functions in the global environment.
+#'
+#' @param file A character string specifying the path to the R script to be sourced.
+#' @details
+#' The function compares the functions in the global environment before and after 
+#' sourcing the specified file. It identifies newly loaded functions and any 
+#' functions that have been overwritten. A message is displayed with the names 
+#' of the new functions, and a warning is given for overwritten functions.
+#' 
+#' @return This function does not return any value. It is used for its side effect 
+#' of sourcing an R script and printing messages about loaded and overwritten functions.
+#' @examples
+#' \dontrun{
+#'   # Source 'functions.R' and get notifications about loaded functions
+#'   source_with_notification("functions.R")
+#' }
+#' 
+#' @export
+source_with_notification <- function(file) {
+  # Get the list of functions in the global environment before sourcing
+  before <- ls(envir = .GlobalEnv, pattern = "function$")
+  
+  # Source the file
+  source(file)
+  
+  # Get the list of functions in the global environment after sourcing
+  after <- ls(envir = .GlobalEnv, pattern = "function$")
+  
+  # Determine which functions are new
+  new_functions <- setdiff(after, before)
+  
+  # Determine which functions have been overwritten
+  overwritten_functions <- intersect(after, before)
+  
+  # Output the results
+  if (length(new_functions) > 0) {
+    cat("New functions loaded from", file, ":\n")
+    cat(paste(new_functions, collapse = ", "), "\n")
+  } else {
+    cat("No new functions loaded from", file, "\n")
+  }
+  
+  if (length(overwritten_functions) > 0) {
+    cat("Warning: The following functions have been overwritten:\n")
+    cat(paste(overwritten_functions, collapse = ", "), "\n")
+  }
+}
+
 #' Load External Post-Processing Functions
 #'
 #' This function loads post-processing functions and their configuration from
@@ -552,7 +604,7 @@ load_external_postp <- function(path) {
   postp_funs_json <- fromJSON(json_file)
 
   # Source the R script to load function definitions
-  source(r_script_file)
+  source_with_notification(r_script_file)
 
   # Convert function names from JSON to actual function objects in R
   postp_funs <- lapply(postp_funs_json, function(fun_list) {
