@@ -140,10 +140,10 @@ validate_params <- function(params) {
 #' Validate Source Parameter
 #'
 #' Checks the validity of the 'source' parameter.
-#' @param source A list containing datasets and their associated bands and
-#' statistics. It should follow a specific structure where each dataset is a
-#' named list, each band within a dataset is also a named list, and each
-#' statistic within a band is a non-empty character string.
+#' @param source [mandatory] (list) A list containing datasets and their
+#' associated bands and statistics. It should follow a specific structure where
+#' each dataset is a named list, each band within a dataset is also a named
+#' list, and each statistic within a band is a non-empty character string.
 #' @return \code{TRUE} if the 'source' parameter is valid.
 #' @keywords internal
 #'
@@ -279,11 +279,12 @@ validate_variables_param <- function(variables, variables_all, prep_fun,
 #' \code{max_retries} times, waiting \code{wait_time} seconds between each
 #' attempt. If the connection cannot be established after the maximum retries,
 #' the function stops and throws an error.
-#' @param db_path A string specifying the file path to the SQLite database.
-#' @param max_retries An integer specifying the maximum number of retries if
-#' the connection fails (default: \code{3}).
-#' @param wait_time A numeric value indicating the number of seconds to wait
-#' between retries (default: \code{5}).
+#' @param db_path [mandatory] (character)  A string specifying the file path to
+#' the SQLite database.
+#' @param max_retries [mandatory] (integer) An integer specifying the maximum
+#' number of retries if the connection fails (default: \code{3}).
+#' @param wait_time [mandatory] (integer) A numeric value indicating the number
+#' of seconds to wait between retries (default: \code{5}).
 #' @return A database connection object if the connection is successful.
 #' @keywords internal
 #' @importFrom RSQLite dbConnect SQLite
