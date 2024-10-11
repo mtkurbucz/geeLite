@@ -1,25 +1,25 @@
+# This line is used by the 'set_cli' function
+
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
-install.packages(pkg)
+  install.packages(pkg)
 rm(pkg)
 library(optparse)
 library(geeLite)
 
 option_list <- list(
-  make_option(c("--path"), type = "character", help = paste0("[mandatory] ",
-  "Path to the root directory of the generated database.")),
   make_option(c("--verbose"), type = "logical", default = TRUE,
               help = "[optional] Display messages.")
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: set_cli.R --path [path] --verbose [verbose]"),
+  usage = paste0("Usage: init_postp.R --verbose [verbose]"),
   option_list = option_list
 )
 
 args <- parse_args(option_parser)
 
-set_cli(
-  path = args$path,
+init_postp(
+  path = path,
   verbose = args$verbose
 )

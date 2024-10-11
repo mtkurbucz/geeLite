@@ -527,7 +527,7 @@ get_bins <- function(shapes, resol) {
 #' @importFrom sf st_read
 #' @importFrom magrittr %>%
 #' @importFrom dplyr rename select
-#' @importFrom RSQLite dbConnect dbDisconnect SQLite
+#' @importFrom RSQLite dbDisconnect SQLite
 #'
 read_grid <- function() {
 
@@ -535,7 +535,7 @@ read_grid <- function() {
   GEOMETRY <- NULL
 
   # Connect to the SQLite database
-  con <- dbConnect(SQLite(), dbname = "data/geelite.db")
+  con <- db_connect(db_path = "data/geelite.db")
 
   # Read the grid table from the database
   grid <- st_read(con, "grid", quiet = TRUE) %>%
@@ -587,7 +587,7 @@ write_grid <- function(grid) {
 #' @importFrom magrittr %>%
 #' @importFrom stats setNames
 #' @importFrom progress progress_bar
-#' @importFrom RSQLite dbConnect dbReadTable
+#' @importFrom RSQLite dbReadTable
 #'
 compile_db <- function(task, grid, verbose) {
 
@@ -641,7 +641,7 @@ compile_db <- function(task, grid, verbose) {
     # - Retrieve the 'table' related to the current 'dataset'
     # - Identify the most recent date recorded in the table
     if (!database_new && !dataset_new) {
-      con <- dbConnect(SQLite(), dbname = "data/geelite.db")
+      con <- db_connect(db_path = "data/geelite.db")
       db_table <- dbReadTable(con, dataset, check.names = FALSE) %>%
         filter(id %in% grid$id)
       latest_date <- as.Date(gsub("_", "-", colnames(db_table)[ncol(db_table)]))
@@ -873,11 +873,11 @@ get_reducers <- function() {
 #' @param tables_drop [mandatory] (character) A character vector of tables to
 #' be deleted.
 #' @keywords internal
-#' @importFrom RSQLite dbConnect dbDisconnect dbRemoveTable SQLite
+#' @importFrom RSQLite dbDisconnect dbRemoveTable SQLite
 #'
 remove_tables <- function(tables_drop) {
   if (length(tables_drop) > 0) {
-    con <- dbConnect(SQLite(), dbname = "data/geelite.db")
+    con <- db_connect(db_path = "data/geelite.db")
     dbRemoveTable(con, tables_drop)
     dbDisconnect(con)
   }
@@ -1301,7 +1301,7 @@ update_grid_stats <- function(grid_stat, batch_stat) {
 #' @param grid_stats [mandatory] (list) List containing grid statistics
 #' separately for (re)building and updating procedures.
 #' @keywords internal
-#' @importFrom RSQLite dbConnect dbDisconnect dbWriteTable dbRemoveTable SQLite
+#' @importFrom RSQLite dbDisconnect dbWriteTable dbRemoveTable SQLite
 #'
 write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
                              grid_stats) {
@@ -1310,7 +1310,7 @@ write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
   if (database_new || dataset_new) {
 
     # Write the 'grid_stats$build' data to the specified dataset
-    con <- dbConnect(RSQLite::SQLite(), dbname = "data/geelite.db")
+    con <- db_connect(db_path = "data/geelite.db")
     dbWriteTable(conn = con, name = dataset, value = grid_stats$build,
                  append = TRUE, row.names = FALSE)
     dbDisconnect(con)
@@ -1331,7 +1331,7 @@ write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
     }
 
     # Write the updated table to the specified dataset
-    con <- dbConnect(SQLite(), dbname = "data/geelite.db")
+    con <- db_connect(db_path = "data/geelite.db")
     dbWriteTable(conn = con, name = dataset, value = db_table,
                  row.names = FALSE, overwrite = TRUE)
     dbDisconnect(con)

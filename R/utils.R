@@ -272,6 +272,46 @@ validate_variables_param <- function(variables, variables_all, prep_fun,
 
 # ------------------------------------------------------------------------------
 
+#' Attempt to Connect to an SQLite Database with Retries
+#'
+#' This function tries to connect to an SQLite database using
+#' \code{dbConnect()}. If the initial connection fails, it retries up to
+#' \code{max_retries} times, waiting \code{wait_time} seconds between each
+#' attempt. If the connection cannot be established after the maximum retries,
+#' the function stops and throws an error.
+#' @param db_path A string specifying the file path to the SQLite database.
+#' @param max_retries An integer specifying the maximum number of retries if
+#' the connection fails (default: \code{3}).
+#' @param wait_time A numeric value indicating the number of seconds to wait
+#' between retries (default: \code{5}).
+#' @return A database connection object if the connection is successful.
+#' @keywords internal
+#' @importFrom RSQLite dbConnect SQLite
+#'
+db_connect <- function(db_path, max_retries = 3, wait_time = 5) {
+  for (i in 1:max_retries) {
+    con <- tryCatch({
+      dbConnect(SQLite(), dbname = db_path)
+    }, error = function(e) {
+      message("Failed to connect on attempt ", i, ": ", e$message)
+      return(NULL)
+    })
+
+    if (!is.null(con)) {
+      return(con)  # Connection successful
+    }
+
+    # If connection failed, wait before retrying
+    Sys.sleep(wait_time)
+  }
+
+  # If all retries failed, stop and report the issue
+  stop("Failed to connect to the database after ", max_retries,
+       " attempts. Check the file path or server load.")
+}
+
+# ------------------------------------------------------------------------------
+
 #' Output Message
 #'
 #' Outputs message if verbose mode is \code{TRUE}.

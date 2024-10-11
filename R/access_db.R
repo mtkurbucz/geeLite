@@ -21,7 +21,7 @@
 #' \dontrun{
 #'   fetch_vars(path = "path/to/db")
 #' }
-#' @importFrom RSQLite dbConnect dbDisconnect dbListTables dbReadTable SQLite
+#' @importFrom RSQLite dbDisconnect dbListTables dbReadTable SQLite
 #' @importFrom dplyr arrange distinct pull select filter
 #' @importFrom lubridate ymd
 #' @importFrom knitr kable
@@ -41,7 +41,7 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 
   # Retrieve the list of tables
   db_path <- file.path(path, "data/geelite.db")
-  con <- dbConnect(SQLite(), dbname = db_path)
+  con <- db_connect(db_path = db_path)
   tables <- dbListTables(conn = con)
 
   # Filter out system tables, the 'grid' table, and sort the table names
@@ -248,7 +248,6 @@ init_postp <- function(path, verbose = TRUE) {
 
 }
 
-
 # Internal Functions -----------------------------------------------------------
 
 #' Read Variables from Database
@@ -267,7 +266,7 @@ init_postp <- function(path, verbose = TRUE) {
 #' @importFrom sf st_read
 #' @importFrom magrittr %>%
 #' @importFrom dplyr rename select filter
-#' @importFrom RSQLite dbConnect dbDisconnect dbReadTable SQLite
+#' @importFrom RSQLite dbDisconnect dbReadTable SQLite
 #'
 read_variables <- function(path, variables, freq, prep_fun,
                            aggr_funs, postp_funs) {
@@ -278,7 +277,7 @@ read_variables <- function(path, variables, freq, prep_fun,
 
   # Connect to the SQLite database
   db_path <- file.path(path, "data/geelite.db")
-  con <- dbConnect(SQLite(), dbname = db_path)
+  con <- db_connect(db_path = db_path)
 
   # Read the 'grid' table as an sf object
   db_list <- list(grid = st_read(con, "grid", quiet = TRUE) %>%
@@ -503,25 +502,19 @@ expand_to_daily <- function(df_long, prep_fun) {
 #' The function checks for these files and loads the JSON configuration and
 #' sources the R script. If the required files are missing, it stops execution
 #' and notifies the user with instructions on how to set up the files correctly.
-#'
-#' @param path \code{character}. The path to the root directory where the
-#' database is located.
-#'
+#' @param path [mandatory] \code{character} The path to the root directory
+#' where the database is located.
 #' @return Returns a list of post-processing functions loaded from the
 #' \code{structure.json} file. The functions defined in \code{functions.R} are
 #' sourced and made available in the global environment.
-#'
 #' @note The \code{postp} folder must contain two files: \code{structure.json}
 #' and \code{functions.R}. The \code{structure.json} file contains mappings of
 #' variables to the post-processing functions, while \code{functions.R}
 #' contains the actual function definitions that will be used for
 #' post-processing.
-#'
 #' @keywords internal
 #' @importFrom jsonlite fromJSON
 #'
-library(jsonlite)
-
 load_external_postp <- function(path) {
 
   # Define the postp folder and file paths
