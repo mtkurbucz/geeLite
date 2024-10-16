@@ -15,9 +15,9 @@ generated database.}
 
 \item{format}{[mandatory] (character) A character string. Possible values
 are data.frame (default) to return a \code{data.frame} object, or one of
-\code{latex}, \code{html}, \code{pipe} (Pandoc's pipe tables), \code{simple}
-(Pandoc's simple tables), and \code{rst} to be passed on to knitr for
-formatting.}
+\code{markdown}, \code{latex}, \code{html}, \code{pipe} (Pandoc's pipe
+tables), \code{simple} (Pandoc's simple tables), and \code{rst} to be passed
+on to knitr for formatting.}
 }
 \value{
 Returns the variable information in the selected format. If

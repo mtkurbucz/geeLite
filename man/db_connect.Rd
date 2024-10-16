@@ -7,13 +7,14 @@
 db_connect(db_path, max_retries = 3, wait_time = 5)
 }
 \arguments{
-\item{db_path}{A string specifying the file path to the SQLite database.}
+\item{db_path}{[mandatory] (character)  A string specifying the file path to
+the SQLite database.}
 
-\item{max_retries}{An integer specifying the maximum number of retries if
-the connection fails (default: \code{3}).}
+\item{max_retries}{[mandatory] (integer) An integer specifying the maximum
+number of retries if the connection fails (default: \code{3}).}
 
-\item{wait_time}{A numeric value indicating the number of seconds to wait
-between retries (default: \code{5}).}
+\item{wait_time}{[mandatory] (integer) A numeric value indicating the number
+of seconds to wait between retries (default: \code{5}).}
 }
 \value{
 A database connection object if the connection is successful.

@@ -8,9 +8,9 @@
 #' generated database.
 #' @param format [mandatory] (character) A character string. Possible values
 #' are data.frame (default) to return a \code{data.frame} object, or one of
-#' \code{latex}, \code{html}, \code{pipe} (Pandoc's pipe tables), \code{simple}
-#' (Pandoc's simple tables), and \code{rst} to be passed on to knitr for
-#' formatting.
+#' \code{markdown}, \code{latex}, \code{html}, \code{pipe} (Pandoc's pipe
+#' tables), \code{simple} (Pandoc's simple tables), and \code{rst} to be passed
+#' on to knitr for formatting.
 #' @return Returns the variable information in the selected format. If
 #' \code{format = "data.frame"}, a \code{data.frame} is returned. For other
 #' formats, the output is printed in the specified format and \code{NULL} is
@@ -509,6 +509,7 @@ expand_to_daily <- function(df_long, prep_fun) {
 #' @keywords internal
 #'
 source_with_notification <- function(file) {
+
   # Get the list of functions in the global environment before sourcing
   before <- ls(envir = .GlobalEnv, pattern = "function$")
 

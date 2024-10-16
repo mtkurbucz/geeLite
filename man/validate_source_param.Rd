@@ -7,10 +7,10 @@
 validate_source_param(source)
 }
 \arguments{
-\item{source}{A list containing datasets and their associated bands and
-statistics. It should follow a specific structure where each dataset is a
-named list, each band within a dataset is also a named list, and each
-statistic within a band is a non-empty character string.}
+\item{source}{[mandatory] (list) A list containing datasets and their
+associated bands and statistics. It should follow a specific structure where
+each dataset is a named list, each band within a dataset is also a named
+list, and each statistic within a band is a non-empty character string.}
 }
 \value{
 \code{TRUE} if the 'source' parameter is valid.
