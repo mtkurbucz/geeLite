@@ -7,12 +7,11 @@
 gee_message(user)
 }
 \arguments{
-\item{user}{[mandatory] (character) Used to create a directory within the
-path \code{~/.config/earthengine/}. This directory stores all the
-credentials associated with a specific Google account.}
+\item{user}{[mandatory] (character) Specifies the Google account directory
+for which information is displayed.}
 }
 \description{
-This function prints out information related to the Google Earth Engine
-(GEE) and Python environment setup.
+Prints information about the Google Earth Engine (GEE) and Python
+environment.
 }
 \keyword{internal}

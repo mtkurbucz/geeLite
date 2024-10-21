@@ -20,8 +20,8 @@ extract_grid_stats(
 )
 }
 \arguments{
-\item{case}{[mandatory] (logical) Type of data collection request (\code{1}:
-Build, \code{2}: Update).}
+\item{case}{[mandatory] (logical) Type of data collection request
+(\code{1}: Build, \code{2}: Update).}
 
 \item{images}{[mandatory] (list) List containing GEE images and related
 information.}
@@ -55,7 +55,7 @@ grid statistics.}
 }
 \value{
 A data frame containing grid statistics for both building and
-updating processes.
+  updating processes.
 }
 \description{
 Extracts grid statistics from Google Earth Engine (GEE) images based on

@@ -12,7 +12,7 @@ initialized.}
 }
 \value{
 A progress bar (environment) if 'verbose' is \code{TRUE}, or
-\code{NULL} if \code{FALSE}.
+  \code{NULL} if \code{FALSE}.
 }
 \description{
 Initializes a progress bar if 'verbose' is \code{TRUE}.

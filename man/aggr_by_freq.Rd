@@ -28,7 +28,8 @@ data.}
 
 \item{variable_name}{[mandatory] (character) Name of the current variable.}
 
-\item{preprocess_body}{[mandatory] (character) Body of the prep_fun function.}
+\item{preprocess_body}{[mandatory] (character) Body of the \code{prep_fun}
+function.}
 }
 \value{
 A data frame in wide format with aggregated values.

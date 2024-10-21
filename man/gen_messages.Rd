@@ -14,6 +14,6 @@ the database is new.}
 A list of output messages.
 }
 \description{
-Defines output messages.
+Defines output messages based on whether the database is new or updated.
 }
 \keyword{internal}

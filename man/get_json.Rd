@@ -7,18 +7,18 @@
 get_json(path, file_path)
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
+\item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 
-\item{file_path}{[mandatory] (character) Relative path to the JSON file from
-the root directory.}
+\item{file_path}{[mandatory] (character) The relative path to the JSON file
+from the root directory.}
 }
 \value{
-A character string representing the formatted JSON of the specified
-file.
+A character string representing the formatted JSON content of the
+  specified file.
 }
 \description{
-Reads and prints a specified JSON file in a human-readable format from the
-specified root directory of the generated database.
+Reads and prints a specified JSON file from the provided root directory in a
+human-readable format.
 }
 \keyword{internal}

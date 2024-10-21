@@ -7,21 +7,24 @@
 modify_config(path, keys, new_values, verbose = TRUE)
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
+\item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 
-\item{keys}{[mandatory] (list) Specifying the path to values in the
-configuration file that need updating.}
+\item{keys}{[mandatory] (list) A list specifying the path to the values in
+the configuration file that need updating. Each path should correspond to
+a specific element in the configuration.}
 
-\item{new_values}{[mandatory] (list) New values to replace the original
-values specified by 'keys'.}
+\item{new_values}{[mandatory] (list) A list of new values to replace the
+original values at the locations specified by 'keys'. The length of
+\code{new_values} must match the length of \code{keys}.}
 
-\item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
+\item{verbose}{[optional] (logical) If \code{TRUE}, displays messages about
+the updates made (default: \code{TRUE}).}
 }
 \description{
-Modifies the configuration file in the specified directory of the generated
-database (\code{config/config.json}) by updating values associated with the
-specified keys.
+Modifies the configuration file located in the specified root directory of
+the generated database (\code{config/config.json}) by updating values
+corresponding to the specified keys.
 }
 \examples{
 # Example: Modifying the configuration file

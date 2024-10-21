@@ -2,10 +2,12 @@
 
 #' Print the Configuration File
 #'
-#' Reads and prints the configuration file in a human-readable format.
-#' @param path [mandatory] (character) Path to the root directory of the
-#' generated database.
-#' @return A character string representing the formatted configuration JSON.
+#' Reads and prints the configuration file from the database's root directory
+#' in a human-readable format.
+#' @param path [mandatory] (character) The path to the root directory of the
+#'   generated database.
+#' @return A character string representing the formatted JSON content of the
+#'   configuration file.
 #' @export
 #' @examples
 #' # Example: Printing the configuration file
@@ -21,10 +23,12 @@ get_config <- function(path) {
 
 #' Print the State File
 #'
-#' Reads and prints the state file in a human-readable format.
-#' @param path [mandatory] (character) Path to the root directory of the
-#' generated database.
-#' @return A character string representing the formatted state JSON.
+#' Reads and prints the state file from the database's root directory in a
+#' human-readable format.
+#' @param path [mandatory] (character) The path to the root directory of the
+#'   generated database.
+#' @return A character string representing the formatted JSON content of the
+#'   state file.
 #' @export
 #' @examples
 #' # Example: Printing the state file
@@ -40,26 +44,28 @@ get_state <- function(path) {
 
 #' Print JSON File
 #'
-#' Reads and prints a specified JSON file in a human-readable format from the
-#' specified root directory of the generated database.
-#' @param path [mandatory] (character) Path to the root directory of the
-#' generated database.
-#' @param file_path [mandatory] (character) Relative path to the JSON file from
-#' the root directory.
-#' @return A character string representing the formatted JSON of the specified
-#' file.
+#' Reads and prints a specified JSON file from the provided root directory in a
+#' human-readable format.
+#' @param path [mandatory] (character) The path to the root directory of the
+#'   generated database.
+#' @param file_path [mandatory] (character) The relative path to the JSON file
+#'   from the root directory.
+#' @return A character string representing the formatted JSON content of the
+#'   specified file.
 #' @keywords internal
 #' @importFrom jsonlite fromJSON toJSON
 #'
 get_json <- function(path, file_path) {
 
-  # Validate parameters
+  # Validate input parameters
   params <- list(path = path, file_path = file_path)
   validate_params(params)
 
-  # Read and format the JSON file
+  # Construct the full file path and read the JSON content
   file_path_full <- file.path(path, file_path)
   file_content <- fromJSON(file_path_full)
+
+  # Format the JSON content in a human-readable format
   formatted_content <- toJSON(file_content, pretty = TRUE)
 
   return(formatted_content)

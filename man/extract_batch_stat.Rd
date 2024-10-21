@@ -28,7 +28,7 @@ statistic.}
 }
 \value{
 A data frame containing grid statistics for the specified batch of
-bins.
+  bins.
 }
 \description{
 Extracts grid statistics from Google Earth Engine (GEE) images for a batch

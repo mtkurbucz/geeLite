@@ -7,14 +7,16 @@
 get_config(path)
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
+\item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 }
 \value{
-A character string representing the formatted configuration JSON.
+A character string representing the formatted JSON content of the
+  configuration file.
 }
 \description{
-Reads and prints the configuration file in a human-readable format.
+Reads and prints the configuration file from the database's root directory
+in a human-readable format.
 }
 \examples{
 # Example: Printing the configuration file

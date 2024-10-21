@@ -7,15 +7,16 @@
 set_cli(path, verbose = TRUE)
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
+\item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 
-\item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
+\item{verbose}{[optional] (logical) Whether to display messages (default:
+\code{TRUE}).}
 }
 \description{
-Creates R scripts to enable main functions to be callable through the
-Command Line Interface (CLI). These scripts are stored within the specified
-directory of the generated database (\code{cli/...}).
+Creates R scripts to enable the main functions to be called through the
+Command Line Interface (CLI). These scripts are stored in the \code{cli/}
+directory of the generated database.
 }
 \examples{
 # Example: Setting up CLI files

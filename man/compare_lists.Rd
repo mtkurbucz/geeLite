@@ -15,6 +15,6 @@ compare_lists(list_1, list_2)
 A list showing added and removed values marked with '+' and '-'.
 }
 \description{
-Compares two lists and mark new values with '+' and removed values with '-'.
+Compares two lists and marks new values with '+' and removed values with '-'.
 }
 \keyword{internal}

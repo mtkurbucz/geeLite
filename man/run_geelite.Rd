@@ -11,14 +11,14 @@ run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE, verbose = TRUE)
 generated database.}
 
 \item{conda}{[optional] (character) Name of the virtual Conda environment
-installed and used by the \code{rgee} package (default: \code{"rgee"}).}
+used by the \code{rgee} package (default: \code{"rgee"}).}
 
-\item{user}{[optional] (character) Used to create a directory within the
-path \code{~/.config/earthengine/}. This directory stores all the
-credentials associated with a specific Google account (default: \code{NULL}).}
+\item{user}{[optional] (character) Specifies the Google account directory
+within \code{~/.config/earthengine/}. This directory stores credentials
+for a specific Google account (default: \code{NULL}).}
 
-\item{rebuild}{[optional] (logical) If set to \code{TRUE}, the database and
-its supplementary files will be overwritten based on the configuration file
+\item{rebuild}{[optional] (logical) If \code{TRUE}, the database and its
+supplementary files are overwritten based on the configuration file
 (default: \code{FALSE}).}
 
 \item{verbose}{[optional] (logical) Display computation status and messages

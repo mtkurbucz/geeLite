@@ -11,7 +11,7 @@ write_log_file(database_new)
 the database is new.}
 }
 \description{
-Writes the log file to the specified directory within the generated database
-(\code{log/log.txt}).
+Writes the log file to the specified directory within the generated
+database (\code{log/log.txt}).
 }
 \keyword{internal}

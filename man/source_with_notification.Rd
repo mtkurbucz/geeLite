@@ -2,29 +2,19 @@
 % Please edit documentation in R/access_db.R
 \name{source_with_notification}
 \alias{source_with_notification}
-\title{Source an R script with notifications about functions loaded and overwritten}
+\title{Source an R Script with Notifications About Functions Loaded}
 \usage{
 source_with_notification(file)
 }
 \arguments{
-\item{file}{[mandatory] A character string specifying the path to the R
-script to be sourced.}
+\item{file}{[mandatory] (character) A character string specifying the path
+to the R script to be sourced.}
 }
 \value{
-This function does not return any value. It is used for its side
-effect of sourcing an R script and printing messages about loaded and
-overwritten functions.
+An environment containing the functions loaded from the sourced file.
 }
 \description{
-This function sources an R script, listing the functions that have been
-loaded into the global environment. It also notifies the user if any
-functions from the sourced file overwrite existing functions in the global
-environment.
-}
-\details{
-The function compares the functions in the global environment before and
-after sourcing the specified file. It identifies newly loaded functions and
-any functions that have been overwritten. A message is displayed with the
-names of the new functions, and a warning is given for overwritten functions.
+Sources an R script into a dedicated environment and lists the functions
+that have been loaded.
 }
 \keyword{internal}

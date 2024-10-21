@@ -7,9 +7,10 @@
 fetch_state_regions()
 }
 \value{
-A data frame of state-level regions.
+A data frame containing state-level region names and ISO 3166-2
+  codes.
 }
 \description{
-Retrieves state-level ISO 3166-2 regions.
+Retrieves ISO 3166-2 codes for state-level regions.
 }
 \keyword{internal}

@@ -7,12 +7,12 @@
 output_message(message, verbose)
 }
 \arguments{
-\item{message}{[mandatory] (list) The message to be displayed.}
+\item{message}{[mandatory] (list) The message to display.}
 
-\item{verbose}{[mandatory] (logical) Flag indicating whether to display the
-message.}
+\item{verbose}{[mandatory] (logical) A flag indicating whether to display
+the message.}
 }
 \description{
-Outputs message if verbose mode is \code{TRUE}.
+Outputs a message if verbose mode is \code{TRUE}.
 }
 \keyword{internal}

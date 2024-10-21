@@ -7,17 +7,17 @@
 fetch_regions(admin_lvl = 0)
 }
 \arguments{
-\item{admin_lvl}{[optional] (integer) Specifies the administrative level. Use
-\code{0} for country-level, \code{1} for state-level, or \code{NULL} to
-include all regions (default: \code{0}).}
+\item{admin_lvl}{[optional] (integer) Specifies the administrative level to
+retrieve. Use \code{0} for country-level, \code{1} for state-level, or
+\code{NULL} to include all regions (default: \code{0}).}
 }
 \value{
-A data frame containing region names, ISO 3166-2 codes, and
-administrative levels.
+A data frame containing region names, ISO 3166-2 codes, and the
+  corresponding administrative levels.
 }
 \description{
-Returns a data frame containing ISO 3166-2 region codes for specified
-administrative levels.
+Returns a data frame containing ISO 3166-2 region codes for the specified
+administrative level.
 }
 \examples{
 # Example: Fetch ISO 3166-2 region codes

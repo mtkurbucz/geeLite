@@ -11,6 +11,6 @@ A simple features (sf) object containing the grid data.
 }
 \description{
 Reads the H3 grid from the specified SQLite database
-(\code{data/geelite.db}).
+  (\code{data/geelite.db}).
 }
 \keyword{internal}

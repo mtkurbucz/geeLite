@@ -13,7 +13,7 @@ additional characters.}
 }
 \value{
 A simple features (sf) object containing the shapes of the specified
-regions.
+  regions.
 }
 \description{
 Retrieves the shapes of specified regions, which can be at the country or

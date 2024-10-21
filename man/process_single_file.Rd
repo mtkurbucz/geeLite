@@ -7,13 +7,15 @@
 process_single_file(src_file_path, path)
 }
 \arguments{
-\item{src_file_path}{[mandatory] (character) Path of the source file.}
+\item{src_file_path}{[mandatory] (character) The path of the source file to
+process.}
 
 \item{path}{[mandatory] (character) The path to the root directory of the
 generated database.}
 }
 \description{
-Processes an individual source file by specifying the 'path' within the
-script, and writes the output to the CLI directory of the database.
+Processes an individual source file by updating the file with the specified
+'path' and writing the updated file to the \code{cli/} directory of the
+database.
 }
 \keyword{internal}

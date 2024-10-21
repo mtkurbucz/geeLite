@@ -11,7 +11,6 @@ print_version(verbose)
 \code{geeLite} package is printed.}
 }
 \description{
-Displays the version of the \code{geeLite} package along with formatted
-headers.
+Displays the version of the \code{geeLite} package with formatted headers.
 }
 \keyword{internal}

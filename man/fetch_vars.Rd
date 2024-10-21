@@ -14,16 +14,15 @@ fetch_vars(
 generated database.}
 
 \item{format}{[mandatory] (character) A character string. Possible values
-are data.frame (default) to return a \code{data.frame} object, or one of
-\code{markdown}, \code{latex}, \code{html}, \code{pipe} (Pandoc's pipe
-tables), \code{simple} (Pandoc's simple tables), and \code{rst} to be passed
-on to knitr for formatting.}
+are \code{"data.frame"} (default) to return a \code{data.frame} object,
+or one of \code{"markdown"}, \code{"latex"}, \code{"html"}, \code{"pipe"}
+(Pandoc's pipe tables), \code{"simple"} (Pandoc's simple tables), and
+\code{"rst"} to be passed on to knitr for formatting.}
 }
 \value{
 Returns the variable information in the selected format. If
-\code{format = "data.frame"}, a \code{data.frame} is returned. For other
-formats, the output is printed in the specified format and \code{NULL} is
-returned.
+  \code{format = "data.frame"}, a \code{data.frame} is returned. For other
+  formats, the output is printed in the specified format and \code{NULL} is
 }
 \description{
 Displays information on the available variables in the SQLite database

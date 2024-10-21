@@ -8,15 +8,16 @@ set_depend(conda = "rgee", user = NULL, verbose = TRUE)
 }
 \arguments{
 \item{conda}{[optional] (character) Name of the virtual Conda environment
-installed and used by the \code{rgee} package (default: \code{"rgee"}).}
+used by the \code{rgee} package (default: \code{"rgee"}).}
 
-\item{user}{[optional] (character) Used to create a directory within the
-path \code{~/.config/earthengine/}. This directory stores all the
-credentials associated with a specific Google account (default: \code{NULL}).}
+\item{user}{[optional] (character) Specifies the Google account directory
+within \code{~/.config/earthengine/}. This directory stores credentials
+for a specific Google account (default: \code{NULL}).}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
 \description{
-Authenticates the GEE account and activates the specified Conda environment.
+Authenticates the Google Earth Engine (GEE) account and activates the
+specified Conda environment.
 }
 \keyword{internal}

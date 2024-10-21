@@ -43,9 +43,9 @@ Users can directly refer to variable names or IDs. The default is
 \code{NULL}, indicating no post-processing.}
 }
 \value{
-A list where the first element ('grid') is a simple feature (sf)
-object, and subsequent elements are data frame objects corresponding to the
-variables.
+A list where the first element (\code{grid}) is a simple feature (sf)
+  object, and subsequent elements are data frame objects corresponding to the
+  variables.
 }
 \description{
 Reads, aggregates, and processes the SQLite database
@@ -55,6 +55,6 @@ Reads, aggregates, and processes the SQLite database
 # Example: Reading variables by IDs
 \dontrun{
 db_list <- read_db(path = "path/to/db",
-variables = c(1, 3))
+  variables = c(1, 3))
 }
 }

@@ -7,31 +7,29 @@
 load_external_postp(path)
 }
 \arguments{
-\item{path}{[mandatory] \code{character} The path to the root directory
+\item{path}{[mandatory] (character) The path to the root directory
 where the database is located.}
 }
 \value{
 Returns a list of post-processing functions loaded from the
-\code{structure.json} file. The functions defined in \code{functions.R} are
-sourced and made available in the global environment.
+  \code{structure.json} file. The functions defined in \code{functions.R} are
+  sourced and made available in the returned environment.
 }
 \description{
-This function loads post-processing functions and their configuration from
-an external folder named \code{postp}, located in the root directory of the
-database. The folder must contain two files: \code{structure.json} (which
-defines the post-processing configuration) and \code{functions.R} (which
-contains the R function definitions to be used for post-processing).
-}
-\details{
-The function checks for these files and loads the JSON configuration and
-sources the R script. If the required files are missing, it stops execution
-and notifies the user with instructions on how to set up the files correctly.
+Loads post-processing functions and their configuration from an external
+folder named \code{postp}, located in the root directory of the database.
+The folder must contain two files: \code{structure.json} (which defines the
+post-processing configuration) and \code{functions.R} (which contains the R
+function definitions to be used for post-processing). The function checks
+for these files and loads the JSON configuration and sources the R script.
+If the required files are missing, it stops execution and notifies the user
+with instructions on how to set up the files correctly.
 }
 \note{
 The \code{postp} folder must contain two files: \code{structure.json}
-and \code{functions.R}. The \code{structure.json} file contains mappings of
-variables to the post-processing functions, while \code{functions.R}
-contains the actual function definitions that will be used for
-post-processing.
+  and \code{functions.R}. The \code{structure.json} file contains mappings of
+  variables to the post-processing functions, while \code{functions.R}
+  contains the actual function definitions that will be used for
+  post-processing.
 }
 \keyword{internal}

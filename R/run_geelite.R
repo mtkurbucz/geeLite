@@ -7,17 +7,17 @@
 #' (\code{cli/...}), and initializes or updates the state
 #' (\code{state/state.json}) and log (\code{log/log.txt}) files.
 #' @param path [mandatory] (character) Path to the root directory of the
-#' generated database.
+#'   generated database.
 #' @param conda [optional] (character) Name of the virtual Conda environment
-#' installed and used by the \code{rgee} package (default: \code{"rgee"}).
-#' @param user [optional] (character) Used to create a directory within the
-#' path \code{~/.config/earthengine/}. This directory stores all the
-#' credentials associated with a specific Google account (default: \code{NULL}).
-#' @param rebuild [optional] (logical) If set to \code{TRUE}, the database and
-#' its supplementary files will be overwritten based on the configuration file
-#' (default: \code{FALSE}).
+#'   used by the \code{rgee} package (default: \code{"rgee"}).
+#' @param user [optional] (character) Specifies the Google account directory
+#'   within \code{~/.config/earthengine/}. This directory stores credentials
+#'   for a specific Google account (default: \code{NULL}).
+#' @param rebuild [optional] (logical) If \code{TRUE}, the database and its
+#'   supplementary files are overwritten based on the configuration file
+#'   (default: \code{FALSE}).
 #' @param verbose [optional] (logical) Display computation status and messages
-#' (default: \code{TRUE}).
+#'   (default: \code{TRUE}).
 #' @export
 #' @examples
 #' # Example: Build a Grid Statistics Database
@@ -33,14 +33,14 @@ run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
                  verbose = verbose)
   validate_params(params)
 
-  # Set the working directory
+  # Set the working directory to the specified path
   setwd(path)
 
-  # Collect and store grid statistics and create or update supplementary files
-  print_version(verbose)            # Display version if 'verbose' is TRUE
+  # Collect grid statistics and create or update supplementary files
+  print_version(verbose)            # Display the version if 'verbose' is TRUE
   set_depend(conda, user, verbose)  # Activate necessary dependencies
-  set_dirs(rebuild)                 # Create required subdirectories in the path
-  task <- get_task()                # Define task using config and state files
+  set_dirs(rebuild)                 # Create required subdirectories
+  task <- get_task()                # Define the task using config and state
   grid <- get_grid(task)            # Generate the grid based on the task
   compile_db(task, grid, verbose)   # Build or update the database
   set_cli(path, FALSE)              # Initialize CLI files
@@ -51,10 +51,9 @@ run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
 
 #' Display geeLite Package Version
 #'
-#' Displays the version of the \code{geeLite} package along with formatted
-#' headers.
+#' Displays the version of the \code{geeLite} package with formatted headers.
 #' @param verbose [mandatory] (logical) If \code{TRUE}, the version of the
-#' \code{geeLite} package is printed.
+#'   \code{geeLite} package is printed.
 #' @keywords internal
 #' @importFrom cli cli_h1
 #' @importFrom utils packageVersion
@@ -73,12 +72,13 @@ print_version <- function(verbose) {
 
 #' Set Dependencies
 #'
-#' Authenticates the GEE account and activates the specified Conda environment.
+#' Authenticates the Google Earth Engine (GEE) account and activates the
+#' specified Conda environment.
 #' @param conda [optional] (character) Name of the virtual Conda environment
-#' installed and used by the \code{rgee} package (default: \code{"rgee"}).
-#' @param user [optional] (character) Used to create a directory within the
-#' path \code{~/.config/earthengine/}. This directory stores all the
-#' credentials associated with a specific Google account (default: \code{NULL}).
+#'   used by the \code{rgee} package (default: \code{"rgee"}).
+#' @param user [optional] (character) Specifies the Google account directory
+#'   within \code{~/.config/earthengine/}. This directory stores credentials
+#'   for a specific Google account (default: \code{NULL}).
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @keywords internal
 #' @importFrom reticulate use_condaenv py_run_string
@@ -93,6 +93,7 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
   attempt <- 1
   success <- FALSE
 
+  # Retry authentication and initialization up to 2 times
   while (attempt <= 2 && !success) {
     tryCatch({
       # Attempt to authenticate and initialize GEE
@@ -108,7 +109,7 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
       tryCatch({
         if (!is.null(user)) {
-          # Construct the full path to the user's credentials if missing
+          # Construct the credentials path if not already set
           if (!exists("credentials_path")) {
             credentials_path <- paste0(
               gsub("\\\\", "/", ee_get_earthengine_path()), user, "/credentials"
@@ -119,13 +120,13 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
             "import ee; ee.Initialize(credentials='%s')", credentials_path
           ))
         } else {
-          # If no user is specified, initialize GEE with default credentials
+          # Initialize GEE with default credentials if no user is specified
           py_run_string("import ee; ee.Initialize()")
         }
         success <- TRUE # Mark success and exit the loop
 
       }, error = function(e) {
-        # Remove expired user credentials
+        # Remove expired user credentials if authentication fails
         ee_clean_user_credentials(user = user)
       })
     })
@@ -140,7 +141,7 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
   }
 
   if (verbose) {
-    # Print GEE and Python environment information
+    # Print GEE and Python environment information if 'verbose' is TRUE
     gee_message(user)
   }
 }
@@ -149,11 +150,10 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 
 #' Print Google Earth Engine and Python Environment Information
 #'
-#' This function prints out information related to the Google Earth Engine
-#' (GEE) and Python environment setup.
-#' @param user [mandatory] (character) Used to create a directory within the
-#' path \code{~/.config/earthengine/}. This directory stores all the
-#' credentials associated with a specific Google account.
+#' Prints information about the Google Earth Engine (GEE) and Python
+#' environment.
+#' @param user [mandatory] (character) Specifies the Google account directory
+#'   for which information is displayed.
 #' @keywords internal
 #' @importFrom cli rule
 #' @importFrom crayon green blue
@@ -162,14 +162,14 @@ set_depend <- function(conda = "rgee", user = NULL, verbose = TRUE) {
 #'
 gee_message <- function (user) {
 
-  # Collect information for output
+  # Collect information to display
   rgee_version <- as.character(packageVersion("rgee"))
   ee_version <- as.character(ee_version())
   user_info <- if (is.null(user)) "not defined" else user
   account_info <- ee_user_info(quiet = TRUE)[1]
   py_path_info <- py_config()$python
 
-  # Print the header with rgee and Earth Engine versions
+  # Print headers and environment info
   header <- rule(
     left = paste0("rgee ", rgee_version),
     right = paste0("earthengine-api ", ee_version)
@@ -177,7 +177,7 @@ gee_message <- function (user) {
 
   cat(header, "\n")
 
-  # Print user information
+  # Display user information
   cat(
     green("\u2714"),
     blue("User:"),
@@ -185,7 +185,7 @@ gee_message <- function (user) {
     "\n"
   )
 
-  # Confirm Google Earth Engine initialization
+  # Confirm the initialization of Google Earth Engine
   cat(
     green("\u2714"),
     blue("Initializing Google Earth Engine:"),
@@ -193,7 +193,7 @@ gee_message <- function (user) {
     "\n"
   )
 
-  # Print Earth Engine account information
+  # Display Earth Engine account information
   cat(
     green("\u2714"),
     blue("Earth Engine account:"),
@@ -201,7 +201,7 @@ gee_message <- function (user) {
     "\n"
   )
 
-  # Print Python path
+  # Display Python path information
   cat(
     green("\u2714"),
     blue("Python path:"),
@@ -209,7 +209,7 @@ gee_message <- function (user) {
     "\n"
   )
 
-  # Print a concluding rule for visual separation
+  # Print a concluding separator rule for visual clarity
   cat(rule(), "\n\n")
 
 }
@@ -221,7 +221,7 @@ gee_message <- function (user) {
 #' Generates \code{"data"}, \code{"log"}, \code{"cli"}, and \code{"state"}
 #' subdirectories at the specified path.
 #' @param rebuild [optional] (logical) If \code{TRUE}, existing directories
-#' will be removed and recreated.
+#'   will be removed and recreated.
 #' @keywords internal
 #'
 set_dirs <- function(rebuild) {
@@ -298,7 +298,7 @@ compare_vectors <- function(vector_1, vector_2) {
 
 #' Compare Lists and Highlight Differences
 #'
-#' Compares two lists and mark new values with '+' and removed values with '-'.
+#' Compares two lists and marks new values with '+' and removed values with '-'.
 #' @param list_1 [mandatory] (list) First list to compare.
 #' @param list_2 [mandatory] (list) Second list to compare.
 #' @return A list showing added and removed values marked with '+' and '-'.
@@ -352,9 +352,9 @@ compare_lists <- function(list_1, list_2) {
 #' Retrieves or creates the grid for the task based on the specified regions
 #' and resolution.
 #' @param task [mandatory] (list) Session task that specifies the parameters
-#' for data collection.
-#' @keywords internal
+#'   for data collection.
 #' @return A simple features (sf) object containing grid data.
+#' @keywords internal
 #' @importFrom sf st_crs
 #' @importFrom dplyr filter
 #' @importFrom magrittr %>%
@@ -422,10 +422,10 @@ get_grid <- function(task) {
 #' Retrieves the shapes of specified regions, which can be at the country or
 #' state level.
 #' @param regions [mandatory] (character) A vector containing ISO 3166-2 region
-#' codes. Country codes are two characters long, while state codes contain
-#' additional characters.
+#'   codes. Country codes are two characters long, while state codes contain
+#'   additional characters.
 #' @return A simple features (sf) object containing the shapes of the specified
-#' regions.
+#'   regions.
 #' @keywords internal
 #' @importFrom magrittr %>%
 #' @importFrom dplyr filter select rename
@@ -472,11 +472,11 @@ get_shapes <- function(regions) {
 #'
 #' Generates H3 bins for the provided shapes at the specified resolution.
 #' @param shapes [mandatory] (sf) A simple features object containing
-#' geometries used for generating H3 bins.
+#'   geometries used for generating H3 bins.
 #' @param resol [mandatory] (integer) An integer specifying the resolution of
-#' the H3 grid.
+#'   the H3 grid.
 #' @return A data frame containing the H3 bins with columns for region ISO
-#' 3166-2 codes, bin IDs, and geometry.
+#'   3166-2 codes, bin IDs, and geometry.
 #' @keywords internal
 #' @importFrom dplyr select
 #' @importFrom h3jsr cell_to_polygon polygon_to_cells
@@ -521,7 +521,7 @@ get_bins <- function(shapes, resol) {
 #' Read Grid from Database
 #'
 #' Reads the H3 grid from the specified SQLite database
-#' (\code{data/geelite.db}).
+#'   (\code{data/geelite.db}).
 #' @return A simple features (sf) object containing the grid data.
 #' @keywords internal
 #' @importFrom sf st_read
@@ -557,7 +557,7 @@ read_grid <- function() {
 #'
 #' Writes the H3 grid to the specified SQLite database (\code{data/geelite.db}).
 #' @param grid [mandatory] (sf) Simple features object containing the grid data
-#' to be written into the database.
+#'   to be written into the database.
 #' @keywords internal
 #' @importFrom sf st_write
 #'
@@ -577,9 +577,9 @@ write_grid <- function(grid) {
 #' files such as CLI files (\code{cli/...}), the state file
 #' (\code{state/state.json}), and the log file (\code{log/log.txt}).
 #' @param task [mandatory] (list) Session task that specifies the parameters
-#' for data collection.
+#'   for data collection.
 #' @param grid [mandatory] (sf) Simple features object containing the
-#' geometries of the regions of interest.
+#'   geometries of the regions of interest.
 #' @param verbose [mandatory] (logical) Display messages and progress status.
 #' @keywords internal
 #' @importFrom purrr map
@@ -783,9 +783,9 @@ compile_db <- function(task, grid, verbose) {
 #'
 #' Initializes a progress bar if 'verbose' is \code{TRUE}.
 #' @param verbose [mandatory] (logical) If \code{TRUE}, a progress bar is
-#' initialized.
+#'   initialized.
 #' @return A progress bar (environment) if 'verbose' is \code{TRUE}, or
-#' \code{NULL} if \code{FALSE}.
+#'   \code{NULL} if \code{FALSE}.
 #' @keywords internal
 #' @importFrom progress progress_bar
 #'
@@ -811,7 +811,7 @@ set_progress_bar <- function(verbose) {
 #' ('+'), items to be dropped ('-'), items to be used (unmarked or marked with
 #' '+'), and indices of '+' items within the used category.
 #' @param vector [mandatory] (character) A character vector containing elements
-#' marked with '+' and '-' prefixes.
+#'   marked with '+' and '-' prefixes.
 #' @return A list with the following components:
 #' \describe{
 #'  \item{$add}{Items marked with '+'}
@@ -871,7 +871,7 @@ get_reducers <- function() {
 #' Removes tables from the database if their corresponding dataset is initially
 #' marked for deletion ('-').
 #' @param tables_drop [mandatory] (character) A character vector of tables to
-#' be deleted.
+#'   be deleted.
 #' @keywords internal
 #' @importFrom RSQLite dbDisconnect dbRemoveTable SQLite
 #'
@@ -890,15 +890,15 @@ remove_tables <- function(tables_drop) {
 #' Determines the cases of data collection requests based on the markers of
 #' 'datasets', 'bands', and 'stats'.
 #' @param database_new [mandatory] (logical) A logical value indicating whether
-#' the database is new.
+#'   the database is new.
 #' @param dataset_new [mandatory] (logical) A logical value indicating whether
-#' the dataset is new.
+#'   the dataset is new.
 #' @param band_new [mandatory] (logical) A logical value indicating whether the
-#' band is new.
+#'   band is new.
 #' @param stats_new [mandatory] (logical) A logical vector indicating which
-#' statistics are new.
+#'   statistics are new.
 #' @param regions_new [mandatory] (logical) A logical vector indicating which
-#' regions are new.
+#'   regions are new.
 #' @return An integer indicating the processing cases as follows:
 #' \describe{
 #'  \item{1}{All build}
@@ -929,15 +929,15 @@ get_cases <- function(database_new, dataset_new, band_new, stats_new,
 #' Retrieves images and related information from Google Earth Engine (GEE)
 #' based on the specified session task.
 #' @param task [mandatory] (list) Session task specifying parameters for data
-#' collection.
+#'   collection.
 #' @param cases [mandatory] (integer) Type of data collection request
-#' (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).
+#'   (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).
 #' @param dataset [mandatory] (character) Name of the GEE dataset.
 #' @param band [mandatory] (character) Name of the band.
 #' @param regions_new [mandatory] (logical) A logical vector indicating which
-#' regions are new.
+#'   regions are new.
 #' @param latest_date [mandatory] (date) The most recent data available in the
-#' related SQLite table. Set to \code{NULL} during the (re)building procedure.
+#'   related SQLite table. Set to \code{NULL} during the (re)building procedure.
 #' @return List containing retrieved images and related information as follows:
 #' \describe{
 #'  \item{$build}{Images for the building procedure}
@@ -1024,9 +1024,9 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
 #' Divides the 'grid' object into multiple batches based on the specified
 #' batch size and the type of data collection request ('cases').
 #' @param cases [mandatory] (integer) Type of data collection request
-#' (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).
+#'   (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).
 #' @param grid [mandatory] (sf) Simple features object containing the
-#' geometries of the regions of interest.
+#'   geometries of the regions of interest.
 #' @param batch_size [mandatory] (integer) Maximum size of each batch.
 #' @return A list containing two batches:
 #' \describe{
@@ -1068,11 +1068,11 @@ get_batches <- function(cases, grid, batch_size) {
 #' Divides the 'grid' object into batches based on either the specified batch
 #' size or the number of batches.
 #' @param grid [mandatory] (sf) Simple features object containing the
-#' geometries of the regions of interest.
+#'   geometries of the regions of interest.
 #' @param batch_size [optional] (integer) Maximum size of each batch
-#' (default: \code{NULL}). If \code{NULL}, 'batch_num' must be specified.
+#'   (default: \code{NULL}). If \code{NULL}, 'batch_num' must be specified.
 #' @param batch_num [optional] (integer) Number of batches (default:
-#' \code{NULL}). If \code{NULL}, 'batch_size' must be specified.
+#'   \code{NULL}). If \code{NULL}, 'batch_size' must be specified.
 #' @return A list containing the batches.
 #' @keywords internal
 #'
@@ -1101,29 +1101,29 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 #'
 #' Extracts grid statistics from Google Earth Engine (GEE) images based on
 #' specified parameters.
-#' @param case [mandatory] (logical) Type of data collection request (\code{1}:
-#' Build, \code{2}: Update).
+#' @param case [mandatory] (logical) Type of data collection request
+#'   (\code{1}: Build, \code{2}: Update).
 #' @param images [mandatory] (list) List containing GEE images and related
-#' information.
+#'   information.
 #' @param grid [mandatory] (sf) Simple features object containing the
-#' geometries of the regions of interest.
+#'   geometries of the regions of interest.
 #' @param batch_1 [mandatory] (integer) Batch from primary batches.
 #' @param batch_2 [mandatory] (integer) Batch from additional batches.
 #' @param band [mandatory] (character) Name of the band to extract statistics
-#' from.
+#'   from.
 #' @param stat [mandatory] (character) Name of the statistical measure applied
-#' for grid statistics calculation.
+#'   for grid statistics calculation.
 #' @param stat_fun [mandatory] (function) Function used to calculate the grid
-#' statistic.
+#'   statistic.
 #' @param scale [mandatory] (numeric) Scale of images before processing.
 #' @param region_new [mandatory] (logical) Vector indicating whether new
-#' regions are to be processed.
+#'   regions are to be processed.
 #' @param skip_update [mandatory] (logical) Logical value indicating whether
-#' the 'band' is up-to-date.
+#'   the 'band' is up-to-date.
 #' @param grid_stats [mandatory] (list) A list containing previously calculated
-#' grid statistics.
+#'   grid statistics.
 #' @return A data frame containing grid statistics for both building and
-#' updating processes.
+#'   updating processes.
 #' @keywords internal
 #' @importFrom purrr map
 #' @importFrom magrittr %>%
@@ -1211,18 +1211,18 @@ extract_grid_stats <- function(case, images, grid, batch_1, batch_2, band,
 #' of bins.
 #' @param imgs [mandatory] (ImageCollection) GEE object containing images.
 #' @param grid [mandatory] (sf) Simple features object containing the
-#' geometries of the regions of interest.
+#'   geometries of the regions of interest.
 #' @param dates [mandatory] (date) Dates when the targeted GEE dataset is
-#' available, defining the time span for data extraction.
+#'   available, defining the time span for data extraction.
 #' @param band [mandatory] (character) Name of the band to extract statistics
-#' from.
+#'   from.
 #' @param stat [mandatory] (character) Name of the statistical measure applied
-#' for grid statistics calculation.
+#'   for grid statistics calculation.
 #' @param stat_fun [mandatory] (function) Function used to calculate the grid
-#' statistic.
+#'   statistic.
 #' @param scale [mandatory] (numeric) Scale of images before processing.
 #' @return A data frame containing grid statistics for the specified batch of
-#' bins.
+#'   bins.
 #' @keywords internal
 #' @importFrom magrittr %>%
 #' @importFrom rgee ee_extract
@@ -1264,9 +1264,9 @@ extract_batch_stat <- function(imgs, grid, dates, band, stat, stat_fun, scale) {
 #'
 #' Updates existing grid statistics with newly calculated statistics.
 #' @param grid_stat [optional] (data.frame) Existing data frame of grid
-#' statistics to append the newly calculated statistics to.
+#'   statistics to append the newly calculated statistics to.
 #' @param batch_stat [mandatory] (data.frame) New data frame of grid statistics
-#' to append to the existing statistics.
+#'   to append to the existing statistics.
 #' @return A data frame containing the updated grid statistics.
 #' @keywords internal
 #'
@@ -1290,16 +1290,16 @@ update_grid_stats <- function(grid_stat, batch_stat) {
 #'
 #' Writes grid statistics to the SQLite database.
 #' @param database_new [mandatory] (logical) A logical value indicating whether
-#' the database is new.
+#'   the database is new.
 #' @param dataset_new [mandatory] (logical) A logical value indicating whether
-#' the dataset is new.
+#'   the dataset is new.
 #' @param dataset [mandatory] (character) Name of the dataset to initialize or
-#' update in the SQLite database.
+#'   update in the SQLite database.
 #' @param db_table [mandatory] (data.frame) The table to be updated or
-#' retrieved from the SQLite database. Set to \code{NULL} during the
-#' (re)building procedure.
+#'   retrieved from the SQLite database. Set to \code{NULL} during the
+#'   (re)building procedure.
 #' @param grid_stats [mandatory] (list) List containing grid statistics
-#' separately for (re)building and updating procedures.
+#'   separately for (re)building and updating procedures.
 #' @keywords internal
 #' @importFrom RSQLite dbDisconnect dbWriteTable dbRemoveTable SQLite
 #'
@@ -1351,12 +1351,12 @@ write_grid_stats <- function(database_new, dataset_new, dataset, db_table,
 #' Writes the state file to the specified directory within the generated
 #' database (\code{state/state.json}).
 #' @param task [mandatory] (list) Session task specifying parameters for data
-#' collection.
+#'   collection.
 #' @param regions [mandatory] (character) A vector containing ISO 3166-2 region
-#' codes. Country codes are two characters long, while state codes contain
-#' additional characters.
+#'   codes. Country codes are two characters long, while state codes contain
+#'   additional characters.
 #' @param source_for_state [mandatory] (list) A list containing information
-#' regarding the collected data.
+#'   regarding the collected data.
 #' @keywords internal
 #' @importFrom jsonlite write_json
 #'
@@ -1371,10 +1371,10 @@ write_state_file <- function(task, regions, source_for_state) {
 
 #' Write Log File
 #'
-#' Writes the log file to the specified directory within the generated database
-#' (\code{log/log.txt}).
+#' Writes the log file to the specified directory within the generated
+#' database (\code{log/log.txt}).
 #' @param database_new [mandatory] (logical) A logical value indicating whether
-#' the database is new.
+#'   the database is new.
 #' @keywords internal
 #'
 write_log_file <- function(database_new) {
@@ -1404,9 +1404,9 @@ write_log_file <- function(database_new) {
 
 #' Define Output Messages
 #'
-#' Defines output messages.
+#' Defines output messages based on whether the database is new or updated.
 #' @param database_new [mandatory] (logical) A logical value indicating whether
-#' the database is new.
+#'   the database is new.
 #' @keywords internal
 #' @return A list of output messages.
 #'

@@ -7,27 +7,27 @@
 validate_params(params)
 }
 \arguments{
-\item{params}{[mandatory] (list) Parameters to be validated.}
+\item{params}{[mandatory] (list) A list of parameters to be validated.}
 }
 \value{
-Invisible \code{NULL} if all validations pass.
+Returns \code{NULL} invisibly if all validations pass.
 }
 \description{
 Validates multiple parameters.
 }
 \details{
-Validations performed:
-- 'admin_lvl': Validates if it is \code{NULL}, \code{0}, or \code{1}.
-- 'conda': Checks if it is an available Conda environment.
+The following validations are performed:
+- 'admin_lvl': Ensures it is \code{NULL}, \code{0}, or \code{1}.
+- 'conda': Verifies if it is an available Conda environment.
 - 'file_path': Constructs a file path and checks if the file exists.
 - 'keys': Ensures it is a non-empty list with valid entries.
-- 'limit': Checks if it is a positive numeric value.
-- 'new_values': Verifies it is a list with the same length as 'keys'.
-- 'user': Checks if it is \code{NULL} or a character value.
-- 'path': Checks if the directory exists.
-- 'rebuild': Checks if it is a logical value.
-- 'regions': Checks if the first two characters are letters.
-- 'start': Checks if it is a valid date.
-- 'verbose': Checks if it is a logical value.
+- 'limit': Ensures it is a positive numeric value.
+- 'new_values': Ensures it is a list with the same length as 'keys'.
+- 'user': Verifies it is \code{NULL} or a character value.
+- 'path': Verifies if the directory exists.
+- 'rebuild': Verifies it is a logical value.
+- 'regions': Ensures the first two characters are letters.
+- 'start': Ensures it is a valid date.
+- 'verbose': Verifies it is a logical value.
 }
 \keyword{internal}

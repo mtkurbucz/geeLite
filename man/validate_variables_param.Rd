@@ -14,13 +14,13 @@ validate_variables_param(
 }
 \arguments{
 \item{variables}{[mandatory] (character or integer) Variable IDs or names to
-be processed. Use \code{\link{fetch_vars}} to obtain valid variable names or
-IDs. Accepts \code{"all"} to select all available variables.}
+be processed. Use \code{\link{fetch_vars}} to obtain valid variable names
+or IDs. Accepts \code{"all"} to select all available variables.}
 
-\item{variables_all}{[mandatory] (data.frame) Data frame containing all
+\item{variables_all}{[mandatory] (data.frame) A data frame containing all
 available variables, typically obtained from \code{\link{fetch_vars}}.}
 
-\item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
+\item{prep_fun}{[mandatory] (function) A function used for pre-processing.}
 
 \item{aggr_funs}{[mandatory] (function or list) Aggregation function(s).}
 
@@ -30,9 +30,9 @@ available variables, typically obtained from \code{\link{fetch_vars}}.}
 A character vector of variable names to process.
 }
 \description{
-Validates and processes the input parameters related to variable selection
-and data processing in the \code{\link{read_db}} function. It ensures that
-the variables, frequency, and functions provided are valid, correctly
-formatted, and compatible with the available data.
+Validates and processes input parameters related to variable selection and
+data processing in the \code{\link{read_db}} function. It ensures that the
+variables, frequency, and functions provided are valid, correctly formatted,
+and compatible with the available data.
 }
 \keyword{internal}

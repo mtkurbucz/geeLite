@@ -15,7 +15,7 @@ the H3 grid.}
 }
 \value{
 A data frame containing the H3 bins with columns for region ISO
-3166-2 codes, bin IDs, and geometry.
+  3166-2 codes, bin IDs, and geometry.
 }
 \description{
 Generates H3 bins for the provided shapes at the specified resolution.

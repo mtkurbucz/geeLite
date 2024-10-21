@@ -7,14 +7,16 @@
 gee_install(conda = "rgee")
 }
 \arguments{
-\item{conda}{[optional] (character) Name of the virtual Conda environment
-installed and used by the \code{rgee} package (default: \code{"rgee"}).}
+\item{conda}{[optional] (character) The name of the virtual Conda
+environment used by the \code{rgee} package (default: \code{"rgee"}).}
 }
 \description{
-This function creates an isolated Conda environment with all necessary
-dependencies for the \code{rgee} package, including the specific version of
+Sets up an isolated Conda environment with all the necessary dependencies
+for the \code{rgee} package, including the specific version of the
 \code{earthengine-api} required by the current version of \code{geeLite}. It
-is based on the \code{ee_install} function from the \code{rgee} package.
+is based on the \code{ee_install} function from the \code{rgee} package and
+ensures that other essential packages, like \code{geojsonio} and
+\code{rnaturalearthdata}, are installed and updated if needed.
 }
 \examples{
 # Example: Creating a Conda environment with 'rgee' dependencies

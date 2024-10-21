@@ -17,6 +17,7 @@ Imports:
   jsonlite,
   magrittr,
   progress,
+  reshape2,
   tidyrgee,
   RSQLite,
   stringr,
