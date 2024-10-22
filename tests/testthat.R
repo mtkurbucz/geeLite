@@ -8,5 +8,9 @@
 
 library(testthat)
 library(geeLite)
+library(withr)
+
+# Apply UTC time zone for all tests in the geeLite package
+withr::local_timezone("UTC")
 
 test_check("geeLite")

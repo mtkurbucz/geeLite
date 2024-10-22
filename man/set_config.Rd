@@ -42,7 +42,7 @@ interest (two letters for countries and additional characters for states).}
 }}
 
 \item{start}{[optional] (date) First date of the data collection
-(default: \code{"2010-01-01"}).}
+(default: \code{"2020-01-01"}).}
 
 \item{resol}{[mandatory] (integer) Resolution of the H3 bin.}
 

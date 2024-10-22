@@ -1,0 +1,247 @@
+---
+title: "Building and Managing Local Databases from Google Earth Engine using geeLite"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{geeLite}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r, include = FALSE}
+pkgs <- c("dplyr", "leaflet", "withr", "sf")
+if (length(pkgs <- setdiff(pkgs, rownames(installed.packages()))))
+  install.packages(pkgs, repos = "https://cloud.r-project.org")
+rm(pkgs)
+
+# Define a temporary path for SQLite database
+path_to_db <- withr::local_tempdir()
+```
+
+```{r setup}
+# Load the necessary packages
+library(geeLite)
+library(withr)
+
+# Set the time zone to UTC temporarily during vignette execution
+withr::local_timezone("UTC")
+```
+
+# Introduction
+
+`geeLite` simplifies the process of building, managing, and updating local SQLite databases containing geospatial features extracted from Google Earth Engine (GEE). This vignette covers the installation, configuration, data collection, and analysis workflows using the `geeLite` package.
+
+# Installation
+
+To install `geeLite` from GitHub, use the following commands:
+
+```{r, eval = FALSE}
+# Install devtools if not installed
+# install.packages("devtools")
+
+# Install geeLite from GitHub
+devtools::install_github("mtkurbucz/geeLite")
+
+# Install Python dependencies and setup rgee
+geeLite::gee_install()
+```
+
+# Workflow
+
+This section describes the workflow for setting up and working with `geeLite`, including configuration, data collection, modification, and data analysis.
+
+## 1. Configuration
+
+The first step in using `geeLite` is setting up a configuration file. This file specifies the regions of interest, the datasets to collect from GEE, and other parameters for data collection.
+
+```{r, eval = FALSE, warning = FALSE}
+# Define the path for the SQLite database
+path <- path_to_db
+
+# Create a configuration for Somalia (SO) and Yemen (YE) to collect NDVI data
+set_config(
+  path = path,
+  regions = c("SO", "YE"),
+  source = list(
+    "MODIS/061/MOD13A2" = list(
+      "NDVI" = c("mean", "sd")
+    )
+  ),
+  resol = 3,
+  start = "2020-01-01"
+)
+```
+
+This configuration will create a JSON file at the specified path that defines the parameters for collecting data from GEE.
+
+## 2. Data Collection
+
+Once the configuration is set, you can collect data from GEE using the `run_geelite()` function. This function retrieves data based on the configuration file and stores it in a local SQLite database.
+
+```{r, eval = FALSE}
+# Collect the data and store it in the SQLite database
+run_geelite(path = path)
+```
+
+The function will store the collected geospatial data in the SQLite database and log the progress.
+
+## 3. Modifying the Configuration
+
+If you want to modify the configuration (e.g., to add new statistics or datasets), you can use the `modify_config()` function to make updates without rebuilding the entire database.
+
+```{r, eval = FALSE}
+# Add more statistics to the NDVI band and include EVI data
+modify_config(
+  path = path,
+  keys = list(
+    c("source", "MODIS/061/MOD13A2", "NDVI"),
+    c("source", "MODIS/061/MOD13A2", "EVI")
+  ),
+  new_values = list(
+    c("mean", "min", "max"),
+    c("mean", "sd")
+  )
+)
+```
+
+After modifying the configuration, run `run_geelite()` again to update the database with the new settings.
+
+## 4. Reading and Analyzing Data
+
+Once the data has been collected and stored in the database, you can read and analyze it using the `read_db()` function. This function allows you to aggregate data at different frequencies (e.g., daily, monthly) and apply preprocessing functions.
+
+```{r, eval = FALSE}
+# Read the data from the database, aggregate to monthly frequency by default
+db <- read_db(path = path)
+
+# Read the data with custom aggregation functions
+db <- read_db(path = path, aggr_funs = list(
+  function(x) mean(x, na.rm = TRUE),
+  function(x) sd(x, na.rm = TRUE))
+)
+```
+
+# Usage Example
+
+Here is an example of how to use `geeLite` to collect NDVI data for Somalia and Yemen, aggregate it to a monthly frequency, and visualize it using the `leaflet` package.
+
+## 1. Collecting the Data
+
+```{r, warning = FALSE}
+# Define the path for the SQLite database
+path <- path_to_db
+
+# Set the configuration file for NDVI data collection
+set_config(
+  path = path,
+  regions = c("SO", "YE"),
+  source = list(
+    "MODIS/061/MOD13A2" = list(
+      "NDVI" = c("mean", "sd")
+    )
+  ),
+  resol = 3,
+  start = "2020-01-01"
+)
+
+# Collect the data
+run_geelite(path = path)
+
+# Read the data from the database
+db <- read_db(path = path, freq = "month")
+```
+
+## 2. Visualizing the Data
+
+Once the data is collected, you can visualize it using the `leaflet` package. The following code shows how to plot the mean NDVI values for each region.
+
+```{r}
+# Load necessary packages
+library(leaflet)
+library(dplyr)
+library(sf)
+
+# Read database and merge grid with MODIS data
+sf <- merge(db$grid, db$`MODIS/061/MOD13A2/NDVI/mean`, by = "id")
+
+# Select the date to visualize
+ndvi <- sf$`2020-01-01`
+
+# Create a color palette function based on the values
+color_pal <- colorNumeric(palette = "viridis", domain = ndvi)
+
+# Create the leaflet map
+leaflet(data = sf) %>%
+  addTiles() %>%                            # Add base tiles
+  addPolygons(
+    fillColor = color_pal(ndvi),            # Fill color
+    color = "#BDBDC3",                      # Border color
+    weight = 1,                             # Border weight
+    opacity = 1,                            # Border opacity
+    fillOpacity = 0.9                       # Fill opacity
+  ) %>%
+  addScaleBar(position = "bottomleft") %>%  # Add scale bar
+  addLegend(
+    pal = color_pal,                        # Color palette
+    values = ndvi,                          # Data values to map
+    title = "Mean NDVI",                    # Legend title
+    position = "bottomright"                # Legend position
+  )
+```
+
+# Extras
+
+In this section, we explore additional features of the `geeLite` package, such as using the command-line interface (CLI) for automation and integrating the package with job scheduling systems like `cron`.
+
+## 1. Command-Line Interface (CLI)
+
+`geeLite` provides a CLI that allows you to run the main functions of the package directly from the command line. This is useful for automating workflows or integrating `geeLite` into larger systems.
+
+```{bash, eval = FALSE}
+# Setting the CLI files
+Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
+
+# Set up the configuration via CLI
+Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
+
+# Collecting GEE data via CLI
+Rscript cli/run_geelite.R
+
+# Modifying the configuration via CLI
+Rscript cli/modify_config.R --keys "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'), c('source', 'MODIS/061/MOD13A2', 'EVI'))" --new_values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
+
+# Updating the database via CLI
+Rscript cli/run_geelite.R
+```
+
+## 2. Automating Data Collection with Cron
+
+You can automate database updates using the Linux `cron` job scheduler. Here’s an example cron job that updates the database monthly:
+
+```{bash, eval = FALSE}
+# Open the cron jobs file
+crontab -e
+
+# Add the following line to schedule monthly updates (runs on the 1st of every month)
+0 0 1 * * Rscript /path/to/db/cli/run_geelite.R
+```
+
+# Conclusion
+
+The `geeLite` package simplifies the process of managing large-scale geospatial data from Google Earth Engine. With its easy-to-use functions and CLI support, you can efficiently build, update, and analyze local databases for geospatial analysis. By integrating with GEE and R's powerful data processing capabilities, `geeLite` is a valuable tool for researchers and analysts working with environmental and spatial data.
+
+For more detailed information and updates, visit the [geeLite GitHub repository](https://github.com/mtkurbucz/geeLite/).
+
+### Key Improvements:
+1. **Workflow Structure**: Divided into clear steps such as *Configuration*, *Data Collection*, *Modification*, and *Reading and Analyzing Data*.
+2. **Example Section**: Provided a concrete example of collecting, processing, and visualizing NDVI data.
+3. **Extras Section**: Added sections on CLI usage and automation with `cron`.
+4. **CLI and Automation**: Highlighted how to use the CLI for automating processes, making it practical for advanced users.
+
+This structure ensures that users can easily follow the workflow and understand how to use `geeLite` effectively in both interactive and automated environments.

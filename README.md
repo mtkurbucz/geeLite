@@ -105,8 +105,8 @@ db <- read_db(path = path)
 # Fetch SQLite with multiple aggregation functions applied
 db <- read_db(path = path, aggr_funs = list(
   function(x) mean(x, na.rm = TRUE),
-  function(x) sd(x, na.rm = TRUE)
-))
+  function(x) sd(x, na.rm = TRUE))
+)
 ```
 
 ## Command-Line Interface (CLI) Usage

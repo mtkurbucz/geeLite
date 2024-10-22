@@ -31,7 +31,7 @@
 #' @param scale [optional] (integer) Scale of images before processing
 #'   (default: \code{NULL}).
 #' @param start [optional] (date) First date of the data collection
-#'   (default: \code{"2010-01-01"}).
+#'   (default: \code{"2020-01-01"}).
 #' @param limit [optional] (integer) Limit on concurrent zonal statistics
 #'   calculations. \code{Limit - 1} bins will be processed at the same time
 #'   (default: \code{10000}).

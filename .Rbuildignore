@@ -1,3 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^doc$
+^Meta$
+^_R_CHECK_CRAN_INCOMING_TIMESTAMP_

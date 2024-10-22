@@ -9,6 +9,7 @@ License: Mozilla Public License 2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.0
+VignetteBuilder: knitr
 Imports:
   rnaturalearth,
   reticulate,
@@ -36,5 +37,7 @@ Suggests:
   testthat (>= 3.0.0),
   rnaturalearthdata,
   geojsonio,
+  rmarkdown,
+  leaflet,
   withr
 Config/testthat/edition: 3

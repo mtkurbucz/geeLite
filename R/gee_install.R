@@ -22,7 +22,7 @@
 gee_install <- function(conda = "rgee") {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  install_packages_updates <- NULL
+  install_package_updates <- NULL
 
   # Install or update required R packages ('geojsonio' and 'rnaturalearthdata')
   pkgs <- c("geojsonio", "rnaturalearthdata")
@@ -74,7 +74,7 @@ gee_install <- function(conda = "rgee") {
   }
 
   # Install or update the required packages
-  install_packages_updates(pkgs)
+  install_package_updates(pkgs)
 
   # Install 'rgee' dependencies in the specified Conda environment
   ee_install(py_env = conda, confirm = FALSE)
