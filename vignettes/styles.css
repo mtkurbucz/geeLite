@@ -1,0 +1,126 @@
+/* Title, Subtitle, and Author Styling */
+h1.title {
+  font-size: 20px;  /* Title size */
+  color: #002244;   /* Darker blue */
+  font-weight: bold;
+  margin-bottom: 2px; /* Reduced distance */
+}
+
+h2.title, h3.title {
+  font-size: 12px;  /* Title size */
+  color: #002244;   /* Darker blue */
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+h1.subtitle, h2.subtitle {
+  font-size: 18px;  /* Subtitle size */
+  color: #009FDA;   /* Light blue */
+  font-weight: normal; /* Remove bold */
+  margin-top: 0px;  /* Reduced distance */
+  margin-bottom: 10px; /* Space after subtitle */
+}
+
+h3.subtitle {
+  font-size: 12px;  /* Subtitle size */
+  color: #002244;   /* Darker blue */
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+h3.author {
+  font-size: 14px;  /* Author size */
+  color: #000000;   /* Black */
+  font-weight: normal; /* Remove bold */
+  margin-bottom: 10px;
+}
+
+/* Table of Contents (TOC) Styling */
+.toc {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 10px;  /* Smaller TOC font */
+  margin-top: 10px;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toc ul {
+  list-style-type: none;  /* Remove bullet points */
+  padding: 0;
+  margin: 0;
+}
+
+.toc ul li {
+  margin: 5px 0;
+}
+
+.toc ul li a {
+  color: #002244;
+  text-decoration: none;
+}
+
+.toc ul li a:hover {
+  color: #009FDA;
+}
+
+/* Output Container Styling */
+.output-container {
+  width: 100%; /* Ensures output boxes take full width */
+  max-width: 800px; /* Define maximum width for better readability */
+  margin: 0 auto; /* Center align */
+  padding: 10px;
+  background-color: #f8f9fa; /* Light background */
+  border: 1px solid #ddd; /* Light border */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Leaflet Map Styling */
+.leaflet-container {
+  width: 100% !important; /* Force the map to take full width */
+  max-width: 800px; /* Ensure it doesn't exceed the width of other output boxes */
+  height: 500px; /* Set a fixed height for the map */
+  margin: 0 auto; /* Center align */
+  border: 1px solid #ddd; /* Light border */
+  border-radius: 5px; /* Rounded corners */
+}
+
+/* Custom Style for Leaflet Legend */
+.custom-legend {
+  font-size: 9px;  /* Reduce the font size */
+  line-height: 11px; /* Adjust line height for spacing */
+}
+
+/* Headings */
+h2, h3, h4 {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Body Text */
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #444444;
+  font-size: 11px;
+  text-align: justify;
+  line-height: 1.5;
+}
+
+/* Preformatted Text (Code/Output) */
+pre {
+  background-color: #f4f6f8;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 8px;
+  font-size: 10px;
+  white-space: pre-wrap;
+}
+
+/* Log Symbol Styling */
+.log-symbol {
+  font-weight: bold;
+  color: #007bff;
+}
