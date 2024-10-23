@@ -229,6 +229,9 @@ In this section, we explore additional features of the `geeLite` package, such a
 # Setting the CLI files
 Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
 
+# Change directory to where the database will be generated
+cd "path/to/db"
+
 # Set up the configuration via CLI
 Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
 
