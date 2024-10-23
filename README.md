@@ -99,10 +99,8 @@ run_geelite(path = path)
 ``` r
 # Fetch SQLite database:
 # 1) Convert data to daily format and apply default linear interpolation ('prep_fun').
-# 2) Aggregate data to default monthly frequency ('freq') using default mean aggregation ('aggr_funs').
-db <- read_db(path = path)
+# 2) Aggregate data to default monthly frequency ('freq') using mean and standard deviation aggregation ('aggr_funs').
 
-# Fetch SQLite with multiple aggregation functions applied
 db <- read_db(path = path, aggr_funs = list(
   function(x) mean(x, na.rm = TRUE),
   function(x) sd(x, na.rm = TRUE))

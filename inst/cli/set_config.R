@@ -30,7 +30,7 @@ option_list <- list(
 option_parser <- OptionParser(
   usage = paste0("Usage: set_config.R --regions [regions] --source [source] ",
   "--resol [resol] --scale [scale] --start [start] --limit [limit] ",
-  "--crs [crs] --verbose [verbose]"),
+  "--verbose [verbose]"),
   option_list = option_list
 )
 
@@ -46,6 +46,5 @@ set_config(
   scale = args$scale,
   start = args$start,
   limit = args$limit,
-  crs = args$crs,
   verbose = args$verbose
 )

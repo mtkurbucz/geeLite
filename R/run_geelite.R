@@ -43,7 +43,14 @@ run_geelite <- function(path, conda = "rgee", user = NULL, rebuild = FALSE,
   task <- get_task()                # Define the task using config and state
   grid <- get_grid(task)            # Generate the grid based on the task
   compile_db(task, grid, verbose)   # Build or update the database
-  set_cli(path, FALSE)              # Initialize CLI files
+
+  # Check if the 'cli' directory contains any R files
+  # If no R files are found, initialize the CLI files
+  cli_path <- file.path(path, "cli")
+  cli_files <- list.files(cli_path, pattern = "\\.R$", full.names = TRUE)
+  if (length(cli_files) == 0) {
+    set_cli(path, FALSE)
+  }
 
 }
 
@@ -228,9 +235,11 @@ set_dirs <- function(rebuild) {
   dirs <- c("data", "log", "cli", "state")
   state_path <- "state/state.json"
   for (dir in dirs) {
-    if (dir.exists(dir) && (rebuild || !file.exists(state_path))) {
-      # If the directory exists and either rebuild is TRUE or the state file is
-      # missing, remove the existing directory and recreate it
+    if (dir.exists(dir) && (rebuild ||
+       (!file.exists(state_path) && dir != "cli"))) {
+      # If the directory exists and either rebuild is TRUE, or the state file
+      # is missing (and the directory is not 'cli'), remove the existing
+      # directory and recreate it
       unlink(dir, recursive = TRUE)
       dir.create(dir)
     } else if (!dir.exists(dir)) {
@@ -355,10 +364,9 @@ compare_lists <- function(list_1, list_2) {
 #'   for data collection.
 #' @return A simple features (sf) object containing grid data.
 #' @keywords internal
-#' @importFrom sf st_crs
 #' @importFrom dplyr filter
 #' @importFrom magrittr %>%
-#' @importFrom sf st_crs st_as_sf st_geometry
+#' @importFrom sf st_crs st_as_sf st_set_crs st_geometry
 #'
 get_grid <- function(task) {
 
@@ -376,14 +384,26 @@ get_grid <- function(task) {
   if (file.exists(db_path)) { # Update existing grid data
 
     # Read grid, excluding regions to be removed ('-')
-    grid <- read_grid() %>% filter(!iso %in% regions$drop)
+    grid <- read_grid() %>% filter(!iso %in% regions$drop) %>%
+      st_as_sf(sf_column_name = "geometry")
+
+    # Set the CRS to WGS 84 (EPSG:4326)
+    if (is.na(st_crs(grid))) {
+      grid <- sf::st_set_crs(grid, 4326)
+    }
 
     # Add new regions ('+')
     if (length(regions$add) > 0) {
 
       # Define shapes of added regions and create bins based on them
       shapes <- get_shapes(regions$add)
-      grid_add <- get_bins(shapes, task$resol)
+      grid_add <- get_bins(shapes, task$resol) %>%
+        st_as_sf(sf_column_name = "geometry")
+
+      # Set the CRS to WGS 84 (EPSG:4326)
+      if (is.na(st_crs(grid_add))) {
+        grid_add <- sf::st_set_crs(grid_add, 4326)
+      }
 
       # Combine existing grid with newly added bins
       grid <- rbind(grid, grid_add)
@@ -392,12 +412,6 @@ get_grid <- function(task) {
 
     # Update grid if new regions ('+') or removed regions ('-') exist
     if (length(regions$add) > 0 || length(regions$drop) > 0) {
-
-      # Set the CRS to WGS 84 (EPSG:4326)
-      grid <- st_as_sf(grid, sf_column_name = "geometry")
-      sf::st_crs(grid) <- 4326
-
-      # Write grid
       write_grid(grid)
     }
 

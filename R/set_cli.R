@@ -18,8 +18,20 @@
 #'
 set_cli <- function(path, verbose = TRUE) {
 
-  # Validate the 'verbose' parameter and ensure the 'cli' directory exists
+  # Check if the directory ('path') exists, and create it if necessary
+  if (!dir.exists(path)) {
+    dir.create(path, recursive = TRUE)
+  }
+
+  # Define the path for the cli subdirectory
   cli_dir_path <- file.path(path, "cli")
+
+  # Check if the cli subdirectory exists, and create it if necessary
+  if (!dir.exists(cli_dir_path)) {
+    dir.create(cli_dir_path)
+  }
+
+  # Validate the 'verbose' parameter and ensure the 'cli' directory exists
   params <- list(path = cli_dir_path, verbose = verbose)
   validate_params(params)
 
