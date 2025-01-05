@@ -80,5 +80,5 @@ gee_install <- function(conda = "rgee") {
   ee_install(py_env = conda, confirm = FALSE)
 
   # Downgrade 'earthengine-api' to the specified version
-  ee_install_upgrade(version = "0.1.370")
+  ee_install_upgrade(version = "0.1.370", earthengine_env = conda)
 }
