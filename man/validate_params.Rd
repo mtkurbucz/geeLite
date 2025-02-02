@@ -22,6 +22,7 @@ The following validations are performed:
 - 'file_path': Constructs a file path and checks if the file exists.
 - 'keys': Ensures it is a non-empty list with valid entries.
 - 'limit': Ensures it is a positive numeric value.
+- 'mode': Ensures it is 'local' or 'drive'.
 - 'new_values': Ensures it is a list with the same length as 'keys'.
 - 'user': Verifies it is \code{NULL} or a character value.
 - 'path': Verifies if the directory exists.

@@ -8,10 +8,12 @@ Description: This package streamlines the process of building, managing, and upd
 License: Mozilla Public License 2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Imports:
   rnaturalearth,
+  googledrive,
+  data.table,
   reticulate,
   lubridate,
   imputeTS,
@@ -23,6 +25,7 @@ Imports:
   RSQLite,
   stringr,
   crayon,
+  digest,
   dplyr,
   h3jsr,
   knitr,

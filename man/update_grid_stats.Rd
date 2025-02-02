@@ -11,9 +11,11 @@ update_grid_stats(grid_stat, batch_stat)
 statistics to append the newly calculated statistics to.}
 
 \item{batch_stat}{[mandatory] (data.frame) New data frame of grid statistics
-to append to the existing statistics.}
+to append to the existing statistics.ű}
 }
 \value{
+(data.frame) A combined data frame with missing columns filled as NA.
+
 A data frame containing the updated grid statistics.
 }
 \description{

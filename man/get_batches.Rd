@@ -2,28 +2,25 @@
 % Please edit documentation in R/run_geelite.R
 \name{get_batches}
 \alias{get_batches}
-\title{Divide Grid Object into Multiple Batches}
+\title{Produce Batches for Build/Update Mixed Cases}
 \usage{
 get_batches(cases, grid, batch_size)
 }
 \arguments{
-\item{cases}{[mandatory] (integer) Type of data collection request
-(\code{1}: All build, \code{2}: All update, \code{3}: Mixed).}
+\item{cases}{[mandatory] (integer) 1=All build, 2=All update, 3=Mixed.}
 
-\item{grid}{[mandatory] (sf) Simple features object containing the
-geometries of the regions of interest.}
+\item{grid}{[mandatory] (sf) The sf object (grid) containing column 'add'
+to distinguish existing vs. new rows.}
 
-\item{batch_size}{[mandatory] (integer) Maximum size of each batch.}
+\item{batch_size}{[mandatory] (integer) If \code{cases} = 1 or 2, we'll call
+\code{get_batch(grid,batch_size=batch_size)}.}
 }
 \value{
-A list containing two batches:
-\describe{
- \item{$b1}{List of primary batches}
- \item{$b2}{List of additional batches (only applicable if 'cases' == 3)}
-}
+(list) A list of two elements, \code{b1} and \code{b2}, each a list
+  of sf subsets (chunks). \code{b2} might be \code{NULL} if not needed.
 }
 \description{
-Divides the 'grid' object into multiple batches based on the specified
-batch size and the type of data collection request ('cases').
+Divides the grid into one or two lists of chunked sf objects,
+depending on the data-collection case (1,2,3).
 }
 \keyword{internal}

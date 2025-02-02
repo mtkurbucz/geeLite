@@ -4,7 +4,14 @@
 \alias{run_geelite}
 \title{Build and Update the Grid Statistics Database}
 \usage{
-run_geelite(path, conda = "rgee", user = NULL, rebuild = FALSE, verbose = TRUE)
+run_geelite(
+  path,
+  conda = "rgee",
+  user = NULL,
+  rebuild = FALSE,
+  mode = "local",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{path}{[mandatory] (character) Path to the root directory of the
@@ -21,8 +28,15 @@ for a specific Google account (default: \code{NULL}).}
 supplementary files are overwritten based on the configuration file
 (default: \code{FALSE}).}
 
+\item{mode}{[optional] (character) Mode of data extraction. Currently
+supports \code{"local"} or \code{"drive"} (for larger exports via Google
+Drive). Defaults to \code{"local"}.}
+
 \item{verbose}{[optional] (logical) Display computation status and messages
 (default: \code{TRUE}).}
+}
+\value{
+Invisibly returns NULL, called for side effects.
 }
 \description{
 Collects and stores grid statistics from Google Earth Engine (GEE) data in
@@ -35,5 +49,4 @@ SQLite format (\code{data/geelite.db}), initializes CLI files
 \dontrun{
   run_geelite(path = "path/to/db")
 }
-
 }

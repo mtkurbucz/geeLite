@@ -9,6 +9,7 @@
 #' - 'file_path': Constructs a file path and checks if the file exists.
 #' - 'keys': Ensures it is a non-empty list with valid entries.
 #' - 'limit': Ensures it is a positive numeric value.
+#' - 'mode': Ensures it is 'local' or 'drive'.
 #' - 'new_values': Ensures it is a list with the same length as 'keys'.
 #' - 'user': Verifies it is \code{NULL} or a character value.
 #' - 'path': Verifies if the directory exists.
@@ -72,6 +73,13 @@ validate_params <- function(params) {
       if (!is.numeric(value) || value <= 0) {
         stop("Invalid 'limit' parameter.\n",
              "It must be a positive integer.")
+      }
+
+    } else if (name == "mode") {
+
+      if (!value %in% c("local", "drive")) {
+        stop("Invalid 'mode' parameter.\n",
+             "It must be either 'local' or 'drive'.")
       }
 
     } else if (name == "new_values") {

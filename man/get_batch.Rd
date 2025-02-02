@@ -2,25 +2,25 @@
 % Please edit documentation in R/run_geelite.R
 \name{get_batch}
 \alias{get_batch}
-\title{Divide Grid Into Batches}
+\title{Create Batches from an sf Object}
 \usage{
 get_batch(grid, batch_size = NULL, batch_num = NULL)
 }
 \arguments{
-\item{grid}{[mandatory] (sf) Simple features object containing the
-geometries of the regions of interest.}
+\item{grid}{[mandatory] (sf) The sf object to be split into chunks.}
 
-\item{batch_size}{[optional] (integer) Maximum size of each batch
-(default: \code{NULL}). If \code{NULL}, 'batch_num' must be specified.}
+\item{batch_size}{[optional] (integer) Maximum rows per chunk. Must be
+set if \code{batch_num} is NULL.}
 
-\item{batch_num}{[optional] (integer) Number of batches (default:
-\code{NULL}). If \code{NULL}, 'batch_size' must be specified.}
+\item{batch_num}{[optional] (integer) Total number of chunks to create.
+Must be set if \code{batch_size} is NULL.}
 }
 \value{
-A list containing the batches.
+(list) A list of sf objects (chunks).
 }
 \description{
-Divides the 'grid' object into batches based on either the specified batch
-size or the number of batches.
+Divides an sf object (\code{grid}) into a list of chunks, either based on a
+specified number of batches (\code{batch_num}) or a maximum chunk size
+(\code{batch_size}).
 }
 \keyword{internal}

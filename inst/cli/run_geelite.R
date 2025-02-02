@@ -17,6 +17,9 @@ option_list <- list(
   make_option(c("--rebuild"), type = "logical", default = FALSE, help = paste0(
   "[optional] If set to TRUE, the database and its supplementary files will ",
   "be overwritten based on the configuration file")),
+  make_option(c("--mode"), type = "character", default = "local", help = paste0(
+    "[optional] Mode of data extraction. Currently supports 'local' or
+    'drive'.")),
   make_option(c("--verbose"), type = "logical", default = TRUE,
   help = "[optional] Display computation status and messages.")
 )
@@ -33,4 +36,5 @@ run_geelite(path = path,
             conda = args$conda,
             user = args$user,
             rebuild = args$rebuild,
+            mode = args$mode,
             verbose = args$verbose)

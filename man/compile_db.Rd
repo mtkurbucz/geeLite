@@ -4,7 +4,7 @@
 \alias{compile_db}
 \title{Collect and Process Grid Statistics}
 \usage{
-compile_db(task, grid, verbose)
+compile_db(task, grid, mode, verbose)
 }
 \arguments{
 \item{task}{[mandatory] (list) Session task that specifies the parameters
@@ -12,6 +12,10 @@ for data collection.}
 
 \item{grid}{[mandatory] (sf) Simple features object containing the
 geometries of the regions of interest.}
+
+\item{mode}{[optional] (character) Mode of data extraction. Currently
+supports \code{"local"} or \code{"drive"} (for larger exports via Google
+Drive). Defaults to \code{"local"}.}
 
 \item{verbose}{[mandatory] (logical) Display messages and progress status.}
 }
