@@ -17,7 +17,8 @@ option_list <- list(
   make_option(c("--resol"), type = "integer", help = paste0("[mandatory] ",
   "Resolution of the H3 bin.")),
   make_option(c("--scale"), type = "integer", default = NULL,
-  help = "[optional] Scale of images before processing."),
+  help = paste0("[optional] Nominal image resolution (in meters) for ",
+  "processing. If not specified (NULL), a default of 1000 is used.")),
   make_option(c("--start"), type = "character", default = "2020-01-01",
   help = "[optional] First date of the data collection."),
   make_option(c("--limit"), type = "integer", default = 10000, help = paste0(

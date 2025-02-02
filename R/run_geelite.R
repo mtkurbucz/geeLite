@@ -1265,7 +1265,7 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 #' @param stat [mandatory] (character) The statistical function name (e.g.,
 #' "mean").
 #' @param scale [mandatory] (numeric) The spatial resolution in meters for
-#'   reduceRegions.
+#'   'reduceRegions'.
 #' @param folder [optional] (character) Name of the Google Drive folder
 #'   where the export will be stored. Default is \code{"geelite_drive_exports"}.
 #' @param user [optional] (character) If multiple rgee user profiles exist,

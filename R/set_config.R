@@ -28,8 +28,9 @@
 #'   }
 #' }
 #' @param resol [mandatory] (integer) Resolution of the H3 bin.
-#' @param scale [optional] (integer) Scale of images before processing
-#'   (default: \code{NULL}).
+#' @param scale [optional] (integer) Specifies the nominal resolution
+#'   (in meters) for image processing. If left as \code{NULL} (the default), a
+#'   resolution of 1000 is used.
 #' @param start [optional] (date) First date of the data collection
 #'   (default: \code{"2020-01-01"}).
 #' @param limit [optional] (integer) Limit on concurrent zonal statistics
