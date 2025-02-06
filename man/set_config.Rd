@@ -46,12 +46,13 @@ interest (two letters for countries and additional characters for states).}
 
 \item{resol}{[mandatory] (integer) Resolution of the H3 bin.}
 
-\item{scale}{[optional] (integer) Scale of images before processing
-(default: \code{NULL}).}
+\item{scale}{[optional] (integer) Specifies the nominal resolution
+(in meters) for image processing. If left as \code{NULL} (the default), a
+resolution of 1000 is used.}
 
-\item{limit}{[optional] (integer) Limit on concurrent zonal statistics
-calculations. \code{Limit - 1} bins will be processed at the same time
-(default: \code{10000}).}
+\item{limit}{[optional] (integer) In \code{"local"} mode, `limit / dates`
+sets batch size; in \code{"drive"} mode, `limit` is the max features per
+export (default: \code{10000}).}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }

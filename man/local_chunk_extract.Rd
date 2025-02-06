@@ -9,8 +9,8 @@ local_chunk_extract(sf_chunk, imgs, dates, band, stat, stat_fun, scale)
 \arguments{
 \item{sf_chunk}{[mandatory] (sf) An sf data frame containing geometry.}
 
-\item{imgs}{[mandatory] (ee$ImageCollection) The Earth Engine image collection
-to extract statistics from.}
+\item{imgs}{[mandatory] (ee$ImageCollection) The Earth Engine image
+collection to extract statistics from.}
 
 \item{dates}{[mandatory] (character) A vector of date strings corresponding
 to images in the collection.}

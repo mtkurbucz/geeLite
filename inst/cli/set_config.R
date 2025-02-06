@@ -22,8 +22,8 @@ option_list <- list(
   make_option(c("--start"), type = "character", default = "2020-01-01",
   help = "[optional] First date of the data collection."),
   make_option(c("--limit"), type = "integer", default = 10000, help = paste0(
-  "[optional] GEE’s limit to process multiple bins simultaneously. Limit - 1 ",
-  "bins will be processed at the same time.")),
+  "[optional] In 'local'' mode, `limit / dates` sets batch size; in 'drive'
+  mode, `limit` is the max features per export.")),
   make_option(c("--verbose"), type = "logical", default = TRUE,
   help = "[optional] Display messages.")
 )

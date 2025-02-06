@@ -25,7 +25,6 @@ Imports:
   RSQLite,
   stringr,
   crayon,
-  digest,
   dplyr,
   h3jsr,
   knitr,

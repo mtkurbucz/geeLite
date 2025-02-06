@@ -13,7 +13,8 @@ batch_drive_export(
   scale,
   folder = "geelite_drive_exports",
   user = NULL,
-  description = "geelite_export"
+  description = "geelite_export",
+  verbose = FALSE
 )
 }
 \arguments{
@@ -33,7 +34,7 @@ to extract statistics.}
 "mean").}
 
 \item{scale}{[mandatory] (numeric) The spatial resolution in meters for
-reduceRegions.}
+'reduceRegions'.}
 
 \item{folder}{[optional] (character) Name of the Google Drive folder
 where the export will be stored. Default is \code{"geelite_drive_exports"}.}
@@ -43,6 +44,9 @@ specify the user profile directory.}
 
 \item{description}{[optional] (character) A custom description for the
 export task. Default is \code{"geelite_export"}.}
+
+\item{verbose}{[optional] (logical) If \code{TRUE}, progress messages will
+be printed. Defaults to \code{FALSE}.}
 }
 \value{
 (data.frame) A data frame containing extracted statistics with

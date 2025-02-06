@@ -33,9 +33,9 @@
 #'   resolution of 1000 is used.
 #' @param start [optional] (date) First date of the data collection
 #'   (default: \code{"2020-01-01"}).
-#' @param limit [optional] (integer) Limit on concurrent zonal statistics
-#'   calculations. \code{Limit - 1} bins will be processed at the same time
-#'   (default: \code{10000}).
+#' @param limit [optional] (integer) In \code{"local"} mode, `limit / dates`
+#'   sets batch size; in \code{"drive"} mode, `limit` is the max features per
+#'   export (default: \code{10000}).
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @export
 #' @examples

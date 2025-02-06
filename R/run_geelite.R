@@ -58,9 +58,9 @@ run_geelite <- function(path,
 
   # Initialize dependencies
   set_depend(
-    conda   = conda,
-    user    = user,
-    drive   = (mode == "drive"),
+    conda = conda,
+    user = user,
+    drive = (mode == "drive"),
     verbose = verbose
   )
 
@@ -73,7 +73,11 @@ run_geelite <- function(path,
   # Build or read grid
   grid <- get_grid(task)
   if (verbose) {
-    cat("Waiting for progress...\r")
+    if (mode == "local") {
+      cat("Extracting data from Earth Engine...\r")
+    } else if (mode == "drive") {
+      cat("Uploading data for remote processing...\r")
+    }
     flush.console()
   }
 
@@ -332,11 +336,11 @@ get_task <- function() {
 #' @keywords internal
 #'
 compare_vectors <- function(vector_1, vector_2) {
-  added   <- setdiff(vector_1, vector_2)
+  added <- setdiff(vector_1, vector_2)
   removed <- setdiff(vector_2, vector_1)
-  common  <- intersect(vector_1, vector_2)
-  result  <- c(paste0("+", added), common, paste0("-", removed))
-  result  <- result[nchar(result) > 1]
+  common <- intersect(vector_1, vector_2)
+  result <- c(paste0("+", added), common, paste0("-", removed))
+  result <- result[nchar(result) > 1]
   return(result)
 }
 
@@ -463,7 +467,7 @@ get_shapes <- function(regions) {
   . <- .data <- 0
 
   country <- regions[nchar(regions) == 2]
-  state   <- regions[nchar(regions) > 2]
+  state <- regions[nchar(regions) > 2]
 
   # Retrieve country-level shapes
   if (length(country) > 0) {
@@ -507,11 +511,11 @@ get_bins <- function(shapes, resol) {
 
   # Generate H3 bins for each shape
   for (i in seq_len(nrow(shapes))) {
-    shape  <- shapes[i, ]
+    shape <- shapes[i, ]
     bin_id <- h3jsr::polygon_to_cells(shape$geometry, res = resol)
     bin_df <- as.data.frame(h3jsr::cell_to_polygon(bin_id))
     bin_df$iso <- shapes$iso[i]
-    bin_df$id  <- unlist(bin_id)
+    bin_df$id <- unlist(bin_id)
 
     # Initialize or append to the bins dataframe
     bins <- if (i == 1) bin_df else rbind(bins, bin_df)
@@ -603,31 +607,31 @@ compile_db <- function(task, grid, mode, verbose) {
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   .data <- id <- 0
 
-  skip_session    <- TRUE
-  source_for_state<- list()
-  pb             <- set_progress_bar(verbose)
-
-  state_path     <- "state/state.json"
-  database_new   <- !file.exists(state_path)
-  scale          <- if (length(task$scale) > 0) task$scale else NULL
-  reducers       <- get_reducers()
+  # Initialize session settings, database state, and processing utilities
+  skip_session <- TRUE
+  source_for_state <- list()
+  pb <- set_progress_bar(verbose)
+  state_path <- "state/state.json"
+  database_new <- !file.exists(state_path)
+  scale <- if (length(task$scale) > 0) task$scale else NULL
+  reducers <- get_reducers()
 
   # Mark "add" polygons
-  regions       <- process_vector(task$regions)
-  regions_new   <- regions$use_add
-  grid$add      <- grid$iso %in% regions$add
+  regions <- process_vector(task$regions)
+  regions_new <- regions$use_add
+  grid_size <- nrow(grid)
+  grid$add <- grid$iso %in% regions$add
 
   # Possibly remove dropped dataset tables
-  datasets      <- process_vector(names(task$source))
+  datasets <- process_vector(names(task$source))
   remove_tables(datasets$drop)
 
   for (i in seq_along(datasets$use)) {
-    dataset      <- datasets$use[i]
-    dataset_new  <- datasets$use_add[i]
-    bands        <- process_vector(names(task$source[[i]]))
-    grid_stats   <- list(build = NULL, update = NULL)
-
-    db_table <- NULL  # define it here
+    dataset <- datasets$use[i]
+    dataset_new <- datasets$use_add[i]
+    bands <- process_vector(names(task$source[[i]]))
+    grid_stats <- list(build = NULL, update = NULL)
+    db_table <- NULL
 
     # Then check if we can load the table
     if (!database_new && !dataset_new) {
@@ -657,9 +661,9 @@ compile_db <- function(task, grid, mode, verbose) {
 
     # Each band
     for (j in seq_along(bands$use)) {
-      band      <- bands$use[j]
-      band_new  <- bands$use_add[j]
-      stats     <- process_vector(task$source[[i]][[j]])
+      band <- bands$use[j]
+      band_new <- bands$use_add[j]
+      stats <- process_vector(task$source[[i]][[j]])
       stat_funs <- purrr::map(stats$use, ~ reducers[[.]])
       stats_new <- stats$use_add
 
@@ -673,11 +677,12 @@ compile_db <- function(task, grid, mode, verbose) {
       }
 
       # Cases: new dataset, new band, new stats, new polygons, or partial update
-      cases   <- get_cases(
-        database_new, dataset_new, band_new, stats_new, regions_new)
-      images  <- get_images(
-        task, cases, dataset, band, regions_new,
-        get0("latest_date", ifnotfound = NULL))
+      cases <- get_cases(database_new, dataset_new, band_new, stats_new,
+                         regions_new)
+
+      # Collect images
+      images <- get_images(task, mode, cases, dataset, band, regions_new,
+                            get0("latest_date", ifnotfound = NULL))
 
       # If no update needed for band
       if (images$skip_band) {
@@ -691,14 +696,14 @@ compile_db <- function(task, grid, mode, verbose) {
       # If skipping update but new regions, keep building stats
       if (images$skip_update && !any(regions_new)) {
         # Only the new stats
-        stats$use     <- stats$use[stats$use_add]
-        stat_funs     <- stat_funs[stats$use_add]
+        stats$use <- stats$use[stats$use_add]
+        stat_funs <- stat_funs[stats$use_add]
       }
 
       # For each requested stat
       for (k in seq_along(stats$use)) {
         current_stat <- stats$use[k]
-        stat_fun     <- stat_funs[[k]]
+        stat_fun <- stat_funs[[k]]
         # 1 or 2 => full build or partial update, 3 => build + update
         case_code <- ifelse(cases %in% c(1, 2), cases,
                             ifelse(stats_new[k], 1, 2))
@@ -710,7 +715,7 @@ compile_db <- function(task, grid, mode, verbose) {
           # local mode => chunk by chunk
           # --------------------------------------------------------------------
           chunk_dfs_build <- list()
-          chunk_dfs_update<- list()
+          chunk_dfs_update <- list()
 
           # If case_code == 1 => only build
           if (case_code == 1 && !is.null(batches$b1)) {
@@ -718,13 +723,13 @@ compile_db <- function(task, grid, mode, verbose) {
             for (chunk_sf in batches$b1) {
               # In local mode: direct ee_extract
               chunk_result <- local_chunk_extract(
-                sf_chunk  = chunk_sf,
-                imgs      = images$build$ee_ob,
-                dates     = images$build$vrt$date,
-                band      = band,
-                stat      = current_stat,
-                stat_fun  = stat_fun,
-                scale     = scale
+                sf_chunk = chunk_sf,
+                imgs = images$build$ee_ob,
+                dates = images$build$vrt$date,
+                band = band,
+                stat = current_stat,
+                stat_fun = stat_fun,
+                scale = scale
               )
               chunk_dfs_build[[length(chunk_dfs_build) + 1]] <- chunk_result
               if (!is.null(pb)) pb$tick(pb_step / max(1, length(batches$b1)))
@@ -742,16 +747,16 @@ compile_db <- function(task, grid, mode, verbose) {
           if (case_code == 2 && !images$skip_update && !is.null(batches$b1)) {
             for (chunk_sf in batches$b1) {
               chunk_result <- local_chunk_extract(
-                sf_chunk  = chunk_sf,
-                imgs      = images$update$ee_ob,
-                dates     = images$update$vrt$date,
-                band      = band,
-                stat      = current_stat,
-                stat_fun  = stat_fun,
-                scale     = scale
+                sf_chunk = chunk_sf,
+                imgs = images$update$ee_ob,
+                dates = images$update$vrt$date,
+                band = band,
+                stat = current_stat,
+                stat_fun = stat_fun,
+                scale = scale
               )
               chunk_dfs_update[[length(chunk_dfs_update) + 1]] <- chunk_result
-              if (!is.null(pb)) pb$tick(pb_step / max(1, length(batches$b1)))
+              if (!is.null(pb)) pb$tick(pb_step / length(batches$b1))
             }
             if (length(chunk_dfs_update) > 0) {
               grid_stats$update <- update_grid_stats(
@@ -768,32 +773,34 @@ compile_db <- function(task, grid, mode, verbose) {
             if (!images$skip_update && !is.null(batches$b1)) {
               for (chunk_sf in batches$b1) {
                 chunk_result <- local_chunk_extract(
-                  sf_chunk  = chunk_sf,
-                  imgs      = images$update$ee_ob,
-                  dates     = images$update$vrt$date,
-                  band      = band,
-                  stat      = current_stat,
-                  stat_fun  = stat_fun,
-                  scale     = scale
+                  sf_chunk = chunk_sf,
+                  imgs = images$update$ee_ob,
+                  dates = images$update$vrt$date,
+                  band = band,
+                  stat = current_stat,
+                  stat_fun = stat_fun,
+                  scale = scale
                 )
                 chunk_dfs_update[[length(chunk_dfs_update) + 1]] <- chunk_result
-                if (!is.null(pb)) pb$tick(pb_step / max(1, length(batches$b1)))
+                if (!is.null(pb)) pb$tick(pb_step /
+                   (length(batches$b1) + length(batches$b2)))
               }
             }
             # build new polygons
             if (!is.null(batches$b2)) {
               for (chunk_sf in batches$b2) {
                 chunk_result <- local_chunk_extract(
-                  sf_chunk  = chunk_sf,
-                  imgs      = images$build$ee_ob,
-                  dates     = images$build$vrt$date,
-                  band      = band,
-                  stat      = current_stat,
-                  stat_fun  = stat_fun,
-                  scale     = scale
+                  sf_chunk = chunk_sf,
+                  imgs = images$build$ee_ob,
+                  dates = images$build$vrt$date,
+                  band = band,
+                  stat = current_stat,
+                  stat_fun = stat_fun,
+                  scale = scale
                 )
                 chunk_dfs_build[[length(chunk_dfs_build) + 1]] <- chunk_result
-                if (!is.null(pb)) pb$tick(pb_step / max(1, length(batches$b2)))
+                if (!is.null(pb)) pb$tick(pb_step /
+                   (length(batches$b1) + length(batches$b2)))
               }
             }
             # Merge
@@ -815,81 +822,80 @@ compile_db <- function(task, grid, mode, verbose) {
           # drive mode => big-batch approach for fewer tasks
           # --------------------------------------------------------------------
           # Merge b1/b2 polygons for fewer large exports per band/stat via
-          # `extract_drive_stats_parallel()`.
+          # `extract_drive_stats`
           all_chunks_b1 <- if (!is.null(batches$b1)) batches$b1 else list()
           all_chunks_b2 <- if (!is.null(batches$b2)) batches$b2 else list()
 
           # If case_code == 1 => only build
           if (case_code == 1 && length(all_chunks_b1) > 0) {
-            drive_df <- extract_drive_stats_parallel(
-              sf_chunks  = all_chunks_b1,
-              imgs       = images$build$ee_ob,
-              band       = band,
-              stat       = current_stat,
-              stat_fun   = stat_fun,
-              scale      = scale,
-              limit      = task$limit, # to group polygons
-              folder     = "geelite_drive_exports",
-              user       = task$user
+
+            drive_df <- extract_drive_stats(
+              sf_chunks = all_chunks_b1,
+              imgs = images$build$ee_ob,
+              band = band,
+              stat = current_stat,
+              stat_fun = stat_fun,
+              scale = scale,
+              user = task$user,
+              pb = pb,
+              pb_step = pb_step/length(all_chunks_b1)
             )
-            grid_stats$build <- update_grid_stats(grid_stats$build, drive_df)
-            if (!is.null(pb)) pb$tick(pb_step)
+            grid_stats$build <- update_grid_stats(grid_stats$build,
+                                                  drive_df)
           }
 
           # If case_code == 2 => only update
           if (case_code == 2 &&
               !images$skip_update &&
               length(all_chunks_b1) > 0) {
-            drive_df <- extract_drive_stats_parallel(
-              sf_chunks  = all_chunks_b1,
-              imgs       = images$update$ee_ob,
-              band       = band,
-              stat       = current_stat,
-              stat_fun   = stat_fun,
-              scale      = scale,
-              limit      = task$limit,
-              folder     = "geelite_drive_exports",
-              user       = task$user
+            drive_df <- extract_drive_stats(
+              sf_chunks = all_chunks_b1,
+              imgs = images$update$ee_ob,
+              band = band,
+              stat = current_stat,
+              stat_fun = stat_fun,
+              scale = scale,
+              user = task$user,
+              pb = pb,
+              pb_step = pb_step/length(all_chunks_b1)
             )
-            grid_stats$update <- update_grid_stats(grid_stats$update, drive_df)
-            if (!is.null(pb)) pb$tick(pb_step)
+            grid_stats$update <- update_grid_stats(grid_stats$update,
+                                                   drive_df)
           }
 
           # If case_code == 3 => build new polygons + update existing ones
           if (case_code == 3) {
             # update existing polygons
             if (!images$skip_update && length(all_chunks_b1) > 0) {
-              drive_df_up <- extract_drive_stats_parallel(
-                sf_chunks  = all_chunks_b1,
-                imgs       = images$update$ee_ob,
-                band       = band,
-                stat       = current_stat,
-                stat_fun   = stat_fun,
-                scale      = scale,
-                limit      = task$limit,
-                folder     = "geelite_drive_exports",
-                user       = task$user
+              drive_df_up <- extract_drive_stats(
+                sf_chunks = all_chunks_b1,
+                imgs = images$update$ee_ob,
+                band = band,
+                stat = current_stat,
+                stat_fun = stat_fun,
+                scale = scale,
+                user = task$user,
+                pb = pb,
+                pb_step = pb_step/(length(all_chunks_b1)+length(all_chunks_b2))
               )
-              grid_stats$update <- update_grid_stats(
-                grid_stats$update, drive_df_up)
-              if (!is.null(pb)) pb$tick(pb_step / 2)
+              grid_stats$update <- update_grid_stats(grid_stats$update,
+                                                     drive_df_up)
             }
             # build new polygons
             if (length(all_chunks_b2) > 0) {
-              drive_df_bd <- extract_drive_stats_parallel(
-                sf_chunks  = all_chunks_b2,
-                imgs       = images$build$ee_ob,
-                band       = band,
-                stat       = current_stat,
-                stat_fun   = stat_fun,
-                scale      = scale,
-                limit      = task$limit,
-                folder     = "geelite_drive_exports",
-                user       = task$user
+              drive_df_bd <- extract_drive_stats(
+                sf_chunks = all_chunks_b2,
+                imgs = images$build$ee_ob,
+                band = band,
+                stat = current_stat,
+                stat_fun = stat_fun,
+                scale = scale,
+                user = task$user,
+                pb = pb,
+                pb_step = pb_step/(length(all_chunks_b1)+length(all_chunks_b2))
               )
-              grid_stats$build <- update_grid_stats(
-                grid_stats$build, drive_df_bd)
-              if (!is.null(pb)) pb$tick(pb_step / 2)
+              grid_stats$build <- update_grid_stats(grid_stats$build,
+                                                    drive_df_bd)
             }
           }
         }
@@ -903,14 +909,14 @@ compile_db <- function(task, grid, mode, verbose) {
     if (!is.null(grid_stats$build) || !is.null(grid_stats$update)) {
       write_grid_stats(
         database_new = database_new,
-        dataset_new  = dataset_new,
-        dataset      = dataset,
-        grid_stats   = grid_stats,
-        db_table     = get0("db_table", ifnotfound = NULL)
+        dataset_new = dataset_new,
+        dataset = dataset,
+        grid_stats = grid_stats,
+        db_table = get0("db_table", ifnotfound = NULL)
       )
       skip_session <- FALSE
     }
-  } # end of for each dataset
+  }
 
   if (skip_session) {
     cli_alert_info("Database is up-to-date.")
@@ -938,9 +944,9 @@ set_progress_bar <- function(verbose) {
   if (verbose) {
     pb <- progress::progress_bar$new(
       format = "Progress: |:bar| :percent | Elapsed: :elapsed | ETA: :eta",
-      total  = 100,
-      width  = 80,
-      clear  = FALSE
+      total = 100,
+      width = 80,
+      clear = FALSE
     )
   } else {
     pb <- NULL
@@ -971,21 +977,21 @@ process_vector <- function(vector) {
 
   # Identify indices for items marked with '-' or '+'
   drop_idx <- stringr::str_detect(vector, "^\\-")
-  add_idx  <- stringr::str_detect(vector, "^\\+")
+  add_idx <- stringr::str_detect(vector, "^\\+")
 
   # Filter out items not marked with '-'
-  use      <- vector[!drop_idx]
+  use <- vector[!drop_idx]
 
   # Identify indices of items in 'use' marked with '+'
-  use_add  <- stringr::str_detect(use, "^\\+")
+  use_add <- stringr::str_detect(use, "^\\+")
 
   # Remove '+' prefix from items marked with '+'
   use[use_add] <- stringr::str_sub(use[use_add], 2)
 
   return(list(
-    drop    = stringr::str_sub(vector[drop_idx], 2),
-    add     = stringr::str_sub(vector[add_idx], 2),
-    use     = use,
+    drop = stringr::str_sub(vector[drop_idx], 2),
+    add = stringr::str_sub(vector[add_idx], 2),
+    use = use,
     use_add = use_add
   ))
 }
@@ -1013,12 +1019,12 @@ db_connect <- function(db_path) {
 #'
 get_reducers <- function() {
   list(
-    mean   = rgee::ee$Reducer$mean(),
-    sum    = rgee::ee$Reducer$sum(),
-    max    = rgee::ee$Reducer$max(),
-    min    = rgee::ee$Reducer$min(),
+    mean = rgee::ee$Reducer$mean(),
+    sum = rgee::ee$Reducer$sum(),
+    max = rgee::ee$Reducer$max(),
+    min = rgee::ee$Reducer$min(),
     median = rgee::ee$Reducer$median(),
-    sd     = rgee::ee$Reducer$stdDev()
+    sd = rgee::ee$Reducer$stdDev()
   )
 }
 
@@ -1089,12 +1095,13 @@ get_cases <- function(database_new, dataset_new, band_new,
 #' based on the specified session task.
 #' @param task [mandatory] (list) Session task specifying parameters for data
 #'   collection.
+#' @param mode [mandatory] (character) Mode of data extraction. Currently
+#'   supports \code{"local"} or \code{"drive"} (for larger exports via Google
+#'   Drive). Defaults to \code{"local"}.
 #' @param cases [mandatory] (integer) Type of data collection request
 #'   (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).
 #' @param dataset [mandatory] (character) Name of the GEE dataset.
 #' @param band [mandatory] (character) Name of the band.
-#' @param regions_new [mandatory] (logical) A logical vector indicating which
-#'   regions are new.
 #' @param latest_date [mandatory] (date) The most recent data available in the
 #'   related SQLite table. Set to \code{NULL} during the (re)building procedure.
 #' @return List containing retrieved images and related information as follows:
@@ -1111,7 +1118,8 @@ get_cases <- function(database_new, dataset_new, band_new,
 #' @importFrom magrittr %>%
 #' @importFrom tidyrgee as_tidyee
 #'
-get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
+get_images <- function(task, mode, cases, dataset, band, regions_new,
+                       latest_date) {
 
   # Initialize the images list and logical parameters
   images <- list()
@@ -1120,21 +1128,18 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
 
   # If we are building from scratch or brand new band/dataset
   if (cases == 1) {
-
-    # only build
+    # Only build
     images$build <- tidyrgee::as_tidyee(
       rgee::ee$ImageCollection(dataset)$select(band)
     ) %>%
       dplyr::filter(date >= task$start)
-    images$batch_size <- floor(task$limit / length(images$build$vrt$date))
 
   } else if (cases == 2) {
-
-    # only update
+    # Only update
     images$update <- tidyrgee::as_tidyee(
-      rgee::ee$ImageCollection(dataset)$select(band)
-    ) %>%
+      rgee::ee$ImageCollection(dataset)$select(band)) %>%
       dplyr::filter(date >= task$start)
+
     # Check if we already have the max date
     if (!is.null(latest_date) &&
         latest_date >= max(as.Date(images$update$vrt$date))) {
@@ -1142,31 +1147,33 @@ get_images <- function(task, cases, dataset, band, regions_new, latest_date) {
       if (!any(regions_new)) skip_band <- TRUE
     } else {
       images$update <- images$update %>% dplyr::filter(date > latest_date)
-      images$batch_size <- floor(task$limit / length(images$update$vrt$date))
     }
 
   } else if (cases == 3) {
-
-    # partial: build + update
+    # Partial: build + update
     images$build <- tidyrgee::as_tidyee(
-      rgee::ee$ImageCollection(dataset)$select(band)
-    ) %>%
+      rgee::ee$ImageCollection(dataset)$select(band)) %>%
       dplyr::filter(date >= task$start)
-    images$batch_size <- floor(task$limit / length(images$build$vrt$date))
 
     if (!is.null(latest_date) &&
         latest_date < max(as.Date(images$build$vrt$date))) {
       images$update <- tidyrgee::as_tidyee(
-        rgee::ee$ImageCollection(dataset)$select(band)
-      ) %>%
+        rgee::ee$ImageCollection(dataset)$select(band)) %>%
         dplyr::filter(date > latest_date)
     } else {
       skip_update <- TRUE
     }
   }
 
+  # Determine batch size based on mode
+  images$batch_size <- if (mode == "local") {
+    max(floor(task$limit / length(images$build$vrt$date)), 1)
+  } else {
+    max(task$limit, 1)
+  }
+
   # Add logical parameters to the images list
-  images$skip_band   <- skip_band
+  images$skip_band <- skip_band
   images$skip_update <- skip_update
 
   return(images)
@@ -1249,6 +1256,70 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 
 # ------------------------------------------------------------------------------
 
+#' Extract Large-Scale Statistics in Drive Mode with Fewer Tasks
+#'
+#' Batches multiple geometry chunks into fewer \code{ee_table_to_drive} tasks,
+#' reducing overhead and leveraging Google Earth Engine's parallel processing.
+#' @param sf_chunks [mandatory] (list) A list of sf data frames representing
+#'   geometry chunks.
+#' @param imgs [mandatory] (ee$ImageCollection) The Earth Engine image
+#'   collection to extract statistics from.
+#' @param band [mandatory] (character) The band name (e.g., "NDVI").
+#' @param stat [mandatory] (character) The statistical function to apply
+#'   (e.g., "mean").
+#' @param stat_fun [mandatory] (ee$Reducer) The Earth Engine reducer function.
+#' @param scale [mandatory] (numeric) The spatial resolution in meters for
+#'   reduceRegions.
+#' @param folder [optional] (character) Name of the Google Drive folder where
+#'   exports will be stored. Defaults to \code{"geelite_drive_exports"}.
+#' @param user [optional] (character) GEE user profile name, if applicable.
+#' @param pb [mandatory] (Progress bar object) A progress bar instance from
+#'   \code{progress::progress_bar} or similar package. Used to track task
+#'   progress.
+#' @param pb_step [mandatory] (numeric) The step size for updating the
+#'   progress bar.
+#' @return (data.frame) A merged data frame containing extracted statistics
+#'   from all Drive exports.
+#' @keywords internal
+#' @importFrom data.table rbindlist
+#'
+extract_drive_stats <- function(sf_chunks,
+                                imgs,
+                                band,
+                                stat,
+                                stat_fun,
+                                scale,
+                                folder = "geelite_drive_exports",
+                                user = NULL,
+                                pb,
+                                pb_step) {
+
+  # For each group, do one Drive export
+  results <- list()
+  for (i in seq_along(sf_chunks)) {
+    desc <- sprintf("geelite_drive_batch_%s_%02d", band, i)
+    df_batch <- batch_drive_export(
+      sf_list = sf_chunks[[i]],
+      imgs = imgs,
+      stat_fun = stat_fun,
+      band = band,
+      stat = stat,
+      scale = scale,
+      folder = folder,
+      user = user,
+      description = desc
+    )
+    results[[i]] <- df_batch
+    if (!is.null(pb)) pb$tick(pb_step)
+  }
+
+  # Merge all
+  final_df <- data.table::rbindlist(results, fill = TRUE)
+  return(as.data.frame(final_df))
+}
+
+# ------------------------------------------------------------------------------
+
 #' Perform a Single Drive Export for Multiple Geometry Chunks
 #'
 #' Exports multiple geometry chunks to Google Drive in a single batch task.
@@ -1272,6 +1343,8 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 #'   specify the user profile directory.
 #' @param description [optional] (character) A custom description for the
 #'   export task. Default is \code{"geelite_export"}.
+#' @param verbose [optional] (logical) If \code{TRUE}, progress messages will
+#'   be printed. Defaults to \code{FALSE}.
 #' @return (data.frame) A data frame containing extracted statistics with
 #'   columns \code{id}, \code{band}, \code{zonal_stat}, and date-based values.
 #' @keywords internal
@@ -1280,7 +1353,6 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 #' @importFrom googledrive drive_ls drive_rm
 #' @importFrom tidyr pivot_wider
 #' @importFrom data.table fread
-#' @importFrom digest digest
 #'
 batch_drive_export <- function(sf_list,
                                imgs,
@@ -1290,61 +1362,87 @@ batch_drive_export <- function(sf_list,
                                scale,
                                folder = "geelite_drive_exports",
                                user = NULL,
-                               description = "geelite_export") {
+                               description = "geelite_export",
+                               verbose = FALSE) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   'system:index' <- value <- 0
 
+  # Function for conditional logging
+  log_message <- function(msg) {
+    if (verbose) message(msg)
+  }
+
+  # Combine multiple sf chunks and convert to ee FeatureCollection
+  big_sf <- sf::st_as_sf(sf_list, crs = 4326)
+  big_ee <- rgee::sf_as_ee(big_sf)
+
   # Ensure messages are suppressed
   options(googledrive_quiet = TRUE)
 
-  # Combine multiple sf chunks
-  big_sf <- do.call(rbind, sf_list)
-  big_sf <- sf::st_as_sf(big_sf, crs = 4326)
+  export_task_func <- function() {
+    clean_filename <- gsub("[^a-zA-Z0-9]", "_", paste0("export_", Sys.time()))
 
-  # Convert to ee FeatureCollection
-  big_ee <- rgee::sf_as_ee(big_sf)
+    task <- rgee::ee_table_to_drive(
+      collection = imgs$map(rgee::ee_utils_pyfunc(function(img) {
+        img$reduceRegions(
+          collection = big_ee,
+          reducer = stat_fun,
+          scale = scale
+        )
+      }))$flatten(),
+      description = description,
+      folder = folder,
+      fileNamePrefix = clean_filename,
+      fileFormat = "CSV"
+    )
 
-  # Create the export task
-  task <- rgee::ee_table_to_drive(
-    collection    = imgs$map(rgee::ee_utils_pyfunc(function(img) {
-      img$reduceRegions(
-        collection = big_ee,
-        reducer    = stat_fun,
-        scale      = scale
-      )
-    }))$flatten(),
-    description   = description,
-    folder        = folder,
-    fileNamePrefix= paste0(description, "_", digest::digest(big_sf)),
-    fileFormat    = "CSV"
-  )
-  task$start()
-
-  rgee::ee_monitoring(task, quiet = TRUE)
-  info <- rgee::ee$batch$Task$status(task)
-  if (!is.null(info$error_message)) {
-    stop("Google Drive export failed: ", info$error_message)
-  }
-  if (is.null(info$destination_uris)) {
-    stop("Drive export did not produce 'destination_uris'. Possibly empty ",
-         "data or non-Drive export.")
+    task$start()
+    return(task)
   }
 
-  # Download CSV
+  task <- export_task_func()
+
+  max_retries <- 5
+  attempt <- 1
+  success <- FALSE
+
+  while (attempt <= max_retries && !success) {
+    tryCatch({
+      status <- rgee::ee$batch$Task$status(task)
+
+      if (status$state %in% c("COMPLETED")) {
+        success <- TRUE
+        uris <- status$destination_uris
+        log_message(paste("Export succeeded:", basename(uris)))
+
+      } else if (status$state %in% c("FAILED", "CANCELED")) {
+        log_message(paste("Task failed. Attempt", attempt))
+        task <- export_task_func()
+        attempt <- attempt + 1
+
+      } else {
+        log_message("Task still running...")
+        Sys.sleep(10)
+      }
+
+    }, error = function(e) {
+      log_message(paste("Error monitoring task:", e$message))
+      attempt <- attempt + 1
+    })
+  }
+
   tmp_file <- tempfile(fileext = ".csv")
-  rgee::ee_drive_to_local(task = task, dsn = tmp_file)
+  suppressMessages(rgee::ee_drive_to_local(task = task, dsn = tmp_file))
   result <- data.table::fread(tmp_file)
   unlink(tmp_file)
 
-  # Clean up Drive
-  drive_files <- googledrive::drive_ls(path = folder)
+  drive_files <- suppressMessages(googledrive::drive_ls(path = folder))
   if (nrow(drive_files) > 0) {
-    googledrive::drive_rm(drive_files)
-    #message("Temporary Drive exports removed from '", folder, "'.")
+    suppressMessages(googledrive::drive_rm(drive_files))
+    log_message(paste("Temporary Drive exports removed from '", folder, "'."))
   }
 
-  # Tidy the result
   value_col <- colnames(result)[ncol(result) - 1]
   df <- result %>%
     dplyr::mutate(date = sub("_\\d+$", "", `system:index`)) %>%
@@ -1360,87 +1458,6 @@ batch_drive_export <- function(sf_list,
 
 # ------------------------------------------------------------------------------
 
-#' Extract Large-Scale Statistics in Drive Mode with Fewer Tasks
-#'
-#' Batches multiple geometry chunks into fewer \code{ee_table_to_drive} tasks,
-#' reducing overhead and leveraging Google Earth Engine's parallel processing.
-#' @param sf_chunks [mandatory] (list) A list of sf data frames representing
-#'   geometry chunks.
-#' @param imgs [mandatory] (ee$ImageCollection) The Earth Engine image
-#'   collection to extract statistics from.
-#' @param band [mandatory] (character) The band name (e.g., "NDVI").
-#' @param stat [mandatory] (character) The statistical function to apply
-#'   (e.g., "mean").
-#' @param stat_fun [mandatory] (ee$Reducer) The Earth Engine reducer function.
-#' @param scale [mandatory] (numeric) The spatial resolution in meters for
-#'   reduceRegions.
-#' @param limit [optional] (integer) Maximum number of polygons in a single
-#'   Earth Engine export. Defaults to \code{1000}.
-#' @param folder [optional] (character) Name of the Google Drive folder where
-#'   exports will be stored. Defaults to \code{"geelite_drive_exports"}.
-#' @param user [optional] (character) GEE user profile name, if applicable.
-#'
-#' @return (data.frame) A merged data frame containing extracted statistics
-#'   from all Drive exports.
-#' @keywords internal
-#' @importFrom data.table rbindlist
-#'
-extract_drive_stats_parallel <- function(sf_chunks,
-                                         imgs,
-                                         band,
-                                         stat,
-                                         stat_fun,
-                                         scale,
-                                         limit  = 1000,
-                                         folder = "geelite_drive_exports",
-                                         user   = NULL) {
-
-  # Group geometry chunks so each combined group has <= limit polygons
-  chunk_sizes <- sapply(sf_chunks, nrow)
-  grouped_lists <- list()
-  current_list  <- list()
-  current_count <- 0
-
-  for (sf_chunk in sf_chunks) {
-    nfeats <- nrow(sf_chunk)
-    if ((current_count + nfeats) > limit && current_count > 0) {
-      grouped_lists[[length(grouped_lists) + 1]] <- current_list
-      current_list  <- list(sf_chunk)
-      current_count <- nfeats
-    } else {
-      current_list[[length(current_list) + 1]] <- sf_chunk
-      current_count <- current_count + nfeats
-    }
-  }
-  if (length(current_list) > 0) {
-    grouped_lists[[length(grouped_lists) + 1]] <- current_list
-  }
-
-  # For each group, do one Drive export
-  results <- list()
-  for (i in seq_along(grouped_lists)) {
-    desc <- sprintf("geelite_drive_batch_%s_%02d", band, i)
-    df_batch <- batch_drive_export(
-      sf_list     = grouped_lists[[i]],
-      imgs        = imgs,
-      stat_fun    = stat_fun,
-      band        = band,
-      stat        = stat,
-      scale       = scale,
-      folder      = folder,
-      user        = user,
-      description = desc
-    )
-    results[[i]] <- df_batch
-  }
-
-  # Merge all
-  final_df <- data.table::rbindlist(results, fill = TRUE)
-  return(as.data.frame(final_df))
-}
-
-# ------------------------------------------------------------------------------
-
 #' Extract Statistics Locally for a Single Geometry Chunk
 #'
 #' Computes statistical summaries for a given spatial feature (\code{sf_chunk})
@@ -1448,8 +1465,8 @@ extract_drive_stats_parallel <- function(sf_chunks,
 #' This function extracts values for a specific band and applies a chosen
 #' reducer.
 #' @param sf_chunk [mandatory] (sf) An sf data frame containing geometry.
-#' @param imgs [mandatory] (ee$ImageCollection) The Earth Engine image collection
-#'   to extract statistics from.
+#' @param imgs [mandatory] (ee$ImageCollection) The Earth Engine image
+#'   collection to extract statistics from.
 #' @param dates [mandatory] (character) A vector of date strings corresponding
 #'   to images in the collection.
 #' @param band [mandatory] (character) The name of the band to extract.
@@ -1470,10 +1487,10 @@ local_chunk_extract <- function(sf_chunk, imgs, dates, band,
   # Extract statistics from Earth Engine for the given geometry
   suppressMessages({
     batch_stat <- rgee::ee_extract(
-      x     = imgs,
-      y     = sf_chunk$geometry,
-      fun   = stat_fun,
-      sf    = FALSE,
+      x = imgs,
+      y = sf_chunk$geometry,
+      fun = stat_fun,
+      sf = FALSE,
       scale = scale,
       quiet = TRUE
     )
@@ -1482,8 +1499,8 @@ local_chunk_extract <- function(sf_chunk, imgs, dates, band,
   # Format and structure the extracted data
   batch_stat <- batch_stat %>%
     dplyr::mutate(
-      id         = sf_chunk$id,
-      band       = band,
+      id = sf_chunk$id,
+      band = band,
       zonal_stat = stat
     ) %>%
     dplyr::select("id", "band", "zonal_stat", dplyr::everything()) %>%
@@ -1545,10 +1562,10 @@ write_grid_stats <- function(database_new, dataset_new, dataset,
     # create new table from build data
     if (!is.null(grid_stats$build)) {
       RSQLite::dbWriteTable(
-        conn      = con,
-        name      = dataset,
-        value     = grid_stats$build,
-        append    = TRUE,
+        conn = con,
+        name = dataset,
+        value = grid_stats$build,
+        append = TRUE,
         row.names = FALSE
       )
     }
@@ -1562,9 +1579,9 @@ write_grid_stats <- function(database_new, dataset_new, dataset,
       db_table <- rbind(db_table, grid_stats$build)
     }
     RSQLite::dbWriteTable(
-      conn      = con,
-      name      = dataset,
-      value     = db_table,
+      conn = con,
+      name = dataset,
+      value = db_table,
       row.names = FALSE,
       overwrite = TRUE
     )
@@ -1592,7 +1609,7 @@ write_grid_stats <- function(database_new, dataset_new, dataset,
 write_state_file <- function(task, regions, source_for_state) {
   state <- task
   state$regions <- regions
-  state$source  <- source_for_state
+  state$source <- source_for_state
   jsonlite::write_json(state, "state/state.json", pretty = TRUE)
 }
 

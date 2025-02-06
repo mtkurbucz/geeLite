@@ -4,11 +4,15 @@
 \alias{get_images}
 \title{Retrieve Images and Related Information}
 \usage{
-get_images(task, cases, dataset, band, regions_new, latest_date)
+get_images(task, mode, cases, dataset, band, regions_new, latest_date)
 }
 \arguments{
 \item{task}{[mandatory] (list) Session task specifying parameters for data
 collection.}
+
+\item{mode}{[mandatory] (character) Mode of data extraction. Currently
+supports \code{"local"} or \code{"drive"} (for larger exports via Google
+Drive). Defaults to \code{"local"}.}
 
 \item{cases}{[mandatory] (integer) Type of data collection request
 (\code{1}: All build, \code{2}: All update, \code{3}: Mixed).}
@@ -16,9 +20,6 @@ collection.}
 \item{dataset}{[mandatory] (character) Name of the GEE dataset.}
 
 \item{band}{[mandatory] (character) Name of the band.}
-
-\item{regions_new}{[mandatory] (logical) A logical vector indicating which
-regions are new.}
 
 \item{latest_date}{[mandatory] (date) The most recent data available in the
 related SQLite table. Set to \code{NULL} during the (re)building procedure.}
