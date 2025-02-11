@@ -8,7 +8,7 @@ read_db(
   path,
   variables = "all",
   freq = c("month", "day", "week", "bimonth", "quarter", "season", "halfyear", "year"),
-  prep_fun = function(x) na_interpolation(x, option = "linear"),
+  prep_fun = NULL,
   aggr_funs = function(x) mean(x, na.rm = TRUE),
   postp_funs = NULL
 )
@@ -26,11 +26,11 @@ Options include \code{"day"}, \code{"week"}, \code{"month"},
 \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
 \code{"year"} (default: \code{"month"}).}
 
-\item{prep_fun}{[optional] (function) A function for pre-processing time
-series data prior to aggregation. For daily frequency, it handles missing
-values using the specified method. The default is linear interpolation:
-\code{function(x) na_interpolation(x, option = "linear")}, from the
-\code{imputeTS} package.}
+\item{prep_fun}{[optional] (function or \code{NULL}) A function for
+pre-processing time series data prior to aggregation. If \code{NULL}, a
+default linear interpolation (via \code{\link{linear_interp}}) will be
+used for daily-frequency data. If non-daily, the default behavior simply
+returns the vector without interpolation.}
 
 \item{aggr_funs}{[optional] (function or list) A function or a list of
 functions for aggregating data to the specified frequency (\code{freq}).
@@ -38,18 +38,18 @@ Users can directly refer to variable names or IDs. The default function is
 the mean: \code{function(x) mean(x, na.rm = TRUE)}.}
 
 \item{postp_funs}{[optional] (function or list) A function or list of
-functions applied to the time series data of a single bin after aggregation.
-Users can directly refer to variable names or IDs. The default is
-\code{NULL}, indicating no post-processing.}
+functions applied to the time series data of a single bin after
+aggregation. Users can directly refer to variable names or IDs. The
+default is \code{NULL}, indicating no post-processing.}
 }
 \value{
-A list where the first element (\code{grid}) is a simple feature (sf)
-  object, and subsequent elements are data frame objects corresponding to the
-  variables.
+A list where the first element (\code{grid}) is a simple feature
+  (sf) object, and subsequent elements are data frame objects corresponding
+  to the variables.
 }
 \description{
 Reads, aggregates, and processes the SQLite database
-(\code{data/geelite.db}).
+  (\code{data/geelite.db}).
 }
 \examples{
 # Example: Reading variables by IDs
@@ -57,4 +57,5 @@ Reads, aggregates, and processes the SQLite database
 db_list <- read_db(path = "path/to/db",
   variables = c(1, 3))
 }
+
 }

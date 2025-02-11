@@ -127,7 +127,7 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #' Reading, Aggregating, and Processing the SQLite Database
 #'
 #' Reads, aggregates, and processes the SQLite database
-#' (\code{data/geelite.db}).
+#'   (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #'   generated database.
 #' @param variables [optional] (character or integer) Names or IDs of the
@@ -137,22 +137,22 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #'   Options include \code{"day"}, \code{"week"}, \code{"month"},
 #'   \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
 #'   \code{"year"} (default: \code{"month"}).
-#' @param prep_fun [optional] (function) A function for pre-processing time
-#'   series data prior to aggregation. For daily frequency, it handles missing
-#'   values using the specified method. The default is linear interpolation:
-#'   \code{function(x) na_interpolation(x, option = "linear")}, from the
-#'   \code{imputeTS} package.
+#' @param prep_fun [optional] (function or \code{NULL}) A function for
+#'   pre-processing time series data prior to aggregation. If \code{NULL}, a
+#'   default linear interpolation (via \code{\link{linear_interp}}) will be
+#'   used for daily-frequency data. If non-daily, the default behavior simply
+#'   returns the vector without interpolation.
 #' @param aggr_funs [optional] (function or list) A function or a list of
 #'   functions for aggregating data to the specified frequency (\code{freq}).
 #'   Users can directly refer to variable names or IDs. The default function is
 #'   the mean: \code{function(x) mean(x, na.rm = TRUE)}.
 #' @param postp_funs [optional] (function or list) A function or list of
-#'   functions applied to the time series data of a single bin after aggregation.
-#'   Users can directly refer to variable names or IDs. The default is
-#'   \code{NULL}, indicating no post-processing.
-#' @return A list where the first element (\code{grid}) is a simple feature (sf)
-#'   object, and subsequent elements are data frame objects corresponding to the
-#'   variables.
+#'   functions applied to the time series data of a single bin after
+#'   aggregation. Users can directly refer to variable names or IDs. The
+#'   default is \code{NULL}, indicating no post-processing.
+#' @return A list where the first element (\code{grid}) is a simple feature
+#'   (sf) object, and subsequent elements are data frame objects corresponding
+#'   to the variables.
 #' @export
 #' @examples
 #' # Example: Reading variables by IDs
@@ -160,43 +160,50 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #' db_list <- read_db(path = "path/to/db",
 #'   variables = c(1, 3))
 #' }
-#' @importFrom imputeTS na_interpolation
 #'
-read_db <- function(path, variables = "all", freq = c("month", "day", "week",
-                    "bimonth", "quarter", "season", "halfyear", "year"),
-                    prep_fun = function(x)
-                      na_interpolation(x, option = "linear"),
-                    aggr_funs = function(x)
-                      mean(x, na.rm = TRUE),
-                    postp_funs = NULL) {
-
+read_db <- function(
+    path,
+    variables = "all",
+    freq = c("month", "day", "week", "bimonth", "quarter",
+             "season", "halfyear", "year"),
+    prep_fun = NULL,
+    aggr_funs = function(x) mean(x, na.rm = TRUE),
+    postp_funs = NULL
+) {
   # Validate 'freq' parameter
   freq <- match.arg(freq)
 
-  # Check if the 'postp_funs' is set to "external"
+  # If user has specified "external" post-processing
   if (identical(postp_funs, "external")) {
     postp_funs <- load_external_postp(path)
   }
 
-  # Ensure 'aggr_funs' and 'postp_funs' are lists, name 'default' if unnamed
+  # Ensure 'aggr_funs' is a named list
   if (is.function(aggr_funs) || (is.list(aggr_funs) &&
                                  all(sapply(aggr_funs, is.function)))) {
     aggr_funs <- list(default = aggr_funs)
   }
 
-  # Ensure 'postp_funs' is a list; name it 'default' if it's a function or NULL
+  # Ensure 'postp_funs' is a named list
   if (is.function(postp_funs) ||
       (is.list(postp_funs) && all(sapply(postp_funs, is.function))) ||
       is.null(postp_funs)) {
     postp_funs <- list(default = postp_funs)
   }
 
+  # If no prep_fun was provided, default to linear interpolation
+  if (is.null(prep_fun)) {
+    prep_fun <- function(x) {
+      linear_interp(x)
+    }
+  }
+
   # Validate 'path' and obtain the list of available variables
   variables_all <- fetch_vars(path, format = "data.frame")
 
   # Validate parameters and determine which variables to read
-  variables <- validate_variables_param(variables, variables_all, prep_fun,
-                                        aggr_funs, postp_funs)
+  variables <- validate_variables_param(variables, variables_all,
+                                        prep_fun, aggr_funs, postp_funs)
 
   # Read and process data for the selected variables
   db_list <- read_variables(path, variables, freq, prep_fun,
@@ -261,6 +268,43 @@ init_postp <- function(path, verbose = TRUE) {
 }
 
 # Internal Functions -----------------------------------------------------------
+
+#' Simple Linear Interpolation
+#'
+#' Replaces \code{NA} values with linear interpolation.
+#' @param x [mandatory] (numeric) A numeric vector possibly containing
+#'   \code{NA} values.
+#' @return A numeric vector of the same length as \code{x}, with \code{NA}
+#'   values replaced by linear interpolation.
+#' @keywords internal
+#' @importFrom stats approx
+#'
+linear_interp <- function(x) {
+  # If all values are NA, return as-is
+  if (all(is.na(x))) {
+    return(x)
+  }
+
+  # Identify non-NA indices
+  idx <- which(!is.na(x))
+
+  # If fewer than 2 non-NA values, cannot interpolate meaningfully
+  if (length(idx) < 2) {
+    return(x)
+  }
+
+  # Perform linear interpolation using approx
+  # rule = 2 => extend boundary values if the first or last are NA
+  approx(
+    x      = idx,
+    y      = x[idx],
+    xout   = seq_along(x),
+    method = "linear",
+    rule   = 2
+  )$y
+}
+
+# ------------------------------------------------------------------------------
 
 #' Read Variables from Database
 #'
