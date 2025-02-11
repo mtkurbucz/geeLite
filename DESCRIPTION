@@ -37,6 +37,7 @@ Imports:
 Suggests:
   testthat (>= 3.0.0),
   rnaturalearthdata,
+  geojsonio,
   rmarkdown,
   leaflet,
   withr

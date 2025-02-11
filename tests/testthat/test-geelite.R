@@ -6,6 +6,7 @@ rm(pkgs)
 suppressMessages({
   suppressWarnings({
     library(rnaturalearthdata)
+    library(geojsonio)
     library(jsonlite)
     library(RSQLite)
     library(withr)

@@ -135,7 +135,7 @@ print_version <- function(verbose) {
 #'   within \code{~/.config/earthengine/}. This directory stores credentials
 #'   for a specific Google account (default: \code{NULL}).
 #' @param drive [optional] (logical) If \code{TRUE}, initializes Google Drive
-#'   authentication for tasks involving Drive exports (default: \code{FALSE}).
+#'   authentication for tasks involving Drive exports (default: \code{TRUE}).
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @keywords internal
 #' @importFrom reticulate use_condaenv py_run_string
@@ -144,7 +144,7 @@ print_version <- function(verbose) {
 #'
 set_depend <- function(conda = "rgee",
                        user = NULL,
-                       drive = FALSE,
+                       drive = TRUE,
                        verbose = TRUE) {
 
   # Activate the specified Conda environment
@@ -1375,7 +1375,9 @@ batch_drive_export <- function(sf_list,
 
   # Combine multiple sf chunks and convert to ee FeatureCollection
   big_sf <- sf::st_as_sf(sf_list, crs = 4326)
-  big_ee <- rgee::sf_as_ee(big_sf)
+  suppressPackageStartupMessages({
+    big_ee <- rgee::sf_as_ee(big_sf)
+  })
 
   # Ensure messages are suppressed
   options(googledrive_quiet = TRUE)
