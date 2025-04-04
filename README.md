@@ -107,9 +107,22 @@ db <- read_db(path = path, aggr_funs = list(
 )
 ```
 
+## Drive Mode
+
+To efficiently handle large data requests, `geeLite` provides a `drive` mode. 
+In this mode, data are exported from Google Earth Engine to Google Drive in 
+parallel batches and then imported into your local SQLite database. Make sure 
+you have sufficient Google Drive storage available before using this mode.
+
+``` r
+# Collect and store data using drive mode
+run_geelite(path = path, mode = "drive")
+```
+
 ## Command-Line Interface (CLI) Usage
 
-You can execute the previous example using the command-line interface (CLI) as follows:
+You can execute the previous example using the command-line interface (CLI) as 
+follows:
 
 ``` bash
 # Setting the CLI files
