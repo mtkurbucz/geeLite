@@ -10,6 +10,7 @@ This package streamlines the process of building, managing, and updating
 local SQLite databases that contain geospatial features extracted from
 Google Earth Engine (GEE).
 
+
 ## Installation
 
 ``` r
@@ -143,3 +144,7 @@ Rscript cli/modify_config.R --keys "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'
 # Updating the database based on the configuration file
 Rscript cli/run_geelite.R
 ```
+
+## Acknowledgments
+
+Funding by the World Bank’s Food Systems 2030 (FS2030) Multi-Donor Trust Fund program (TF0C0728 and TF0C7822) is gratefully acknowledged. We thank Andres Chamorro and Ben P. Stewart for code testing and comments, as well as Steve Penson, David Newhouse and Alia J. Aghjanian for helpful comments and input. This paper reflects the views of the authors and does not reflect the official views of the World Bank, its Executive Directors, or the countries they represent. This paper reflects the views of the authors, and does not reflect the official views of the World Bank, its Executive Directors, or the countries they represent.
