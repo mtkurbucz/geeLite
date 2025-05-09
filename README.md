@@ -11,7 +11,7 @@ local SQLite databases that contain geospatial features extracted from
 Google Earth Engine (GEE).
 
 <blockquote style="font-size: 85%; font-style: italic; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
-For a full description of the methodology, implementation, and use cases, see the accompanying World Bank Policy Research Working Paper: Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). *Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.* Policy Research Working Paper 11115, World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.
+For a full description of the methodology, implementation, and use cases, see the accompanying World Bank Policy Research Working Paper: Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). Building and Managing Local Databases from Google Earth Engine with the geeLite R Package. Policy Research Working Paper 11115, World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.
 </blockquote>
 
 ## Installation
