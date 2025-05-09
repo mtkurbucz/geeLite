@@ -10,6 +10,9 @@ This package streamlines the process of building, managing, and updating
 local SQLite databases that contain geospatial features extracted from
 Google Earth Engine (GEE).
 
+<blockquote style="font-size: 85%; font-style: italic; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+For a full description of the methodology, implementation, and use cases, see the accompanying World Bank Policy Research Working Paper: Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). *Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.* Policy Research Working Paper 11115, World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.
+</blockquote>
 
 ## Installation
 
@@ -145,9 +148,20 @@ Rscript cli/modify_config.R --keys "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'
 Rscript cli/run_geelite.R
 ```
 
-## Further documentation
+## Citation
+
+If you use `geeLite` in your research, please cite:
+
+<div style="font-size: 90%; font-style: italic; border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9;">
+Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). <i>Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.</i> Policy Research Working Paper 11115. © World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.</div>
+
+## Further Documentation
 
 A pdf manual with additional documentation and html file with example use are provided in [/docs/](./docs/).
+
+## Data Availability Statement
+
+All geospatial datasets are retrieved from the [Google Earth Engine public data catalog](https://developers.google.com/earth-engine/datasets). Users must have a registered Google account with GEE access. No proprietary or restricted data are used in this package.
 
 ## Acknowledgments
 
