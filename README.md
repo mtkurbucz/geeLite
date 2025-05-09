@@ -152,8 +152,9 @@ Rscript cli/run_geelite.R
 
 If you use `geeLite` in your research, please cite:
 
-<div style="font-size: 90%; font-style: italic; border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9;">
-Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). <i>Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.</i> Policy Research Working Paper 11115. © World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.</div>
+<blockquote style="font-size: 90%; font-style: italic; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). <i>Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.</i> Policy Research Working Paper 11115. © World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.
+</blockquote>
 
 ## Further Documentation
 
