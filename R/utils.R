@@ -439,3 +439,30 @@ output_message <- function(message, verbose) {
     cat("\n")
   }
 }
+
+# ------------------------------------------------------------------------------
+
+#' Check Google Earth Engine connection
+#'
+#' Returns \code{TRUE} if the user is authenticated with GEE via `rgee`, without
+#' triggering interactive prompts. Useful in non-interactive contexts like
+#' CRAN. Prints a message and returns \code{FALSE} if not.
+#' @return A logical value: \code{TRUE} if authenticated with GEE, \code{FALSE}
+#' otherwise (invisibly).
+#' @keywords internal
+#' @importFrom rgee ee_check_credentials
+#'
+check_rgee_ready <- function() {
+  is_ready <- tryCatch({
+    rgee::ee_check_credentials(quiet = TRUE)
+  }, error = function(e) FALSE)
+  if (!is_ready) {
+    message(
+      "\nGoogle Earth Engine is not connected.\n",
+      "After installing with geeLite::gee_install(),\n",
+      "run geeLite::set_depend() to authenticate.\n"
+    )
+    return(FALSE)
+  }
+  invisible(TRUE)
+}

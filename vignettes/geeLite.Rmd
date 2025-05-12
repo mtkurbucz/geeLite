@@ -49,6 +49,9 @@ path_to_db <- withr::local_tempdir()
 library(geeLite)
 library(withr)
 
+# Set chunk evaluation flag based on GEE authentication status
+run_chunks <- geeLite:::check_rgee_ready()
+
 # Set the time zone to UTC temporarily during vignette execution
 withr::local_timezone("UTC")
 ```
@@ -82,7 +85,7 @@ The workflow for setting up and using `geeLite` includes configuration, data col
 
 The first step in using `geeLite` is setting up a configuration file. This file specifies the regions of interest, the datasets to collect from GEE, and other parameters for data collection.
 
-```{r config-setup, eval = FALSE, warning = FALSE}
+```{r config-setup, warning = FALSE, eval = FALSE}
 # Define the path for the SQLite database
 path <- path_to_db
 
@@ -155,7 +158,7 @@ This example demonstrates how to use `geeLite` to gather NDVI data for Somalia a
 
 ### 4.1. Collecting the Data {#collecting-data}
 
-```{r collecting-data-example, warning = FALSE}
+```{r collecting-data-example, warning = FALSE, eval = run_chunks}
 # Define the path for the SQLite database
 path <- path_to_db
 
@@ -183,7 +186,7 @@ db <- read_db(path = path, freq = "month")
 
 Once the data is collected, you can visualize it using the `leaflet` package. The following code shows how to plot the mean NDVI values for each region.
 
-```{r visualize-ndvi-leaflet}
+```{r visualize-ndvi-leaflet, eval = run_chunks}
 # Load necessary packages
 library(leaflet)
 library(dplyr)
