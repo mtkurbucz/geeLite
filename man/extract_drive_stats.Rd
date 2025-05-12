@@ -11,7 +11,7 @@ extract_drive_stats(
   stat,
   stat_fun,
   scale,
-  folder = "geelite_drive_scratch",
+  folder = ".geelite_tmp_drive",
   user = NULL,
   pb,
   pb_step
@@ -35,7 +35,7 @@ collection to extract statistics from.}
 reduceRegions.}
 
 \item{folder}{[optional] (character) Name of the Google Drive folder where
-exports will be stored. Defaults to \code{"geelite_drive_scratch"}.}
+exports will be stored. Defaults to \code{".geelite_tmp_drive"}.}
 
 \item{user}{[optional] (character) GEE user profile name, if applicable.}
 

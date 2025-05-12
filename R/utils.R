@@ -350,6 +350,12 @@ db_connect <- function(db_path, max_retries = 3, wait_time = 5) {
 clean_drive_folders_by_name <- function(folder_name,
                                         delete_folders = FALSE,
                                         verbose = TRUE) {
+
+  # If folder_name is an empty string, skip the folder deletion part
+  if (folder_name == "") {
+    delete_folders <- FALSE
+  }
+
   folders <- googledrive::drive_find(
     q = sprintf(
       "name = '%s' and mimeType = 'application/vnd.google-apps.folder'",
@@ -358,14 +364,44 @@ clean_drive_folders_by_name <- function(folder_name,
   )
 
   if (nrow(folders) == 0) {
-    if (verbose) message(sprintf("No folder named '%s' found.", folder_name))
-    return(invisible())
+    if (verbose) {
+      message(sprintf("No folder named '%s' found.", folder_name))
+    }
+    return()
   }
 
   for (i in seq_len(nrow(folders))) {
     folder_id <- googledrive::as_id(folders$id[i])
     files <- suppressMessages(googledrive::drive_ls(path = folder_id))
+
     if (nrow(files) > 0) {
+      # Pattern: export_YYYY_MM_DD_HH_MM_SS_<digits>_YYYY_MM_DD_HH_MM_SS.csv
+      valid_pattern <- paste0(
+        "^export_\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d+_",
+        "\\d{4}_\\d{2}_\\d{2}_\\d{2}_\\d{2}_\\d{2}\\.csv$"
+      )
+      invalid_files <- files[!grepl(valid_pattern, files$name), ]
+
+      if (nrow(invalid_files) > 0) {
+        stop(
+          sprintf(
+            paste0(
+              "Folder '%s' contains unexpected files that do not match\n",
+              "the geeLite export pattern. These may be user uploads:\n\n",
+              "- %s\n\n",
+              "To prevent accidental data loss, geeLite will not proceed.\n\n",
+              "Please delete or relocate these files manually from Google ",
+              "Drive.\n\n",
+              "You can access the folder here:\n",
+              "https://drive.google.com/drive/my-drive/%s"
+            ),
+            folder_name,
+            paste(invalid_files$name, collapse = "\n- "),
+            folder_name
+          )
+        )
+      }
+
       suppressMessages(googledrive::drive_rm(files))
       if (verbose) {
         message(sprintf("Cleaned %d files from folder: %s",

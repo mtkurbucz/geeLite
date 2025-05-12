@@ -85,7 +85,7 @@ run_geelite <- function(path,
   # Clean up any existing temporary Drive export folders
   if (mode == "drive") {
     clean_drive_folders_by_name(
-      folder_name = "geelite_drive_scratch",
+      folder_name = ".geelite_tmp_drive",
       delete_folders = TRUE,
       verbose = FALSE
     )
@@ -793,7 +793,7 @@ compile_db <- function(task, grid, mode, verbose) {
                 )
                 chunk_dfs_update[[length(chunk_dfs_update) + 1]] <- chunk_result
                 if (!is.null(pb)) pb$tick(pb_step /
-                                      (length(batches$b1) + length(batches$b2)))
+                                            (length(batches$b1) + length(batches$b2)))
               }
             }
             # build new polygons
@@ -810,7 +810,7 @@ compile_db <- function(task, grid, mode, verbose) {
                 )
                 chunk_dfs_build[[length(chunk_dfs_build) + 1]] <- chunk_result
                 if (!is.null(pb)) pb$tick(pb_step /
-                                    (length(batches$b1) + length(batches$b2)))
+                                            (length(batches$b1) + length(batches$b2)))
               }
             }
             # Merge
@@ -1281,7 +1281,7 @@ get_batch <- function(grid, batch_size = NULL, batch_num = NULL) {
 #' @param scale [mandatory] (numeric) The spatial resolution in meters for
 #'   reduceRegions.
 #' @param folder [optional] (character) Name of the Google Drive folder where
-#'   exports will be stored. Defaults to \code{"geelite_drive_scratch"}.
+#'   exports will be stored. Defaults to \code{".geelite_tmp_drive"}.
 #' @param user [optional] (character) GEE user profile name, if applicable.
 #' @param pb [mandatory] (Progress bar object) A progress bar instance from
 #'   \code{progress::progress_bar} or similar package. Used to track task
@@ -1299,7 +1299,7 @@ extract_drive_stats <- function(sf_chunks,
                                 stat,
                                 stat_fun,
                                 scale,
-                                folder = "geelite_drive_scratch",
+                                folder = ".geelite_tmp_drive",
                                 user = NULL,
                                 pb,
                                 pb_step) {
@@ -1348,7 +1348,7 @@ extract_drive_stats <- function(sf_chunks,
 #' @param scale [mandatory] (numeric) The spatial resolution in meters for
 #'   'reduceRegions'.
 #' @param folder [optional] (character) Name of the Google Drive folder
-#'   where the export will be stored. Default is \code{"geelite_drive_scratch"}.
+#'   where the export will be stored. Default is \code{".geelite_tmp_drive"}.
 #' @param user [optional] (character) If multiple rgee user profiles exist,
 #'   specify the user profile directory.
 #' @param description [optional] (character) A custom description for the
@@ -1360,7 +1360,6 @@ extract_drive_stats <- function(sf_chunks,
 #' @keywords internal
 #' @importFrom rgee sf_as_ee ee_table_to_drive ee_monitoring ee_drive_to_local
 #' @importFrom dplyr mutate select rename relocate all_of
-#' @importFrom googledrive drive_ls drive_rm
 #' @importFrom tidyr pivot_wider
 #' @importFrom data.table fread
 #'
@@ -1370,7 +1369,7 @@ batch_drive_export <- function(sf_list,
                                band,
                                stat,
                                scale,
-                               folder = "geelite_drive_scratch",
+                               folder = ".geelite_tmp_drive",
                                user = NULL,
                                description = "geelite_export",
                                verbose = FALSE) {
@@ -1395,23 +1394,6 @@ batch_drive_export <- function(sf_list,
   export_task_func <- function() {
     clean_filename <- gsub("[^a-zA-Z0-9]", "_", paste0("export_", Sys.time()))
 
-    # Only create if not exists
-    scratch_folder <- "geelite_drive_scratch"
-    folders <- googledrive::drive_find(
-      q = sprintf(
-        "name = '%s' and mimeType = 'application/vnd.google-apps.folder'",
-        scratch_folder
-        )
-      )
-    if (nrow(folders) == 0) {
-      scratch <- googledrive::drive_mkdir(scratch_folder)
-    } else {
-      scratch <- folders[1, ]
-    }
-
-    # Get the folder ID
-    scratch_id <- as.character(scratch$id)
-
     task <- rgee::ee_table_to_drive(
       collection = imgs$map(rgee::ee_utils_pyfunc(function(img) {
         img$reduceRegions(
@@ -1421,7 +1403,7 @@ batch_drive_export <- function(sf_list,
         )
       }))$flatten(),
       description = description,
-      folder = scratch_id,
+      folder = folder,
       fileNamePrefix = clean_filename,
       fileFormat = "CSV"
     )
@@ -1466,11 +1448,11 @@ batch_drive_export <- function(sf_list,
   result <- data.table::fread(tmp_file)
   unlink(tmp_file)
 
-  drive_files <- suppressMessages(googledrive::drive_ls(path = folder))
-  if (nrow(drive_files) > 0) {
-    suppressMessages(googledrive::drive_rm(drive_files))
-    log_message(paste("Temporary Drive exports removed from '", folder, "'."))
-  }
+  clean_drive_folders_by_name(
+    folder_name = ".geelite_tmp_drive",
+    delete_folders = TRUE,
+    verbose = FALSE
+  )
 
   value_col <- colnames(result)[ncol(result) - 1]
   df <- result %>%
