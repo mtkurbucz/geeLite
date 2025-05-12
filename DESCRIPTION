@@ -1,7 +1,7 @@
 Package: geeLite
 Type: Package
 Title: Building and Managing Local Databases from Google Earth Engine
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
   person("Marcell T.", "Kurbucz", email = "mkurbucz@worldbank.org", role = c("aut", "cre")),
   person("Bo Pieter Johannes", "Andrée", email = "bandree@worldbank.org", role = "aut"))
