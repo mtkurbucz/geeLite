@@ -1,10 +1,11 @@
 Package: geeLite
 Type: Package
-Title: Building Custom SQLite Databases from Google Earth Engine
+Title: Building and Managing Local Databases from Google Earth Engine
 Version: 0.1.0
-Author: Marcell T. Kurbucz <mkurbucz@worldbank.org>, Bo Pieter Johannes Andrée <bandree@worldbank.org>
-Maintainer: Marcell T. Kurbucz <mkurbucz@worldbank.org>
-Description: This package streamlines the process of building, managing, and updating local SQLite databases that contain geospatial features extracted from Google Earth Engine.
+Authors@R: c(
+  person("Marcell T.", "Kurbucz", email = "mkurbucz@worldbank.org", role = c("aut", "cre")),
+  person("Bo Pieter Johannes", "Andrée", email = "bandree@worldbank.org", role = "aut"))
+Description: This R package simplifies the creation, management, and updating of local SQLite databases containing geospatial data extracted from Google Earth Engine (GEE). It seamlessly integrates with GEE to store, aggregate, and process spatio-temporal data, leveraging SQLite for efficient, serverless storage. The package provides utilities for data transformation and supports real-time monitoring and analysis of geospatial features, making it ideal for researchers and practitioners in geospatial science.
 License: Mozilla Public License 2.0 | file LICENSE
 Encoding: UTF-8
 LazyData: true

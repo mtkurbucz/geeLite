@@ -4,7 +4,7 @@
 \alias{set_depend}
 \title{Set Dependencies}
 \usage{
-set_depend(conda = "rgee", user = NULL, drive = FALSE, verbose = TRUE)
+set_depend(conda = "rgee", user = NULL, drive = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{conda}{[optional] (character) Name of the virtual Conda environment
@@ -15,7 +15,7 @@ within \code{~/.config/earthengine/}. This directory stores credentials
 for a specific Google account (default: \code{NULL}).}
 
 \item{drive}{[optional] (logical) If \code{TRUE}, initializes Google Drive
-authentication for tasks involving Drive exports (default: \code{FALSE}).}
+authentication for tasks involving Drive exports (default: \code{TRUE}).}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }

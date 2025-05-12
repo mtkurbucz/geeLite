@@ -11,7 +11,7 @@ batch_drive_export(
   band,
   stat,
   scale,
-  folder = "geelite_drive_exports",
+  folder = "geelite_drive_scratch",
   user = NULL,
   description = "geelite_export",
   verbose = FALSE
@@ -37,7 +37,7 @@ to extract statistics.}
 'reduceRegions'.}
 
 \item{folder}{[optional] (character) Name of the Google Drive folder
-where the export will be stored. Default is \code{"geelite_drive_exports"}.}
+where the export will be stored. Default is \code{"geelite_drive_scratch"}.}
 
 \item{user}{[optional] (character) If multiple rgee user profiles exist,
 specify the user profile directory.}

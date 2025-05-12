@@ -332,6 +332,59 @@ db_connect <- function(db_path, max_retries = 3, wait_time = 5) {
 
 # ------------------------------------------------------------------------------
 
+#' Clean Contents or Entire Google Drive Folders by Name
+#'
+#' Searches for all Google Drive folders with the specified name and optionally
+#' removes their contents and/or the folders themselves. Useful for cleaning up
+#' scratch or export folders used by Earth Engine batch processes.
+#' @param folder_name [mandatory] (character) Name of the folder(s) to search
+#' for in Google Drive.
+#' @param delete_folders [optional] (logical) If \code{TRUE}, the matched
+#' folders themselves will be deleted after their contents are removed.
+#' Default is \code{FALSE}.
+#' @param verbose [optional] (logical) If \code{TRUE}, messages will be printed
+#' about cleanup actions. Default is \code{TRUE}.
+#' @keywords internal
+#' @importFrom googledrive drive_find drive_ls drive_rm as_id
+#'
+clean_drive_folders_by_name <- function(folder_name,
+                                        delete_folders = FALSE,
+                                        verbose = TRUE) {
+  folders <- googledrive::drive_find(
+    q = sprintf(
+      "name = '%s' and mimeType = 'application/vnd.google-apps.folder'",
+      folder_name
+    )
+  )
+
+  if (nrow(folders) == 0) {
+    if (verbose) message(sprintf("No folder named '%s' found.", folder_name))
+    return(invisible())
+  }
+
+  for (i in seq_len(nrow(folders))) {
+    folder_id <- googledrive::as_id(folders$id[i])
+    files <- suppressMessages(googledrive::drive_ls(path = folder_id))
+    if (nrow(files) > 0) {
+      suppressMessages(googledrive::drive_rm(files))
+      if (verbose) {
+        message(sprintf("Cleaned %d files from folder: %s",
+                        nrow(files), folder_name))
+      }
+    }
+  }
+
+  if (delete_folders) {
+    suppressMessages(googledrive::drive_rm(folders))
+    if (verbose) {
+      message(sprintf("Deleted %d folders named: %s",
+                      nrow(folders), folder_name))
+    }
+  }
+}
+
+# ------------------------------------------------------------------------------
+
 #' Output Message
 #'
 #' Outputs a message if verbose mode is \code{TRUE}.
