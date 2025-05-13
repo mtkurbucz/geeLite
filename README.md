@@ -4,6 +4,7 @@
 # geeLite R Package
 
 <!-- badges: start -->
+[![R-hub check](https://github.com/mtkurbucz/geeLite/actions/workflows/rhub.yaml/badge.svg)](https://github.com/mtkurbucz/geeLite/actions/workflows/rhub.yaml)
 <!-- badges: end -->
 
 This package streamlines the process of building, managing, and updating
