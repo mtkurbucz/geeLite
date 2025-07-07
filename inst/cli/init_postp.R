@@ -2,19 +2,23 @@
 
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
-  install.packages(pkg)
+install.packages(pkg)
 rm(pkg)
-library(optparse)
-library(geeLite)
+
+suppressMessages(suppressWarnings({
+  library(optparse)
+  library(geeLite)
+}))
 
 option_list <- list(
   make_option(c("--verbose"), type = "logical", default = TRUE,
-              help = "[optional] Display messages.")
+    help = "[optional] Display messages.")
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: init_postp.R --verbose [verbose]"),
-  option_list = option_list
+  usage = "usage: %prog [options]",
+  option_list = option_list,
+  description = "Initialize post-processing folder and files."
 )
 
 args <- parse_args(option_parser)

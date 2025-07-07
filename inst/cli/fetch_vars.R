@@ -2,10 +2,13 @@
 
 pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
-  install.packages(pkg)
+install.packages(pkg)
 rm(pkg)
-library(optparse)
-library(geeLite)
+
+suppressMessages(suppressWarnings({
+  library(optparse)
+  library(geeLite)
+}))
 
 option_list <- list(
   make_option(c("--format"), type = "character", default = "data.frame", help =
@@ -16,11 +19,14 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: fetch_tables.R --format [format]"),
-  option_list = option_list
+  usage = "usage: %prog [options]",
+  option_list = option_list,
+  description = "Fetch variable information from an SQLite database."
 )
 
 args <- parse_args(option_parser)
 
-fetch_vars(path = path,
-           format = args$format)
+fetch_vars(
+  path = path,
+  format = args$format
+)

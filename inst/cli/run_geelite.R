@@ -4,8 +4,11 @@ pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
 install.packages(pkg)
 rm(pkg)
-library(optparse)
-library(geeLite)
+
+suppressMessages(suppressWarnings({
+  library(optparse)
+  library(geeLite)
+}))
 
 option_list <- list(
   make_option(c("--conda"), type = "character", default = "rgee", help =
@@ -25,16 +28,18 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: run_geelite.R --conda [conda] --rebuild [rebuild] ",
-  "--verbose [verbose]"),
-  option_list = option_list
+  usage = "usage: %prog [options]",
+  option_list = option_list,
+  description = "Build and update the grid statistics database."
 )
 
 args <- parse_args(option_parser)
 
-run_geelite(path = path,
-            conda = args$conda,
-            user = args$user,
-            rebuild = args$rebuild,
-            mode = args$mode,
-            verbose = args$verbose)
+run_geelite(
+  path = path,
+  conda = args$conda,
+  user = args$user,
+  rebuild = args$rebuild,
+  mode = args$mode,
+  verbose = args$verbose
+)

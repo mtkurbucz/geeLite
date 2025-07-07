@@ -4,16 +4,19 @@ pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
 install.packages(pkg)
 rm(pkg)
-library(optparse)
-library(geeLite)
+
+suppressMessages(suppressWarnings({
+  library(optparse)
+  library(geeLite)
+}))
 
 option_list <- list(
   make_option(c("--regions"), type = "character", help = paste0("[mandatory] ",
   "FIPS codes of the regions of interest (two-letter country code, followed ",
   "by an optional two-digit state code).")),
   make_option(c("--source"), type = "character", help = paste0("[mandatory] ",
-  "Description of GEE datasets of interest. It is a nested list with three ",
-  "levels ('datasets', 'bands', and 'zonal_stats').")),
+  "Description of GEE datasets. Should be a quoted nested list of datasets, ",
+  "bands, and zonal statistics.")),
   make_option(c("--resol"), type = "integer", help = paste0("[mandatory] ",
   "Resolution of the H3 bin.")),
   make_option(c("--scale"), type = "integer", default = NULL,
@@ -29,15 +32,25 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = paste0("Usage: set_config.R --regions [regions] --source [source] ",
-  "--resol [resol] --scale [scale] --start [start] --limit [limit] ",
-  "--verbose [verbose]"),
-  option_list = option_list
+  usage = "usage: %prog [options]",
+  option_list = option_list,
+  description = "Initialize the configuration file."
 )
 
 args <- parse_args(option_parser)
+
+if (is.null(args$regions) || args$regions == "" ||
+    is.null(args$source)  || args$source == ""  ||
+    is.null(args$resol)) {
+  print_help(option_parser)
+  stop("Missing required arguments: --regions, --source, and/or --resol")
+}
+
 args$regions <- unlist(strsplit(args$regions, " "))
-args$source <- eval(parse(text = args$source))
+args$source <- tryCatch(
+  eval(parse(text = args$source)),
+  error = function(e) stop("Invalid format for --source: ", e$message)
+)
 
 set_config(
   path = path,

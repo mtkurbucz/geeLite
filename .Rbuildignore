@@ -1,7 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
-^doc$
+^README\.html$
+^docs?$
 ^Meta$
-^_R_CHECK_CRAN_INCOMING_TIMESTAMP_
-^docs/
+^_R_CHECK_CRAN_INCOMING_TIMESTAMP_$
+^\.github$

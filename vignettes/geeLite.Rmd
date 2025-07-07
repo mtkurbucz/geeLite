@@ -1,9 +1,9 @@
 ---
-title: "**geeLite** R Package <span style='font-size: 12px;'>(*Version 0.1.0*)</span>"
+title: "**geeLite** R Package <span style='font-size: 12px;'>(*Version 1.0.1*)</span>"
 subtitle: "<span style='color: #A0AEBB; font-weight: normal;'>Authors:</span>"
 author: |
   Marcell T. Kurbucz
-  (*[email](mailto:mkurbucz@worldbank.org)*) <br>
+  (*[email](mailto:m.kurbucz@ucl.ac.uk)*) <br>
   Bo Pieter Johannes Andree (*[email](mailto:bandree@worldbank.org)*)
   
   <br>

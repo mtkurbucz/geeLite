@@ -53,7 +53,7 @@ set_config(path = path,
 run_geelite(path = path)
 #> 
 #> ────────────────────────────────────────────────────────────────────────────────
-#> geeLite R Package - Version: 0.1.0
+#> geeLite R Package
 #> ────────────────────────────────────────────────────────────────────────────────
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
@@ -86,7 +86,7 @@ modify_config(path = path,
 run_geelite(path = path)
 #> 
 #> ────────────────────────────────────────────────────────────────────────────────
-#> geeLite R Package - Version: 0.1.0
+#> geeLite R Package
 #> ────────────────────────────────────────────────────────────────────────────────
 #> 
 #> ── rgee 1.1.7 ─────────────────────────────────────── earthengine-api 0.1.370 ── 
@@ -116,8 +116,9 @@ db <- read_db(path = path, aggr_funs = list(
 
 To efficiently handle large data requests, `geeLite` provides a `drive` mode. 
 In this mode, data are exported from Google Earth Engine to Google Drive in 
-parallel batches and then imported into your local SQLite database. Make sure 
-you have sufficient Google Drive storage available before using this mode.
+parallel batches and then imported into your local SQLite database. Ensure 
+sufficient available storage on your linked Google Drive account before using 
+this mode.
 
 ``` r
 # Collect and store data using drive mode
@@ -126,26 +127,30 @@ run_geelite(path = path, mode = "drive")
 
 ## Command-Line Interface (CLI) Usage
 
-You can execute the previous example using the command-line interface (CLI) as 
-follows:
+The `geeLite` package includes a command-line interface (CLI) for advanced 
+users and automation workflows. All major operations can be performed directly 
+from the terminal using `Rscript`.
+
+The following example demonstrates how to configure and manage a database using 
+the CLI:
 
 ``` bash
-# Setting the CLI files
+# Set the CLI files
 Rscript /path/to/geeLite/cli/set_cli.R --path "path/to/db"
 
-# Change directory to where the database will be generated
+# Navigate to the directory where the database will be generated
 cd "path/to/db"
 
-# Setting the configuration file
+# Create a configuration file
 Rscript cli/set_config.R --regions "SO YE" --source "list('MODIS/061/MOD13A2' = list('NDVI' = c('mean', 'min')))" --resol 3 --start "2020-01-01"
 
-# Collecting GEE data based on the configuration file
+# Run the data collection based on the configuration
 Rscript cli/run_geelite.R
 
 # Modifying the configuration file
 Rscript cli/modify_config.R --keys "list(c('source', 'MODIS/061/MOD13A2', 'NDVI'), c('source', 'MODIS/061/MOD13A2', 'EVI'))" --new_values "list(c('mean', 'min', 'max'), c('mean', 'sd'))"
 
-# Updating the database based on the configuration file
+# Update the database with the modified configuration
 Rscript cli/run_geelite.R
 ```
 
@@ -159,7 +164,8 @@ Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). <i>Building and Managi
 
 ## Further Documentation
 
-A pdf manual with additional documentation and html file with example use are provided in [/docs/](./docs/).
+Additional documentation and usage examples are available at:
+[https://github.com/mtkurbucz/geeLite/tree/main/docs](https://github.com/mtkurbucz/geeLite/tree/main/docs)
 
 ## Data Availability Statement
 
@@ -167,4 +173,4 @@ All geospatial datasets are retrieved from the [Google Earth Engine public data 
 
 ## Acknowledgments
 
-Funding by the World Bank’s Food Systems 2030 (FS2030) Multi-Donor Trust Fund program (TF0C0728 and TF0C7822) is gratefully acknowledged. We thank Andres Chamorro and Ben P. Stewart for code testing and comments, as well as Steve Penson, David Newhouse and Alia J. Aghjanian for helpful comments and input. This paper reflects the views of the authors and does not reflect the official views of the World Bank, its Executive Directors, or the countries they represent. This paper reflects the views of the authors, and does not reflect the official views of the World Bank, its Executive Directors, or the countries they represent.
+Funding by the World Bank’s Food Systems 2030 (FS2030) Multi-Donor Trust Fund program (TF0C0728 and TF0C7822) is gratefully acknowledged. We thank Andres Chamorro and Ben P. Stewart for code testing and comments, as well as Steve Penson, David Newhouse and Alia J. Aghjanian for helpful comments and input. This paper reflects the views of the authors and does not reflect the official views of the World Bank, its Executive Directors, or the countries they represent.

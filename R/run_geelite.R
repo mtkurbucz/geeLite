@@ -61,7 +61,6 @@ run_geelite <- function(path,
   set_depend(
     conda = conda,
     user = user,
-    drive = (mode == "drive"),
     verbose = verbose
   )
 
@@ -927,6 +926,9 @@ compile_db <- function(task, grid, mode, verbose) {
       skip_session <- FALSE
     }
   }
+
+  # Ensure progress bar reaches 100% if not already finished
+  if (!is.null(pb) && !pb$finished) pb$update(1)
 
   if (skip_session) {
     cli_alert_info("Database is up-to-date.")

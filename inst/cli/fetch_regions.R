@@ -2,8 +2,11 @@ pkg <- "optparse"
 if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
 install.packages(pkg)
 rm(pkg)
-library(optparse)
-library(geeLite)
+
+suppressMessages(suppressWarnings({
+  library(optparse)
+  library(geeLite)
+}))
 
 option_list <- list(
   make_option(c("--admin_lvl"), type = "integer", default = 0, help =
@@ -12,10 +15,13 @@ option_list <- list(
 )
 
 option_parser <- OptionParser(
-  usage = "Usage: fetch_regions.R --admin_lvl [admin_lvl]",
-  option_list = option_list
+  usage = "usage: %prog [options]",
+  option_list = option_list,
+  description = "Fetch ISO 3166-2 region codes."
 )
 
 args <- parse_args(option_parser)
 
-fetch_regions(admin_lvl = args$admin_lvl)
+fetch_regions(
+  admin_lvl = args$admin_lvl
+)

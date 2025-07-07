@@ -2,21 +2,30 @@
 % Please edit documentation in R/gee_install.R
 \name{gee_install}
 \alias{gee_install}
-\title{Create a Conda Environment with 'rgee' Dependencies}
+\title{Install and Configure a Conda Environment for 'rgee'}
 \usage{
-gee_install(conda = "rgee")
+gee_install(conda = "rgee", python_version = "3.10", force_recreate = FALSE)
 }
 \arguments{
-\item{conda}{[optional] (character) The name of the virtual Conda
-environment used by the \code{rgee} package (default: \code{"rgee"}).}
+\item{conda}{[optional] (character) Name of the Conda environment to create
+or use. Defaults to \code{"rgee"}.}
+
+\item{python_version}{[optional] (character) Python version to use when
+creating the Conda environment. Defaults to \code{"3.10"}.}
+
+\item{force_recreate}{[optional] (logical) If \code{TRUE}, deletes and
+recreates the Conda environment even if it already exists. Defaults to
+\code{FALSE}.}
+}
+\value{
+Invisibly returns the name of the Conda environment used or created.
 }
 \description{
-Sets up an isolated Conda environment with all the necessary dependencies
-for the \code{rgee} package, including the specific version of the
-\code{earthengine-api} required by the current version of \code{geeLite}. It
-is based on the \code{ee_install} function from the \code{rgee} package and
-ensures that other essential packages, like \code{geojsonio} and
-\code{rnaturalearthdata}, are installed and updated if needed.
+Sets up a Conda environment with all required Python and R dependencies
+for using the \code{rgee} package, including a specific version of the
+\code{earthengine-api}. If Conda is not available, Miniconda will be
+installed. The created environment is automatically registered for use with
+\code{rgee}.
 }
 \examples{
 # Example: Creating a Conda environment with 'rgee' dependencies
