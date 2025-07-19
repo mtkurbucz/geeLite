@@ -8,8 +8,8 @@
 <!-- badges: end -->
 
 This package streamlines the process of building, managing, and updating
-local SQLite databases that contain geospatial features extracted from
-Google Earth Engine (GEE).
+local `'SQLite'` databases that contain geospatial features extracted from
+'Google Earth Engine' ('GEE').
 
 <blockquote style="font-size: 85%; font-style: italic; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
 For a full description of the methodology, implementation, and use cases, see the accompanying World Bank Policy Research Working Paper: Kurbucz, Marcell T.; Andrée, Bo Pieter Johannes. (2025). <i>Building and Managing Local Databases from Google Earth Engine with the geeLite R Package.</i> Policy Research Working Paper 11115, World Bank. <a href="http://hdl.handle.net/10986/43165">http://hdl.handle.net/10986/43165</a>. License: CC BY 3.0 IGO.
@@ -114,11 +114,11 @@ db <- read_db(path = path, aggr_funs = list(
 
 ## Drive Mode
 
-To efficiently handle large data requests, `geeLite` provides a `drive` mode. 
-In this mode, data are exported from Google Earth Engine to Google Drive in 
-parallel batches and then imported into your local SQLite database. Ensure 
-sufficient available storage on your linked Google Drive account before using 
-this mode.
+To efficiently handle large data requests, `'geeLite'` provides a `'drive'` 
+mode. In this mode, data are exported from 'Google Earth Engine' to 
+'Google Drive' in parallel batches and then imported into your local 'SQLite' 
+database. Ensure sufficient available storage on your linked Google Drive 
+account before using this mode.
 
 ``` r
 # Collect and store data using drive mode

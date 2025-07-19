@@ -1,9 +1,12 @@
-pkg <- "optparse"
-if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
-install.packages(pkg)
-rm(pkg)
+#!/usr/bin/env Rscript
 
 suppressMessages(suppressWarnings({
+  if (!requireNamespace("optparse", quietly = TRUE)) {
+    stop(paste(
+      "Package 'optparse' is required but not installed.",
+      "Please install it manually."
+    ))
+  }
   library(optparse)
   library(geeLite)
 }))

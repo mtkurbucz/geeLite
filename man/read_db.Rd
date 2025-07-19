@@ -54,8 +54,8 @@ Reads, aggregates, and processes the SQLite database
 \examples{
 # Example: Reading variables by IDs
 \dontrun{
-db_list <- read_db(path = "path/to/db",
-  variables = c(1, 3))
+  db_list <- read_db(path = "path/to/db",
+    variables = c(1, 3))
 }
 
 }

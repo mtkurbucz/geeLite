@@ -16,6 +16,8 @@
 #' }
 #'
 get_config <- function(path) {
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
   get_json(path, "config/config.json")
 }
 
@@ -37,6 +39,8 @@ get_config <- function(path) {
 #' }
 #'
 get_state <- function(path) {
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
   get_json(path, "state/state.json")
 }
 

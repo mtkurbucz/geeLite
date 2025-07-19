@@ -1,5 +1,5 @@
 ---
-title: "**geeLite** R Package <span style='font-size: 12px;'>(*Version 1.0.1*)</span>"
+title: "'geeLite' R Package"
 subtitle: "<span style='color: #A0AEBB; font-weight: normal;'>Authors:</span>"
 author: |
   Marcell T. Kurbucz
@@ -35,10 +35,15 @@ knitr::opts_chunk$set(
 ```
 
 ```{r install-packages, include = FALSE}
-pkgs <- c("dplyr", "leaflet", "withr", "sf")
-if (length(pkgs <- setdiff(pkgs, rownames(installed.packages()))))
-  install.packages(pkgs, repos = "https://cloud.r-project.org")
-rm(pkgs)
+# Check that required packages are available without installing them
+required_pkgs <- c("dplyr", "leaflet", "withr", "sf")
+missing_pkgs <- required_pkgs[!vapply(
+  required_pkgs, requireNamespace, logical(1), quietly = TRUE)]
+
+if (length(missing_pkgs) > 0) {
+  stop(paste0("Missing packages: ", paste(missing_pkgs, collapse = ", "),
+              ".\nPlease install them manually before running this vignette."))
+}
 
 # Define a temporary path for SQLite database
 path_to_db <- withr::local_tempdir()

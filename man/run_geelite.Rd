@@ -14,8 +14,10 @@ run_geelite(
 )
 }
 \arguments{
-\item{path}{[mandatory] (character) Path to the root directory of the
-generated database.}
+\item{path}{[mandatory] (character) The path to the root directory of the
+generated database. This must be a writable, non-temporary directory.
+Avoid using the home directory (~), the current working directory, or the
+package directory.}
 
 \item{conda}{[optional] (character) Name of the virtual Conda environment
 used by the \code{rgee} package (default: \code{"rgee"}).}
@@ -47,6 +49,6 @@ SQLite format (\code{data/geelite.db}), initializes CLI files
 \examples{
 # Example: Build a Grid Statistics Database
 \dontrun{
-  run_geelite(path = "path/to/db")
+  run_geelite(path = tempdir())
 }
 }

@@ -1,9 +1,12 @@
-pkg <- "optparse"
-if (length(pkg <- setdiff(pkg, rownames(installed.packages()))))
-install.packages(pkg)
-rm(pkg)
+#!/usr/bin/env Rscript
 
 suppressMessages(suppressWarnings({
+  if (!requireNamespace("optparse", quietly = TRUE)) {
+    stop(paste(
+      "Package 'optparse' is required but not installed.",
+      "Please install it manually."
+    ))
+  }
   library(optparse)
   library(geeLite)
 }))
@@ -17,7 +20,7 @@ option_list <- list(
 option_parser <- OptionParser(
   usage = "usage: %prog [options]",
   option_list = option_list,
-  description = "Fetch ISO 3166-2 region codes."
+  description = "Fetch ISO 3166 country and subdivision codes."
 )
 
 args <- parse_args(option_parser)

@@ -28,6 +28,9 @@
 fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
                                         "html", "pipe", "simple", "rst")) {
 
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
+
   # To avoid 'no visible binding for global variable' messages (CRAN test)
   band <- zonal_stat <- NULL
 
@@ -157,8 +160,8 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #' @examples
 #' # Example: Reading variables by IDs
 #' \dontrun{
-#' db_list <- read_db(path = "path/to/db",
-#'   variables = c(1, 3))
+#'   db_list <- read_db(path = "path/to/db",
+#'     variables = c(1, 3))
 #' }
 #'
 read_db <- function(
@@ -170,6 +173,10 @@ read_db <- function(
     aggr_funs = function(x) mean(x, na.rm = TRUE),
     postp_funs = NULL
 ) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
+
   # Validate 'freq' parameter
   freq <- match.arg(freq)
 
@@ -228,14 +235,18 @@ read_db <- function(
 #' placeholder comment indicating where to define the R functions for
 #' post-processing. If the \code{postp} folder already exists, an error will
 #' be thrown to prevent overwriting existing files.
-#' @examples
-#' \dontrun{
-#' # Initialize post-processing folder and files in the database root directory
-#' init_postp("/path/to/database")
-#' }
+#' @return No return value, called for side effects.
 #' @export
+#' @examples
+#' # Example: Initialize post-processing files in the database directory
+#' \dontrun{
+#'   init_postp("path/to/db")
+#' }
 #'
 init_postp <- function(path, verbose = TRUE) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
 
   # Define the 'postp' folder and file paths
   postp_folder <- file.path(path, "postp")

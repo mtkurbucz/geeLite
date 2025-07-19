@@ -6,8 +6,10 @@
 #' SQLite format (\code{data/geelite.db}), initializes CLI files
 #' (\code{cli/...}), and initializes or updates the state
 #' (\code{state/state.json}) and log (\code{log/log.txt}) files.
-#' @param path [mandatory] (character) Path to the root directory of the
-#'   generated database.
+#' @param path [mandatory] (character) The path to the root directory of the
+#'   generated database. This must be a writable, non-temporary directory.
+#'   Avoid using the home directory (~), the current working directory, or the
+#'   package directory.
 #' @param conda [optional] (character) Name of the virtual Conda environment
 #'   used by the \code{rgee} package (default: \code{"rgee"}).
 #' @param user [optional] (character) Specifies the Google account directory
@@ -26,7 +28,7 @@
 #' @examples
 #' # Example: Build a Grid Statistics Database
 #' \dontrun{
-#'   run_geelite(path = "path/to/db")
+#'   run_geelite(path = tempdir())
 #' }
 #' @importFrom utils flush.console
 #' @importFrom googledrive drive_find drive_ls drive_rm as_id
@@ -37,6 +39,9 @@ run_geelite <- function(path,
                         rebuild = FALSE,
                         mode = "local",
                         verbose = TRUE) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
 
   # Validate
   params <- list(
@@ -74,9 +79,9 @@ run_geelite <- function(path,
   grid <- get_grid(task)
   if (verbose) {
     if (mode == "local") {
-      cat("Extracting data from Earth Engine...\r")
+      cat("> Extracting data from Earth Engine...\r")
     } else if (mode == "drive") {
-      cat("Uploading data for remote processing...\r")
+      cat("> Uploading data for remote processing...\r")
     }
     flush.console()
   }
@@ -299,7 +304,6 @@ set_dirs <- function(rebuild) {
   }
 }
 
-
 # ------------------------------------------------------------------------------
 
 #' Generate Session Task
@@ -511,7 +515,7 @@ get_shapes <- function(regions) {
 #' @param resol [mandatory] (integer) An integer specifying the resolution of
 #'   the H3 grid.
 #' @return A data frame containing the H3 bins with columns for region ISO
-#'   3166-2 codes, bin IDs, and geometry.
+#'   3166 codes, bin IDs, and geometry.
 #' @keywords internal
 #' @importFrom dplyr select
 #' @importFrom h3jsr cell_to_polygon polygon_to_cells

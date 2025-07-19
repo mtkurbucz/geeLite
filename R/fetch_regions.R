@@ -1,17 +1,18 @@
 # Main Function ----------------------------------------------------------------
 
-#' Fetch ISO 3166-2 Region Codes
+#' Fetch ISO 3166 Country and Subdivision Codes
 #'
-#' Returns a data frame containing ISO 3166-2 region codes for the specified
-#' administrative level.
-#' @param admin_lvl [optional] (integer) Specifies the administrative level to
-#'   retrieve. Use \code{0} for country-level, \code{1} for state-level, or
-#'   \code{NULL} to include all regions (default: \code{0}).
+#' Returns a data frame containing ISO 3166-1 country codes and ISO 3166-2
+#' subdivision codes for the specified administrative level.
+#' @param admin_lvl [optional] (integer) Administrative level to retrieve:
+#'   \code{0} for country-level (ISO 3166-1), \code{1} for first-level
+#'   subdivisions (ISO 3166-2), or \code{NULL} to include both (default:
+#'   \code{0}).
 #' @return A data frame containing region names, ISO 3166-2 codes, and the
 #'   corresponding administrative levels.
 #' @export
 #' @examples
-#' # Example: Fetch ISO 3166-2 region codes
+#' # Example: Fetch ISO 3166-1 country codes
 #' \dontrun{
 #'   fetch_regions()
 #' }
@@ -53,11 +54,10 @@ fetch_regions <- function(admin_lvl = 0) {
 
 # Internal Functions -----------------------------------------------------------
 
-#' Fetch Country-Level Regions
+#' Fetch ISO 3166-1 Country Codes
 #'
-#' Retrieves ISO 3166-2 codes for country-level regions.
-#' @return A data frame containing country-level region names and ISO 3166-2
-#'   codes.
+#' Retrieves country-level regions using ISO 3166-1 alpha-2 codes.
+#' @return A data frame with country names, ISO 3166-1 codes, and admin level 0.
 #' @keywords internal
 #' @importFrom magrittr %>%
 #' @importFrom sf st_set_geometry
@@ -83,11 +83,12 @@ fetch_country_regions <- function() {
 
 # ------------------------------------------------------------------------------
 
-#' Fetch State-Level Regions
+#' Fetch ISO 3166-2 Subdivision Codes
 #'
-#' Retrieves ISO 3166-2 codes for state-level regions.
-#' @return A data frame containing state-level region names and ISO 3166-2
-#'   codes.
+#' Retrieves first-level administrative subdivisions (e.g., states, provinces)
+#' using ISO 3166-2 codes.
+#' @return A data frame with subdivision names, ISO 3166-2 codes, and admin
+#'   level 1.
 #' @keywords internal
 #' @importFrom magrittr %>%
 #' @importFrom sf st_set_geometry

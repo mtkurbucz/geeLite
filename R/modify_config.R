@@ -15,6 +15,7 @@
 #'   \code{new_values} must match the length of \code{keys}.
 #' @param verbose [optional] (logical) If \code{TRUE}, displays messages about
 #'   the updates made (default: \code{TRUE}).
+#' @return No return value, called for side effects.
 #' @export
 #' @examples
 #' # Example: Modifying the configuration file
@@ -30,6 +31,9 @@
 #' @importFrom jsonlite fromJSON write_json
 #'
 modify_config <- function(path, keys, new_values, verbose = TRUE) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
 
   # Validate input parameters
   params <- list(path = path, file_path = "config/config.json", keys = keys,

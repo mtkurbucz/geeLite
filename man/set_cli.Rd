@@ -8,10 +8,15 @@ set_cli(path, verbose = TRUE)
 }
 \arguments{
 \item{path}{[mandatory] (character) The path to the root directory of the
-generated database.}
+generated database. This must be a writable, non-temporary directory.
+Avoid using the home directory (~), the current working directory, or the
+package directory.}
 
 \item{verbose}{[optional] (logical) Whether to display messages (default:
 \code{TRUE}).}
+}
+\value{
+No return value, called for side effects.
 }
 \description{
 Creates R scripts to enable the main functions to be called through the
@@ -19,9 +24,8 @@ Command Line Interface (CLI). These scripts are stored in the \code{cli/}
 directory of the generated database.
 }
 \examples{
-# Example: Setting up CLI files
 \dontrun{
-  set_cli(path = "path/to/db")
+  set_cli(path = tempdir())
 }
 
 }

@@ -6,9 +6,11 @@
 #' database (\code{config/config.json}). If the specified directory does not
 #' exist but its parent directory does, it will be created.
 #' @param path [mandatory] (character) The path to the root directory of the
-#'   generated database.
-#' @param regions [mandatory] (character) ISO 3166-2 codes of the regions of
-#'   interest (two letters for countries and additional characters for states).
+#'   generated database. This must be a writable, non-temporary directory.
+#'   Avoid using the home directory (~), the current working directory, or the
+#'   package directory.
+#' @param regions [mandatory] (character) ISO 3166-1 alpha-2 country codes or
+#'   ISO 3166-2 subdivision codes.
 #' @param source [mandatory] (list) Description of Google Earth Engine (GEE)
 #'   datasets of interest (the complete data catalog of GEE is accessible at:
 #'   \url{https://developers.google.com/earth-engine/datasets/catalog}). It is
@@ -37,11 +39,11 @@
 #'   sets batch size; in \code{"drive"} mode, `limit` is the max features per
 #'   export (default: \code{10000}).
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
+#' @return No return value, called for side effects.
 #' @export
 #' @examples
-#' # Example: Setting up the configuration file
 #' \dontrun{
-#'   set_config(path = "path/to/db",
+#'   set_config(path = tempdir(),
 #'              regions = c("SO", "YM"),
 #'              source = list(
 #'               "MODIS/061/MOD13A1" = list(
@@ -55,6 +57,9 @@
 #'
 set_config <- function(path, regions, source, start = "2020-01-01", resol,
                        scale = NULL, limit = 10000, verbose = TRUE) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
 
   # Validate all parameters except 'path'
   params <- list(regions = regions, source = source, start = start,

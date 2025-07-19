@@ -2,25 +2,26 @@
 % Please edit documentation in R/fetch_regions.R
 \name{fetch_regions}
 \alias{fetch_regions}
-\title{Fetch ISO 3166-2 Region Codes}
+\title{Fetch ISO 3166 Country and Subdivision Codes}
 \usage{
 fetch_regions(admin_lvl = 0)
 }
 \arguments{
-\item{admin_lvl}{[optional] (integer) Specifies the administrative level to
-retrieve. Use \code{0} for country-level, \code{1} for state-level, or
-\code{NULL} to include all regions (default: \code{0}).}
+\item{admin_lvl}{[optional] (integer) Administrative level to retrieve:
+\code{0} for country-level (ISO 3166-1), \code{1} for first-level
+subdivisions (ISO 3166-2), or \code{NULL} to include both (default:
+\code{0}).}
 }
 \value{
 A data frame containing region names, ISO 3166-2 codes, and the
   corresponding administrative levels.
 }
 \description{
-Returns a data frame containing ISO 3166-2 region codes for the specified
-administrative level.
+Returns a data frame containing ISO 3166-1 country codes and ISO 3166-2
+subdivision codes for the specified administrative level.
 }
 \examples{
-# Example: Fetch ISO 3166-2 region codes
+# Example: Fetch ISO 3166-1 country codes
 \dontrun{
   fetch_regions()
 }

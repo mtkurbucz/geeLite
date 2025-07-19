@@ -8,9 +8,23 @@
 
 library(testthat)
 library(geeLite)
-library(withr)
 
 # Apply UTC time zone for all tests in the geeLite package
 withr::local_timezone("UTC")
 
-test_check("geeLite")
+# List required suggested packages
+required_pkgs <- c(
+  "rnaturalearthdata", "geojsonio", "withr", "jsonlite", "RSQLite"
+  )
+
+# Identify missing packages
+missing_pkgs <- required_pkgs[!vapply(required_pkgs, requireNamespace,
+                                      logical(1), quietly = TRUE)]
+
+# Load optional packages with suppressed startup messages and warnings
+if (length(missing_pkgs) == 0) {
+  test_check("geeLite")
+} else {
+  message("Skipping tests because required packages are missing: ",
+          paste(missing_pkgs, collapse = ", "))
+}

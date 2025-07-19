@@ -2,15 +2,14 @@
 % Please edit documentation in R/fetch_regions.R
 \name{fetch_country_regions}
 \alias{fetch_country_regions}
-\title{Fetch Country-Level Regions}
+\title{Fetch ISO 3166-1 Country Codes}
 \usage{
 fetch_country_regions()
 }
 \value{
-A data frame containing country-level region names and ISO 3166-2
-  codes.
+A data frame with country names, ISO 3166-1 codes, and admin level 0.
 }
 \description{
-Retrieves ISO 3166-2 codes for country-level regions.
+Retrieves country-level regions using ISO 3166-1 alpha-2 codes.
 }
 \keyword{internal}

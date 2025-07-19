@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 # This line is used by the 'set_cli' function
 
 suppressMessages(suppressWarnings(

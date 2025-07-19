@@ -102,6 +102,10 @@ validate_params <- function(params) {
         stop(sprintf("Directory not found: %s", value))
       }
 
+      if (file.access(value, 2) != 0) {
+        stop(sprintf("Directory is not writable: %s", value))
+      }
+
     } else if (name == "rebuild") {
 
       if (!is.logical(value)) {
@@ -465,4 +469,24 @@ check_rgee_ready <- function() {
     return(FALSE)
   }
   invisible(TRUE)
+}
+
+# ------------------------------------------------------------------------------
+
+#' Internal Dummy Function for Declared Imports
+#'
+#' Ensures CRAN recognizes packages listed in `Imports:` that are indirectly
+#' required but not explicitly used. Never called at runtime and has no side
+#' effects.
+#' @return NULL (invisible)
+#' @keywords internal
+#' @import rnaturalearthdata
+#' @importFrom geojsonio geojson_list
+#'
+dummy_use_for_cran <- function() {
+  if (FALSE) {
+    invisible(geojson_list(list(type = "FeatureCollection")))
+    invisible(loadNamespace("rnaturalearthdata"))
+  }
+  invisible(NULL)
 }

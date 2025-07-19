@@ -17,10 +17,12 @@ set_config(
 }
 \arguments{
 \item{path}{[mandatory] (character) The path to the root directory of the
-generated database.}
+generated database. This must be a writable, non-temporary directory.
+Avoid using the home directory (~), the current working directory, or the
+package directory.}
 
-\item{regions}{[mandatory] (character) ISO 3166-2 codes of the regions of
-interest (two letters for countries and additional characters for states).}
+\item{regions}{[mandatory] (character) ISO 3166-1 alpha-2 country codes or
+ISO 3166-2 subdivision codes.}
 
 \item{source}{[mandatory] (list) Description of Google Earth Engine (GEE)
   datasets of interest (the complete data catalog of GEE is accessible at:
@@ -56,15 +58,17 @@ export (default: \code{10000}).}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 Creates a configuration file in the specified directory of the generated
 database (\code{config/config.json}). If the specified directory does not
 exist but its parent directory does, it will be created.
 }
 \examples{
-# Example: Setting up the configuration file
 \dontrun{
-  set_config(path = "path/to/db",
+  set_config(path = tempdir(),
              regions = c("SO", "YM"),
              source = list(
               "MODIS/061/MOD13A1" = list(

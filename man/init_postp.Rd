@@ -12,6 +12,9 @@ where the \code{postp} folder should be created.}
 
 \item{verbose}{[optional] (logical) Display messages (default: \code{TRUE}).}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 Creates a \code{postp} folder at the specified path and adds two empty
 files: \code{structure.json} and \code{functions.R}.
@@ -25,8 +28,9 @@ post-processing. If the \code{postp} folder already exists, an error will
 be thrown to prevent overwriting existing files.
 }
 \examples{
+# Example: Initialize post-processing files in the database directory
 \dontrun{
-# Initialize post-processing folder and files in the database root directory
-init_postp("/path/to/database")
+  init_postp("path/to/db")
 }
+
 }

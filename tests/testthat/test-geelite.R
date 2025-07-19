@@ -1,23 +1,16 @@
-pkgs <- c("rnaturalearthdata", "geojsonio", "withr")
-if (length(pkgs <- setdiff(pkgs, rownames(installed.packages()))))
-  install.packages(pkgs, repos = "https://cloud.r-project.org")
-rm(pkgs)
-
-suppressMessages({
-  suppressWarnings({
-    library(rnaturalearthdata)
-    library(geojsonio)
-    library(jsonlite)
-    library(RSQLite)
-    library(withr)
-  })
-})
-
-benchmark <- TRUE
+suppressMessages(suppressWarnings({
+  library(rnaturalearthdata)
+  library(geojsonio)
+  library(jsonlite)
+  library(RSQLite)
+  library(withr)
+}))
 
 # ------------------------------------------------------------------------------
 
 test_that("Testing geeLite Package Pipeline", {
+
+  benchmark <- TRUE
 
   if (!check_rgee_ready()) {
 
@@ -48,7 +41,7 @@ test_that("Testing geeLite Package Pipeline", {
         )
       )
       start <- "2020-01-01"
-      resol <- 4
+      resol <- 3
 
       set_config(path = test_path,
                  regions = regions,

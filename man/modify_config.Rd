@@ -21,6 +21,9 @@ original values at the locations specified by 'keys'. The length of
 \item{verbose}{[optional] (logical) If \code{TRUE}, displays messages about
 the updates made (default: \code{TRUE}).}
 }
+\value{
+No return value, called for side effects.
+}
 \description{
 Modifies the configuration file located in the specified root directory of
 the generated database (\code{config/config.json}) by updating values

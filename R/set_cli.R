@@ -6,17 +6,22 @@
 #' Command Line Interface (CLI). These scripts are stored in the \code{cli/}
 #' directory of the generated database.
 #' @param path [mandatory] (character) The path to the root directory of the
-#'   generated database.
+#'   generated database. This must be a writable, non-temporary directory.
+#'   Avoid using the home directory (~), the current working directory, or the
+#'   package directory.
 #' @param verbose [optional] (logical) Whether to display messages (default:
 #'   \code{TRUE}).
+#' @return No return value, called for side effects.
 #' @export
 #' @examples
-#' # Example: Setting up CLI files
 #' \dontrun{
-#'   set_cli(path = "path/to/db")
+#'   set_cli(path = tempdir())
 #' }
 #'
 set_cli <- function(path, verbose = TRUE) {
+
+  # Convert to absolute path and check existence
+  path <- normalizePath(path, mustWork = FALSE)
 
   # Check if the directory ('path') exists, and create it if necessary
   if (!dir.exists(path)) {
@@ -85,7 +90,8 @@ process_single_file <- function(src_file_path, path) {
 
   # Modify the first line of the script to set the 'path' if required
   if (!src_name %in% c("fetch_regions.R", "gee_install.R")) {
-    src_content[1] <- paste0("path <- '", path, "'")
+    path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+    src_content[3] <- paste0("path <- '", path, "'")
   }
 
   # Write the updated file to the 'cli/' directory
