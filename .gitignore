@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+^LICENSE\.md$
 inst/doc
 /doc/
 /Meta/

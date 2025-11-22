@@ -4,14 +4,14 @@
 \alias{gee_install}
 \title{Install and Configure a Conda Environment for 'rgee'}
 \usage{
-gee_install(conda = "rgee", python_version = "3.10", force_recreate = FALSE)
+gee_install(conda = "rgee", python_version = "3.11", force_recreate = FALSE)
 }
 \arguments{
 \item{conda}{[optional] (character) Name of the Conda environment to create
 or use. Defaults to \code{"rgee"}.}
 
 \item{python_version}{[optional] (character) Python version to use when
-creating the Conda environment. Defaults to \code{"3.10"}.}
+creating the Conda environment. Defaults to \code{"3.11"}.}
 
 \item{force_recreate}{[optional] (logical) If \code{TRUE}, deletes and
 recreates the Conda environment even if it already exists. Defaults to

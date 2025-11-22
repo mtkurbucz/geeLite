@@ -10,7 +10,7 @@
 #' @param conda [optional] (character) Name of the Conda environment to create
 #' or use. Defaults to \code{"rgee"}.
 #' @param python_version [optional] (character) Python version to use when
-#' creating the Conda environment. Defaults to \code{"3.10"}.
+#' creating the Conda environment. Defaults to \code{"3.11"}.
 #' @param force_recreate [optional] (logical) If \code{TRUE}, deletes and
 #' recreates the Conda environment even if it already exists. Defaults to
 #' \code{FALSE}.
@@ -31,7 +31,7 @@
 #' @importFrom reticulate conda_binary conda_create conda_list conda_python
 #' conda_remove install_miniconda py_install
 #'
-gee_install <- function(conda = "rgee", python_version = "3.10",
+gee_install <- function(conda = "rgee", python_version = "3.11",
                         force_recreate = FALSE) {
 
   # Always prompt the user before setup

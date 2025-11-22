@@ -233,7 +233,9 @@ set_depend <- function(conda = "rgee",
 
   # Google Drive token detection (for drive mode)
   drive_email <- NULL
-  if (drive) {
+  if (drive &&
+      requireNamespace("googledrive", quietly = TRUE) &&
+      requireNamespace("gargle", quietly = TRUE)) {
 
     # Make gargle/drive quieter during internal auth
     old_opt <- options(
@@ -242,20 +244,22 @@ set_depend <- function(conda = "rgee",
     )
     on.exit(options(old_opt), add = TRUE)
 
-    # Try to reuse an existing cached token non-interactively.
-    # In non-interactive sessions this should not error or prompt.
+    # Try to reuse an existing cached token non-interactively
     tryCatch(
       {
         suppressMessages(
           suppressWarnings(
-            drive_auth(cache = gargle_oauth_cache())
+            googledrive::drive_auth(
+              cache = gargle::gargle_oauth_cache()
+            )
           )
         )
 
         # If auth worked, try to get the user email
         drive_email <- tryCatch(
           {
-            du <- suppressMessages(drive_user())
+            du <- suppressMessages(googledrive::drive_user())
+            # drive_user() usually returns a list with "emailAddress"
             if (!is.null(du[["emailAddress"]])) {
               du[["emailAddress"]]
             } else if (!is.null(du[["user"]][["emailAddress"]])) {
@@ -268,7 +272,7 @@ set_depend <- function(conda = "rgee",
         )
       },
       error = function(e) {
-        # No cached token / non-interactive failure -> ignore silently
+        # No cached token or non-interactive failure → ignore silently
         drive_email <<- NULL
       }
     )
@@ -1345,7 +1349,6 @@ get_images <- function(task, mode, cases, dataset, band, regions_new,
 #'   to convert.
 #' @keywords internal
 #' @import rgee
-#'
 ee_as_tidyee <- function(ic) {
   # Try to extract 'system:time_start' as a list of POSIX times
   times <- tryCatch(
