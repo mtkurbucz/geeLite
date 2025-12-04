@@ -136,10 +136,11 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #' @param variables [optional] (character or integer) Names or IDs of the
 #'   variables to be read. Use the \code{fetch_vars} function to identify
 #'   available variables and IDs (default: \code{"all"}).
-#' @param freq [optional] (character) The frequency for data aggregation.
-#'   Options include \code{"day"}, \code{"week"}, \code{"month"},
+#' @param freq [optional] (character or \code{NULL}) The frequency for data
+#'   aggregation. Options include \code{"day"}, \code{"week"}, \code{"month"},
 #'   \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-#'   \code{"year"} (default: \code{"month"}).
+#'   \code{"year"} (default: \code{"month"}). If \code{NULL}, no aggregation is
+#'   performed and native dates are returned.
 #' @param prep_fun [optional] (function or \code{NULL}) A function for
 #'   pre-processing time series data prior to aggregation. If \code{NULL}, a
 #'   default linear interpolation (via \code{\link{linear_interp}}) will be
@@ -178,7 +179,9 @@ read_db <- function(
   path <- normalizePath(path, mustWork = FALSE)
 
   # Validate 'freq' parameter
-  freq <- match.arg(freq)
+  if (!is.null(freq)) {
+    freq <- match.arg(freq)
+  }
 
   # If user has specified "external" post-processing
   if (identical(postp_funs, "external")) {

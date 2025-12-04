@@ -21,10 +21,11 @@ generated database.}
 variables to be read. Use the \code{fetch_vars} function to identify
 available variables and IDs (default: \code{"all"}).}
 
-\item{freq}{[optional] (character) The frequency for data aggregation.
-Options include \code{"day"}, \code{"week"}, \code{"month"},
+\item{freq}{[optional] (character or \code{NULL}) The frequency for data
+aggregation. Options include \code{"day"}, \code{"week"}, \code{"month"},
 \code{"bimonth"}, \code{"quarter"}, \code{"season"}, \code{"halfyear"},
-\code{"year"} (default: \code{"month"}).}
+\code{"year"} (default: \code{"month"}). If \code{NULL}, no aggregation is
+performed and native dates are returned.}
 
 \item{prep_fun}{[optional] (function or \code{NULL}) A function for
 pre-processing time series data prior to aggregation. If \code{NULL}, a

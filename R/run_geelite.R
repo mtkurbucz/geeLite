@@ -1244,50 +1244,41 @@ get_cases <- function(database_new, dataset_new, band_new,
 get_images <- function(task, mode, cases, dataset, band, regions_new,
                        latest_date) {
 
-  # Initialize the images list and logical parameters
   images <- list(build = NULL, update = NULL)
   skip_band <- FALSE
   skip_update <- FALSE
 
-  # Base ImageCollection (band selected)
   ic_base <- rgee::ee$ImageCollection(dataset)$select(band)
 
-  # Case 1: build only (new database / dataset / band / stats / regions)
-  if (cases == 1) {
+  end_date <- format(Sys.Date() + 1, "%Y-%m-%d")
 
-    ic_build <- ic_base$filterDate(task$start, NULL)
+  if (cases == 1) {
+    ic_build <- ic_base$filterDate(task$start, end_date)
     images$build <- ee_as_tidyee(ic_build)
 
   } else if (cases == 2) {
-
-    # Case 2: update only (no new stats, no new regions)
-    ic_update <- ic_base$filterDate(task$start, NULL)
+    ic_update <- ic_base$filterDate(task$start, end_date)
     images$update <- ee_as_tidyee(ic_update)
 
-    # If we already have the most recent date in the table
     if (!is.null(latest_date) &&
         length(images$update$vrt$date) > 0 &&
         latest_date >= max(as.Date(images$update$vrt$date))) {
 
       skip_update <- TRUE
-      if (!any(regions_new)) {
-        skip_band <- TRUE
-      }
+      if (!any(regions_new)) skip_band <- TRUE
 
     } else if (!is.null(latest_date) &&
                length(images$update$vrt$date) > 0) {
 
-      # Restrict update images to dates strictly after latest_date
       ic_update2 <- ic_base$filterDate(
-        format(latest_date + 1, "%Y-%m-%d"), NULL
+        format(latest_date + 1, "%Y-%m-%d"), end_date
       )
       images$update <- ee_as_tidyee(ic_update2)
     }
 
   } else if (cases == 3) {
 
-    # Case 3: mixed (some new stats/regions, some existing)
-    ic_build <- ic_base$filterDate(task$start, NULL)
+    ic_build <- ic_base$filterDate(task$start, end_date)
     images$build <- ee_as_tidyee(ic_build)
 
     if (!is.null(latest_date) &&
@@ -1295,7 +1286,7 @@ get_images <- function(task, mode, cases, dataset, band, regions_new,
         latest_date < max(as.Date(images$build$vrt$date))) {
 
       ic_update <- ic_base$filterDate(
-        format(latest_date + 1, "%Y-%m-%d"), NULL
+        format(latest_date + 1, "%Y-%m-%d"), end_date
       )
       images$update <- ee_as_tidyee(ic_update)
 
@@ -1347,23 +1338,15 @@ get_images <- function(task, mode, cases, dataset, band, regions_new,
 #' @import rgee
 #'
 ee_as_tidyee <- function(ic) {
-  # Try to extract 'system:time_start' as a list of POSIX times
-  times <- tryCatch(
-    rgee::ee$List(ic$aggregate_array("system:time_start"))$getInfo(),
-    error = function(e) NULL
-  )
-  if (is.null(times) || length(times) == 0) {
-    dates <- as.Date(character())
-  } else {
-    times <- unlist(times)
-    dates <- as.Date(
-      as.POSIXct(times / 1000, origin = "1970-01-01", tz = "UTC")
-    )
-  }
-  list(
-    ee_ob = ic,
-    vrt   = list(date = dates)
-  )
+  ee <- rgee::ee
+  dates_chr <- ic$
+    aggregate_array("system:time_start")$
+    map(rgee::ee_utils_pyfunc(function(t) {
+      ee$Date(t)$format("YYYY-MM-dd")
+    }))$
+    getInfo()
+  dates <- as.Date(unlist(dates_chr))
+  list(ee_ob = ic, vrt = list(date = dates))
 }
 
 # ------------------------------------------------------------------------------
