@@ -432,9 +432,10 @@ read_variables <- function(path, variables, freq, prep_fun,
         transform(preprocess = NA_character_,
                   aggregation = NA_character_,
                   postprocess = NA_character_) %>%
-        subset(select = c("id", "aggregation", "preprocess", "postprocess",
-                          setdiff(names(table_data_subset),
-                                  c("band", "zonal_stat"))))
+        subset(select = c(
+          "id", "aggregation", "preprocess", "postprocess",
+          setdiff(names(table_data_subset), c("id", "band", "zonal_stat"))
+        ))
 
     } else {
 
