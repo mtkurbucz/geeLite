@@ -1047,8 +1047,8 @@ compile_db <- function(task, grid, mode, verbose) {
     cat("\n")
   } else {
     write_state_file(task, regions$use, source_for_state)
-    write_log_file(!database_new)
-    output_message(gen_messages(!database_new), verbose)
+    write_log_file(database_new)
+    output_message(gen_messages(database_new), verbose)
   }
 }
 

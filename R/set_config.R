@@ -22,8 +22,8 @@
 #'       \item{bands}{(list) Bands of interest (e.g., \code{"NDVI"}).
 #'         \describe{
 #'           \item{zonal_stats}{(character) Statistics of interest
-#'           (options: \code{"mean"}, \code{"median"}, \code{"min"},
-#'           \code{"max"}, \code{"sd"}).}
+#'           (options: \code{"mean"}, \code{"sum"}, \code{"median"},
+#'           \code{"min"}, \code{"max"}, \code{"sd"}).}
 #'         }
 #'       }
 #'     }
