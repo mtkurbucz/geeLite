@@ -66,6 +66,7 @@ run_geelite <- function(path,
   set_depend(
     conda = conda,
     user = user,
+    drive = (mode == "drive"),
     verbose = verbose
   )
 
@@ -142,31 +143,95 @@ print_version <- function(verbose) {
 
 #' Set Dependencies
 #'
-#' Activates the Conda environment used for Earth Engine, ensures that
-#' authentication exists if needed, and initializes the Earth Engine Python API.
+#' Activates the Conda environment used for Earth Engine, ensures
+#' authentication is available if needed, and initializes the Earth Engine
+#' Python API.
 #' @param conda [optional] (character) Name of the Conda environment
 #'   (default: "rgee").
 #' @param user [optional] (character) Google account directory under
-#'   ~/.config/earthengine. Typically NULL unless multiple accounts are used.
+#'   ~/.config/earthengine. Typically \code{NULL} unless multiple accounts are
+#'   used.
 #' @param drive [optional] (logical) Whether to enable Google Drive access
-#'   (default: TRUE).
+#'   (default: \code{FALSE}).
 #' @param verbose [optional] (logical) Whether to print a success message at
 #'   the end.
 #' @keywords internal
 #' @importFrom rgee ee_Authenticate
-#' @importFrom gargle gargle_oauth_cache
+#' @importFrom utils getFromNamespace
 #' @importFrom reticulate use_condaenv import
 #' @importFrom googledrive drive_auth drive_user
 #'
 set_depend <- function(conda = "rgee",
                        user = NULL,
-                       drive = TRUE,
+                       drive = FALSE,
                        verbose = TRUE) {
 
-  # Activate the conda environment
+  # Activate conda env for reticulate
   reticulate::use_condaenv(conda, required = TRUE)
 
-  # Try importing the Earth Engine Python module
+  # Resolve EE credential paths
+  ee_root <- tryCatch(
+    {
+      init <- utils::getFromNamespace("ee_check_init", "rgee")()
+      getFromNamespace("ee_utils_py_to_r", "rgee")(init$ee_utils$ee_path())
+    },
+    error = function(e) {
+      path.expand("~/.config/earthengine")
+    }
+  )
+
+  root_cred <- file.path(ee_root, "credentials")
+
+  if (!is.null(user)) {
+    user_dir  <- file.path(ee_root, user)
+    user_cred <- file.path(user_dir, "credentials")
+    token_dir <- user_dir
+  } else {
+    user_dir  <- NULL
+    user_cred <- NULL
+    token_dir <- ee_root
+  }
+
+  # Helper: infer cached Drive email to avoid "Selection:" prompt
+  infer_cached_email <- function(cache_path) {
+    if (!dir.exists(cache_path)) return(NULL)
+    files <- list.files(cache_path, full.names = FALSE)
+    # gargle tokens end with "_email@domain"
+    hits <- grep("_[^_]+@[^_]+$", files, value = TRUE)
+    if (length(hits) == 0) return(NULL)
+    sub(".*_([^_]+@[^_]+)$", "\\1", hits[1])
+  }
+
+  # Decide drive email preference
+  drive_email_pref <- NULL
+  if (isTRUE(drive)) {
+    # If user itself looks like an email, prefer that
+    if (!is.null(user) && grepl("@", user)) {
+      drive_email_pref <- user
+    } else {
+      drive_email_pref <- infer_cached_email(token_dir)
+    }
+  }
+
+  # Force gargle/googledrive to use this cache (and email if known)
+  options(
+    gargle_oauth_cache = token_dir,
+    gargle_oauth_email = if (!is.null(drive_email_pref)) drive_email_pref else
+      NA,
+    gargle_verbosity = "silent",
+    googledrive_quiet = TRUE
+  )
+
+  did_rgee_auth <- FALSE
+  initialized <- FALSE
+
+  # If user creds exist, copy to root so Python ee$Initialize() can see them
+  if (!is.null(user) && file.exists(user_cred)) {
+    dir.create(ee_root, recursive = TRUE, showWarnings = FALSE)
+    file.copy(user_cred, root_cred, overwrite = TRUE)
+  }
+
+  # Import Python Earth Engine module
   ee <- tryCatch(
     reticulate::import("ee"),
     error = function(e) {
@@ -177,108 +242,222 @@ set_depend <- function(conda = "rgee",
       )
     }
   )
-  initialized <- FALSE
-  # First attempt: Initialize using existing Python credentials
-  tryCatch(
-    {
-      ee$Initialize()
-      initialized <- TRUE
-    },
-    error = function(e) {
-      # Silent fallback; authentication will be attempted next
-    }
-  )
-  # Second attempt: Authenticate with rgee, then retry initialization
-  if (!initialized) {
-    # Run rgee authentication (this triggers browser-based token workflow)
-    tryCatch(
-      rgee::ee_Authenticate(user = user, drive = drive),
-      error = function(e) {
-        stop(
-          "Earth Engine authentication failed.\n\n",
-          e$message,
-          call. = FALSE
-        )
-      }
-    )
-    # Re-import the ee module (to ensure credentials are now available)
-    ee <- tryCatch(
-      reticulate::import("ee"),
-      error = function(e) {
-        stop(
-          "The 'ee' Python module became unavailable after authentication.\n",
-          "Please check your Python environment.\n\n",
-          e$message,
-          call. = FALSE
-        )
-      }
-    )
-    # Final attempt: initialize Python EE API
+
+  # If switching to a new user profile but root creds exist,
+  # mirror them into user folder so profiles are self-contained
+  if (!is.null(user) && !file.exists(user_cred) && file.exists(root_cred)) {
+    dir.create(user_dir, recursive = TRUE, showWarnings = FALSE)
+    file.copy(root_cred, user_cred, overwrite = TRUE)
+  }
+
+  # Check if we can skip init based on file existence
+  has_root_cred <- file.exists(root_cred)
+  has_user_cred <- !is.null(user) && file.exists(user_cred)
+
+  if (is.null(user) || has_user_cred || has_root_cred) {
     tryCatch(
       {
         ee$Initialize()
         initialized <- TRUE
       },
       error = function(e) {
-        stop(
-          "Earth Engine could not be initialized after authentication.\n",
-          "Ensure that your Google Cloud project is registered for ",
-          "Earth Engine\nand that your credentials are valid.\n\n",
-          e$message,
-          call. = FALSE
-        )
       }
     )
   }
 
-  # Google Drive token detection (for drive mode)
-  drive_email <- NULL
-  if (drive) {
+  # Second try: authenticate with rgee, then init again
+  if (!initialized) {
 
-    # Make gargle/drive quieter during internal auth
-    old_opt <- options(
-      gargle_oauth_email = TRUE,
-      gargle_quiet       = TRUE
-    )
-    on.exit(options(old_opt), add = TRUE)
+    if (!interactive()) {
+      stop(
+        sprintf("No Earth Engine credentials found for user '%s'.",
+                if (is.null(user)) "default" else user),
+        "\nRun interactively once to authenticate.", call. = FALSE
+      )
+    }
 
-    # Try to reuse an existing cached token non-interactively.
-    # In non-interactive sessions this should not error or prompt.
     tryCatch(
       {
-        suppressMessages(
-          suppressWarnings(
-            drive_auth(cache = gargle_oauth_cache())
-          )
-        )
-
-        # If auth worked, try to get the user email
-        drive_email <- tryCatch(
-          {
-            du <- suppressMessages(drive_user())
-            if (!is.null(du[["emailAddress"]])) {
-              du[["emailAddress"]]
-            } else if (!is.null(du[["user"]][["emailAddress"]])) {
-              du[["user"]][["emailAddress"]]
-            } else {
-              NULL
-            }
-          },
-          error = function(e) NULL
-        )
+        # Keep drive=FALSE here, Drive handled separately below
+        rgee::ee_Authenticate(user = user, drive = FALSE)
+        did_rgee_auth <- TRUE
       },
       error = function(e) {
-        # No cached token / non-interactive failure -> ignore silently
-        drive_email <<- NULL
+        stop("Earth Engine authentication failed.\n\n",
+             e$message, call. = FALSE)
       }
+    )
+
+    # Sync creds to user folder
+    if (!is.null(user) && file.exists(root_cred)) {
+      dir.create(user_dir, recursive = TRUE, showWarnings = FALSE)
+      file.copy(root_cred, user_cred, overwrite = TRUE)
+    }
+
+    # Reload and re-init
+    if (reticulate::py_available(initialize = FALSE)) {
+      importlib <- reticulate::import("importlib", delay_load = FALSE)
+      ee <- importlib$reload(ee)
+    }
+
+    tryCatch(
+      {
+        ee$Initialize()
+        initialized <- TRUE
+      },
+      error = function(e) stop("EE Init failed after auth.", call. = FALSE)
     )
   }
 
-  # Print Earth Engine initialization message if verbose mode is enabled
+  # Ensure sessioninfo exists (write Drive cache path so rgee can reuse it)
+  ensure_sessioninfo(
+    ee_root,
+    user = user,
+    drive_cre = if (drive) token_dir else NULL
+  )
+
+  # Drive auth: always check when drive = TRUE
+  drive_email <- NULL
+  if (drive) {
+    dr <- drive_auth_ready(
+      email = drive_email_pref,
+      cache_path = token_dir,
+      interactive_fallback = interactive()
+    )
+    drive_email <- if (isTRUE(dr$ready)) dr$email else NULL
+  }
+
   if (verbose) {
     gee_message(user = user, drive_email = drive_email)
   }
+
   invisible(TRUE)
+}
+
+# ------------------------------------------------------------------------------
+
+#' Ensure rgee sessioninfo file exists
+#'
+#' Creates or updates rgee_sessioninfo.txt in the Earth Engine config root so
+#' rgee helpers (e.g., Drive IO) can resolve the active user on all platforms.
+#' @param ee_root [mandatory] (character) Root Earth Engine config directory.
+#' @param user [optional] (character) geeLite user name; \code{NULL} means
+#'   default.
+#' @param drive_cre [optional] (character) Path or \code{NA} (default).
+#' @param gcs_cre [optional] (character) Path or \code{NA} (default).
+#' @keywords internal
+#'
+ensure_sessioninfo <- function(ee_root,
+                               user = NULL,
+                               drive_cre = NULL,
+                               gcs_cre = NULL) {
+
+  sessioninfo <- file.path(ee_root, "rgee_sessioninfo.txt")
+  user_clean <- if (is.null(user)) NA_character_ else user
+
+  if (!file.exists(sessioninfo)) {
+
+    df <- data.frame(
+      email = NA_character_,
+      user = user_clean,
+      drive_cre = if (is.null(drive_cre)) NA_character_ else drive_cre,
+      gcs_cre = if (is.null(gcs_cre)) NA_character_ else gcs_cre,
+      stringsAsFactors = FALSE
+    )
+
+  } else {
+
+    df <- tryCatch(
+      utils::read.table(sessioninfo, header = TRUE, stringsAsFactors = FALSE),
+      error = function(e) NULL
+    )
+
+    if (is.null(df)) {
+      return(invisible(FALSE))
+    }
+
+    if ("user" %in% names(df)) {
+      df$user[1] <- user_clean
+    }
+
+    # Update only if explicitly provided
+    if (!is.null(drive_cre) && "drive_cre" %in% names(df)) {
+      df$drive_cre[1] <- drive_cre
+    }
+    if (!is.null(gcs_cre) && "gcs_cre" %in% names(df)) {
+      df$gcs_cre[1] <- gcs_cre
+    }
+  }
+
+  utils::write.table(df, sessioninfo, row.names = FALSE)
+  invisible(TRUE)
+}
+
+# ------------------------------------------------------------------------------
+
+#' Check and Initialize Google Drive Authentication
+#'
+#' Checks for an existing token in the specified cache path.
+#' @param email [optional] (character) Email to target.
+#' @param cache_path [optional] (character) Directory to search for tokens.
+#' @param interactive_fallback [optional] (logical) Allow interactive auth.
+#' @keywords internal
+#'
+drive_auth_ready <- function(email = NULL,
+                             cache_path = NULL,
+                             interactive_fallback = interactive()) {
+
+  old_opts <- options()
+  on.exit(options(old_opts), add = TRUE)
+
+  if (!is.null(cache_path)) {
+    options(gargle_oauth_cache = cache_path)
+  }
+  if (!is.null(email)) {
+    options(gargle_oauth_email = email)
+  }
+
+  options(
+    gargle_verbosity = "silent",
+    googledrive_quiet = TRUE
+  )
+
+  # Silent token load
+  ready <- tryCatch(
+    {
+      suppressMessages(
+        suppressWarnings(
+          googledrive::drive_auth(email = email, cache = cache_path)
+        )
+      )
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+
+  # Interactive fallback if allowed
+  if (!ready && interactive_fallback) {
+    ready <- tryCatch(
+      {
+        googledrive::drive_auth(email = email, cache = cache_path)
+        TRUE
+      },
+      error = function(e) FALSE
+    )
+  }
+
+  email_out <- NULL
+  if (ready) {
+    email_out <- tryCatch(
+      {
+        du <- suppressMessages(googledrive::drive_user())
+        if (is.null(du$emailAddress)) du$user$emailAddress else du$emailAddress
+      },
+      error = function(e) NULL
+    )
+  }
+
+  list(ready = ready, email = email_out)
 }
 
 # ------------------------------------------------------------------------------
@@ -1691,7 +1870,7 @@ local_chunk_extract <- function(sf_chunk, imgs, dates, band,
 #' @param grid_stat [optional] (data.frame) Existing data frame of grid
 #'   statistics to append the newly calculated statistics to.
 #' @param batch_stat [mandatory] (data.frame) New data frame of grid statistics
-#'   to append to the existing statistics.ű
+#'   to append to the existing statistics.
 #' @return (data.frame) A combined data frame with missing columns filled as NA.
 #' @return A data frame containing the updated grid statistics.
 #' @keywords internal

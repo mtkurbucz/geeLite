@@ -4,15 +4,24 @@
 \alias{check_rgee_ready}
 \title{Check Google Earth Engine connection}
 \usage{
-check_rgee_ready()
+check_rgee_ready(conda = NULL, verbose = interactive())
+}
+\arguments{
+\item{conda}{[optional] (character) Name of a Conda environment to bind via
+\code{reticulate::use_condaenv()} before checking credentials. If
+\code{NULL} (default), the current reticulate binding is used.}
+
+\item{verbose}{[optional] (logical) If \code{TRUE}, prints a short diagnostic
+message when GEE is not ready. Defaults to \code{interactive()} so CRAN/CI
+stays quiet.}
 }
 \value{
-A logical value: \code{TRUE} if authenticated with GEE, \code{FALSE}
-otherwise (invisibly).
+Logical, invisibly: \code{TRUE} if ready, \code{FALSE} otherwise.
 }
 \description{
-Returns \code{TRUE} if the user is authenticated with GEE via `rgee`, without
-triggering interactive prompts. Useful in non-interactive contexts like
-CRAN. Prints a message and returns \code{FALSE} if not.
+Returns \code{TRUE} if the user is authenticated with Google Earth Engine
+via \pkg{rgee}, without triggering any interactive prompts.
+If \code{conda} is provided, the function first tries to bind that Conda
+environment non-interactively (CRAN-safe), then checks credentials.
 }
 \keyword{internal}

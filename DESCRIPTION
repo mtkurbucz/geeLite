@@ -27,7 +27,6 @@ Imports:
   RSQLite,
   stringr,
   crayon,
-  gargle,
   dplyr,
   h3jsr,
   knitr,
@@ -41,6 +40,7 @@ Imports:
 Suggests:
   testthat (>= 3.0.0),
   rmarkdown,
+  optparse,
   leaflet,
   withr
 Config/testthat/edition: 3

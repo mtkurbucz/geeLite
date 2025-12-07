@@ -8,17 +8,17 @@
 #' to install Miniconda. The created environment is automatically registered
 #' for use with \code{rgee}.
 #' @param conda [optional] (character) Name of the Conda environment to create
-#' or use. Defaults to \code{"rgee"}.
+#'   or use. Defaults to \code{"rgee"}.
 #' @param python_version [optional] (character) Python version to use when
-#' creating the Conda environment. Defaults to \code{"3.11"}.
+#'   creating the Conda environment. Defaults to \code{"3.11"}.
 #' @param force_recreate [optional] (logical) If \code{TRUE}, deletes and
-#' recreates the Conda environment even if it already exists. Defaults to
-#' \code{FALSE}.
+#'   recreates the Conda environment even if it already exists. Defaults to
+#'   \code{FALSE}.
 #' @return Invisibly returns the name of the Conda environment used or created.
 #' @note Even after installation, users must manually accept the Conda Terms of
-#' Service (ToS) using the `conda tos accept` command before package
-#' installation can proceed. Clear instructions will be provided if ToS
-#' acceptance is needed.
+#'   Service (ToS) using the `conda tos accept` command before package
+#'   installation can proceed. Clear instructions will be provided if ToS
+#'   acceptance is needed.
 #' @export
 #' @examples
 #' # Example: Creating a Conda environment with 'rgee' dependencies
@@ -29,7 +29,7 @@
 #' @importFrom rstudioapi isAvailable restartSession
 #' @importFrom utils old.packages install.packages installed.packages
 #' @importFrom reticulate conda_binary conda_create conda_list conda_python
-#' conda_remove install_miniconda py_install
+#' @importFrom reticulate conda_remove install_miniconda py_install
 #'
 gee_install <- function(conda = "rgee", python_version = "3.11",
                         force_recreate = FALSE) {

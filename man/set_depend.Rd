@@ -4,23 +4,25 @@
 \alias{set_depend}
 \title{Set Dependencies}
 \usage{
-set_depend(conda = "rgee", user = NULL, drive = TRUE, verbose = TRUE)
+set_depend(conda = "rgee", user = NULL, drive = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{conda}{[optional] (character) Name of the Conda environment
 (default: "rgee").}
 
 \item{user}{[optional] (character) Google account directory under
-~/.config/earthengine. Typically NULL unless multiple accounts are used.}
+~/.config/earthengine. Typically \code{NULL} unless multiple accounts are
+used.}
 
 \item{drive}{[optional] (logical) Whether to enable Google Drive access
-(default: TRUE).}
+(default: \code{FALSE}).}
 
 \item{verbose}{[optional] (logical) Whether to print a success message at
 the end.}
 }
 \description{
-Activates the Conda environment used for Earth Engine, ensures that
-authentication exists if needed, and initializes the Earth Engine Python API.
+Activates the Conda environment used for Earth Engine, ensures
+authentication is available if needed, and initializes the Earth Engine
+Python API.
 }
 \keyword{internal}

@@ -342,12 +342,12 @@ db_connect <- function(db_path, max_retries = 3, wait_time = 5) {
 #' removes their contents and/or the folders themselves. Useful for cleaning up
 #' scratch or export folders used by Earth Engine batch processes.
 #' @param folder_name [mandatory] (character) Name of the folder(s) to search
-#' for in Google Drive.
+#'   for in Google Drive.
 #' @param delete_folders [optional] (logical) If \code{TRUE}, the matched
-#' folders themselves will be deleted after their contents are removed.
-#' Default is \code{FALSE}.
+#'   folders themselves will be deleted after their contents are removed.
+#'   Default is \code{FALSE}.
 #' @param verbose [optional] (logical) If \code{TRUE}, messages will be printed
-#' about cleanup actions. Default is \code{TRUE}.
+#'   about cleanup actions. Default is \code{TRUE}.
 #' @keywords internal
 #' @importFrom googledrive drive_find drive_ls drive_rm as_id
 #'
@@ -448,27 +448,40 @@ output_message <- function(message, verbose) {
 
 #' Check Google Earth Engine connection
 #'
-#' Returns \code{TRUE} if the user is authenticated with GEE via `rgee`, without
-#' triggering interactive prompts. Useful in non-interactive contexts like
-#' CRAN. Prints a message and returns \code{FALSE} if not.
-#' @return A logical value: \code{TRUE} if authenticated with GEE, \code{FALSE}
-#' otherwise (invisibly).
+#' Returns \code{TRUE} if the user is authenticated with Google Earth Engine
+#' via \pkg{rgee}, without triggering any interactive prompts.
+#' If \code{conda} is provided, the function first tries to bind that Conda
+#' environment non-interactively (CRAN-safe), then checks credentials.
+#' @param conda [optional] (character) Name of a Conda environment to bind via
+#'   \code{reticulate::use_condaenv()} before checking credentials. If
+#'   \code{NULL} (default), the current reticulate binding is used.
+#' @param verbose [optional] (logical) If \code{TRUE}, prints a short diagnostic
+#'   message when GEE is not ready. Defaults to \code{interactive()} so CRAN/CI
+#'   stays quiet.
+#' @return Logical, invisibly: \code{TRUE} if ready, \code{FALSE} otherwise.
 #' @keywords internal
 #' @importFrom rgee ee_check_credentials
+#' @importFrom reticulate use_condaenv
 #'
-check_rgee_ready <- function() {
-  is_ready <- tryCatch({
-    rgee::ee_check_credentials(quiet = TRUE)
-  }, error = function(e) FALSE)
-  if (!is_ready) {
-    message(
-      "\nGoogle Earth Engine is not connected.\n",
-      "After installing with geeLite::gee_install(),\n",
-      "run geeLite::set_depend() to authenticate.\n"
+check_rgee_ready <- function(conda = NULL, verbose = interactive()) {
+  # If user specified an env, try to bind it quietly
+  if (!is.null(conda)) {
+    tryCatch(
+      suppressWarnings(reticulate::use_condaenv(conda, required = FALSE)),
+      error = function(e) NULL
     )
-    return(FALSE)
   }
-  invisible(TRUE)
+  is_ready <- tryCatch(
+    rgee::ee_check_credentials(quiet = TRUE),
+    error = function(e) FALSE
+  )
+  if (!isTRUE(is_ready) && isTRUE(verbose)) {
+    message(
+      "\nGoogle Earth Engine is not initialized.\n",
+      "Initialize it first with geeLite:::set_depend().\n"
+    )
+  }
+  invisible(isTRUE(is_ready))
 }
 
 # ------------------------------------------------------------------------------

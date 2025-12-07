@@ -29,9 +29,9 @@ for use with \code{rgee}.
 }
 \note{
 Even after installation, users must manually accept the Conda Terms of
-Service (ToS) using the `conda tos accept` command before package
-installation can proceed. Clear instructions will be provided if ToS
-acceptance is needed.
+  Service (ToS) using the `conda tos accept` command before package
+  installation can proceed. Clear instructions will be provided if ToS
+  acceptance is needed.
 }
 \examples{
 # Example: Creating a Conda environment with 'rgee' dependencies
