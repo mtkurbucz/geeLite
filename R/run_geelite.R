@@ -1731,7 +1731,12 @@ batch_drive_export <- function(sf_list,
   options(googledrive_quiet = TRUE)
 
   export_task_func <- function() {
-    clean_filename <- gsub("[^a-zA-Z0-9]", "_", paste0("export_", Sys.time()))
+    clean_filename <- paste0(
+      "export_",
+      format(Sys.time(), "%Y_%m_%d_%H_%M_%S"),
+      "_",
+      sprintf("%06d", as.integer(runif(1, 0, 1e6)))
+    )
 
     task <- rgee::ee_table_to_drive(
       collection = imgs$map(rgee::ee_utils_pyfunc(function(img) {
