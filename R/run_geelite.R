@@ -1697,10 +1697,11 @@ extract_drive_stats <- function(sf_chunks,
 #' @return (data.frame) A data frame containing extracted statistics with
 #'   columns \code{id}, \code{band}, \code{zonal_stat}, and date-based values.
 #' @keywords internal
-#' @importFrom rgee sf_as_ee ee_table_to_drive ee_monitoring ee_drive_to_local
-#' @importFrom dplyr mutate select rename relocate all_of
-#' @importFrom tidyr pivot_wider
+#' @importFrom stats runif
 #' @importFrom data.table fread
+#' @importFrom tidyr pivot_wider
+#' @importFrom dplyr mutate select rename relocate all_of
+#' @importFrom rgee sf_as_ee ee_table_to_drive ee_monitoring ee_drive_to_local
 #'
 batch_drive_export <- function(sf_list,
                                imgs,
