@@ -12,14 +12,39 @@ generated database.}
 
 \item{variables}{[mandatory] (character) A vector of variable names to read.}
 
-\item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
-data.}
+\item{freq}{[mandatory] (character or \code{NULL}) Specifies the frequency
+to aggregate the data. If \code{NULL}, no aggregation is performed and
+native dates are returned.}
 
-\item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
+\item{prep_fun}{[mandatory] (function) Pre-processing function applied
+after daily expansion and before aggregation (used only when
+\code{freq} is not \code{NULL}). Passing \code{NULL} is handled in
+\code{read_db()}, so this argument is always a function here.}
 
-\item{aggr_funs}{[mandatory] (function or list) Aggregation function(s).}
+\item{aggr_funs}{[optional] (function or list) Aggregation function(s) used
+when aggregating to \code{freq}.
+\itemize{
+  \item If a single function is provided, it is used for all variables.
+  \item If an unnamed list of functions is provided, all functions are
+    applied to all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+}}
 
-\item{postp_funs}{[mandatory] (function or list) Post-processing function(s).}
+\item{postp_funs}{[optional] (function or list or \code{"external"}) Post-
+processing function(s) applied after aggregation.
+\itemize{
+  \item If a single function or \code{NULL} is provided, it is used for
+    all variables as \code{default}.
+  \item If an unnamed list of functions is provided, all are applied to
+    all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+  \item If \code{"external"}, functions are loaded from \code{postp/}.
+}
+Default is \code{NULL}.}
 }
 \value{
 A list of variables read from the database.

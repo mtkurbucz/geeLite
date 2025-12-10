@@ -8,7 +8,7 @@
 #' - 'conda': Verifies if it is an available Conda environment.
 #' - 'file_path': Constructs a file path and checks if the file exists.
 #' - 'keys': Ensures it is a non-empty list with valid entries.
-#' - 'limit': Ensures it is a positive numeric value.
+#' - 'limit': Ensures it is a positive integer value.
 #' - 'mode': Ensures it is 'local' or 'drive'.
 #' - 'new_values': Ensures it is a list with the same length as 'keys'.
 #' - 'user': Verifies it is \code{NULL} or a character value.
@@ -36,7 +36,7 @@ validate_params <- function(params) {
 
     } else if (name == "conda") {
 
-      if (!any(value %in% conda_list()$name)) {
+      if (!is.null(value) && !any(value %in% conda_list()$name)) {
         stop(paste0("Invalid 'conda' parameter.\n",
                     "Use 'reticulate::conda_list()$name' to retrieve ",
                     "available Conda environments."))
@@ -59,18 +59,19 @@ validate_params <- function(params) {
     } else if (name == "keys") {
 
       if (!is.list(value) || length(value) == 0) {
-        stop("Invalid 'key' parameter.\n",
+        stop("Invalid 'keys' parameter.\n",
              "It must be a non-empty list.")
       }
       valid_keys <- c("regions", "source", "limit")
-      invalid_keys <- setdiff(as.character(map(value, 1)), valid_keys)
+      invalid_keys <- setdiff(vapply(value, `[[`, character(1), 1), valid_keys)
       if(length(invalid_keys) > 0) {
         stop(sprintf("Invalid 'keys' specified: %s", invalid_keys))
       }
 
     } else if (name == "limit") {
 
-      if (!is.numeric(value) || value <= 0) {
+      if (!is.numeric(value) || length(value) != 1 || is.na(value) ||
+          value <= 0 || value %% 1 != 0) {
         stop("Invalid 'limit' parameter.\n",
              "It must be a positive integer.")
       }
@@ -84,7 +85,9 @@ validate_params <- function(params) {
 
     } else if (name == "new_values") {
 
-      if (!is.list(value) || length(value) != length(value)) {
+      if (!is.list(value) ||
+          is.null(params[["keys"]]) ||
+          length(value) != length(params[["keys"]])) {
         stop("Invalid 'new_values' parameter.\n",
              "It must be a list with the same length as 'keys'.")
       }
@@ -116,7 +119,7 @@ validate_params <- function(params) {
     } else if (name == "regions") {
 
       first_two_chars <- substr(value, 1, 2)
-      if (any(!grepl("[A-Za-z]", first_two_chars))) {
+      if (any(!grepl("^[A-Za-z]{2}$", first_two_chars))) {
         stop("Invalid 'regions' parameter.\n",
              "Use 'fetch_regions' to retrieve valid region codes.")
       }

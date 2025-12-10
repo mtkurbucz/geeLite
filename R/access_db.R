@@ -6,7 +6,7 @@
 #' (\code{data/geelite.db}).
 #' @param path [mandatory] (character) Path to the root directory of the
 #'   generated database.
-#' @param format [mandatory] (character) A character string. Possible values
+#' @param format [optional] (character) A character string. Possible values
 #'   are \code{"data.frame"} (default) to return a \code{data.frame} object,
 #'   or one of \code{"markdown"}, \code{"latex"}, \code{"html"}, \code{"pipe"}
 #'   (Pandoc's pipe tables), \code{"simple"} (Pandoc's simple tables), and
@@ -14,6 +14,7 @@
 #' @return Returns the variable information in the selected format. If
 #'   \code{format = "data.frame"}, a \code{data.frame} is returned. For other
 #'   formats, the output is printed in the specified format and \code{NULL} is
+#'   returned invisibly.
 #' @export
 #' @examples
 #' # Example: Printing the available variables
@@ -21,8 +22,9 @@
 #'   fetch_vars(path = "path/to/db")
 #' }
 #' @importFrom RSQLite dbDisconnect dbListTables dbReadTable SQLite
-#' @importFrom dplyr arrange distinct pull select filter bind_rows
+#' @importFrom dplyr arrange distinct select
 #' @importFrom lubridate ymd
+#' @importFrom stats na.omit
 #' @importFrom knitr kable
 #'
 fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
@@ -76,12 +78,21 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 
     # Extract date columns matching the YYYY_MM_DD format
     date_cols <- grep("^\\d{4}_\\d{2}_\\d{2}$", names(table_data), value = TRUE)
-    dates <- ymd(date_cols)
+    dates <- sort(ymd(date_cols))
 
-    # Determine the first and last dates and calculate the mean interval
-    first_date <- min(dates, na.rm = TRUE)
-    last_date <- max(dates, na.rm = TRUE)
-    mean_interval <- round(mean(as.numeric(diff(dates)), na.rm = TRUE), 2)
+    # Determine first/last dates and mean interval (robust to 0/1 date cols)
+    if (length(dates) == 0 || all(is.na(dates))) {
+      first_date <- last_date <- as.Date(NA)
+      mean_interval <- NA_real_
+    } else if (length(na.omit(dates)) < 2) {
+      first_date <- min(dates, na.rm = TRUE)
+      last_date  <- max(dates, na.rm = TRUE)
+      mean_interval <- NA_real_
+    } else {
+      first_date <- min(dates, na.rm = TRUE)
+      last_date  <- max(dates, na.rm = TRUE)
+      mean_interval <- round(mean(as.numeric(diff(dates)), na.rm = TRUE), 2)
+    }
 
     # Identify unique combinations of band and zonal_stat
     unique_bands_stats <- table_data %>%
@@ -142,21 +153,35 @@ fetch_vars <- function(path, format = c("data.frame", "markdown", "latex",
 #'   \code{"year"} (default: \code{"month"}). If \code{NULL}, no aggregation is
 #'   performed and native dates are returned.
 #' @param prep_fun [optional] (function or \code{NULL}) A function for
-#'   pre-processing time series data prior to aggregation. If \code{NULL}, a
-#'   default linear interpolation (via \code{\link{linear_interp}}) will be
-#'   used for daily-frequency data. If non-daily, the default behavior simply
-#'   returns the vector without interpolation.
-#' @param aggr_funs [optional] (function or list) A function or a list of
-#'   functions for aggregating data to the specified frequency (\code{freq}).
-#'   Users can directly refer to variable names or IDs. The default function is
-#'   the mean: \code{function(x) mean(x, na.rm = TRUE)}.
-#' @param postp_funs [optional] (function or list) A function or list of
-#'   functions applied to the time series data of a single bin after
-#'   aggregation. Users can directly refer to variable names or IDs. The
-#'   default is \code{NULL}, indicating no post-processing.
-#' @return A list where the first element (\code{grid}) is a simple feature
-#'   (sf) object, and subsequent elements are data frame objects corresponding
-#'   to the variables.
+#'   pre-processing time series data after expanding to daily frequency and
+#'   before aggregation. This daily expansion is performed whenever
+#'   \code{freq} is not \code{NULL}. If \code{prep_fun = NULL} (default),
+#'   linear interpolation (via \code{\link{linear_interp}}) is applied on the
+#'   daily series. If \code{freq = NULL}, no preprocessing is performed and
+#'   native dates are returned.
+#' @param aggr_funs [optional] (function or list) Aggregation function(s) used
+#'   when aggregating to \code{freq}.
+#'   \itemize{
+#'     \item If a single function is provided, it is used for all variables.
+#'     \item If an unnamed list of functions is provided, all functions are
+#'       applied to all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'   }
+#' @param postp_funs [optional] (function or list or \code{"external"}) Post-
+#'   processing function(s) applied after aggregation.
+#'   \itemize{
+#'     \item If a single function or \code{NULL} is provided, it is used for
+#'       all variables as \code{default}.
+#'     \item If an unnamed list of functions is provided, all are applied to
+#'       all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'     \item If \code{"external"}, functions are loaded from \code{postp/}.
+#'   }
+#'   Default is \code{NULL}.
 #' @export
 #' @examples
 #' # Example: Reading variables by IDs
@@ -189,15 +214,28 @@ read_db <- function(
   }
 
   # Ensure 'aggr_funs' is a named list
-  if (is.function(aggr_funs) || (is.list(aggr_funs) &&
-                                 all(sapply(aggr_funs, is.function)))) {
+  if (is.function(aggr_funs)) {
+    aggr_funs <- list(default = aggr_funs)
+
+  } else if (is.list(aggr_funs) &&
+             (is.null(names(aggr_funs)) || any(names(aggr_funs) == ""))) {
+    # unnamed list of functions -> treat as default
+    if (!all(sapply(aggr_funs, is.function))) {
+      stop("'aggr_funs' unnamed list must contain only functions.")
+    }
     aggr_funs <- list(default = aggr_funs)
   }
 
   # Ensure 'postp_funs' is a named list
-  if (is.function(postp_funs) ||
-      (is.list(postp_funs) && all(sapply(postp_funs, is.function))) ||
-      is.null(postp_funs)) {
+  if (is.function(postp_funs) || is.null(postp_funs)) {
+    postp_funs <- list(default = postp_funs)
+
+  } else if (is.list(postp_funs) &&
+             (is.null(names(postp_funs)) || any(names(postp_funs) == ""))) {
+
+    if (!all(sapply(postp_funs, is.function))) {
+      stop("'postp_funs' unnamed list must contain only functions.")
+    }
     postp_funs <- list(default = postp_funs)
   }
 
@@ -326,11 +364,36 @@ linear_interp <- function(x) {
 #' @param path [mandatory] (character) Path to the root directory of the
 #'   generated database.
 #' @param variables [mandatory] (character) A vector of variable names to read.
-#' @param freq [mandatory] (character) Specifies the frequency to aggregate the
-#'   data.
-#' @param prep_fun [mandatory] (function) Function used for pre-processing.
-#' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
-#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @param freq [mandatory] (character or \code{NULL}) Specifies the frequency
+#'   to aggregate the data. If \code{NULL}, no aggregation is performed and
+#'   native dates are returned.
+#' @param prep_fun [mandatory] (function) Pre-processing function applied
+#'   after daily expansion and before aggregation (used only when
+#'   \code{freq} is not \code{NULL}). Passing \code{NULL} is handled in
+#'   \code{read_db()}, so this argument is always a function here.
+#' @param aggr_funs [optional] (function or list) Aggregation function(s) used
+#'   when aggregating to \code{freq}.
+#'   \itemize{
+#'     \item If a single function is provided, it is used for all variables.
+#'     \item If an unnamed list of functions is provided, all functions are
+#'       applied to all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'   }
+#' @param postp_funs [optional] (function or list or \code{"external"}) Post-
+#'   processing function(s) applied after aggregation.
+#'   \itemize{
+#'     \item If a single function or \code{NULL} is provided, it is used for
+#'       all variables as \code{default}.
+#'     \item If an unnamed list of functions is provided, all are applied to
+#'       all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'     \item If \code{"external"}, functions are loaded from \code{postp/}.
+#'   }
+#'   Default is \code{NULL}.
 #' @return A list of variables read from the database.
 #' @keywords internal
 #' @importFrom sf st_read
@@ -478,9 +541,32 @@ read_variables <- function(path, variables, freq, prep_fun,
 #' @param table [mandatory] (data.frame) A wide-format data frame.
 #' @param freq [mandatory] (character) Specifies the frequency to aggregate the
 #'   data.
-#' @param prep_fun [mandatory] (function) Function used for pre-processing.
-#' @param aggr_funs [mandatory] (function or list) Aggregation function(s).
-#' @param postp_funs [mandatory] (function or list) Post-processing function(s).
+#' @param prep_fun [mandatory] (function) Pre-processing function used during
+#'   daily expansion prior to aggregation. This is guaranteed to be a function
+#'   because \code{read_db()} replaces \code{NULL} with \code{linear_interp()}.
+#' @param aggr_funs [optional] (function or list) Aggregation function(s) used
+#'   when aggregating to \code{freq}.
+#'   \itemize{
+#'     \item If a single function is provided, it is used for all variables.
+#'     \item If an unnamed list of functions is provided, all functions are
+#'       applied to all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'   }
+#' @param postp_funs [optional] (function or list or \code{"external"}) Post-
+#'   processing function(s) applied after aggregation.
+#'   \itemize{
+#'     \item If a single function or \code{NULL} is provided, it is used for
+#'       all variables as \code{default}.
+#'     \item If an unnamed list of functions is provided, all are applied to
+#'       all variables (treated as \code{default}).
+#'     \item If a named list is provided, names must be variable names (as
+#'       returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+#'       override the default for those variables.
+#'     \item If \code{"external"}, functions are loaded from \code{postp/}.
+#'   }
+#'   Default is \code{NULL}.
 #' @param variable_name [mandatory] (character) Name of the current variable.
 #' @param preprocess_body [mandatory] (character) Body of the \code{prep_fun}
 #'   function.
@@ -496,11 +582,15 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs,
                          postp_funs, variable_name, preprocess_body) {
 
   # To avoid 'no visible binding for global variable' messages (CRAN test)
-  . <- id <- value <- freq_date <- aggregation <- postprocess <- NULL
+  . <- id <- value <- freq_date <- aggregation <-
+  preprocess <- postprocess <- NULL
 
-  # Identify columns that represent dates (excluding 'zonal_stat' if present)
-  date_cols <- grep("_", names(table), value = TRUE)
-  date_cols <- setdiff(date_cols, grep("zonal_stat", date_cols, value = TRUE))
+  # Identify columns that represent dates
+  date_cols <- grep("^\\d{4}_\\d{2}_\\d{2}$", names(table), value = TRUE)
+  if (length(date_cols) == 0) {
+    warning("No date columns found to aggregate for variable ", variable_name)
+    return(NULL)
+  }
 
   # Convert the wide-format data to long format for easier manipulation
   df_long <- melt(table, id.vars = c("id", "band", "zonal_stat"),
@@ -536,15 +626,27 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs,
   # Iterate over each aggregation function to process the data
   for (i in seq_along(funcs)) {
     aggr_fun <- funcs[[i]]
+
     # Capture the body of the aggregation function as a string
     aggregation_body <- paste(deparse(body(aggr_fun)), collapse = "\n")
 
     # Perform grouping and aggregation
     df_group <- df_exp %>%
       group_by(id, freq_date) %>%
-      summarise(value = aggr_fun(value), .groups = "drop") %>%
-      mutate(aggregation = aggregation_body,
-             preprocess = preprocess_body)
+      summarise(
+        value = tryCatch(
+          aggr_fun(value),
+          error = function(e) {
+            warning("Aggregation failed for ", variable_name, ": ", e$message)
+            NA_real_
+          }
+        ),
+        .groups = "drop"
+      ) %>%
+      mutate(
+        aggregation = aggregation_body,
+        preprocess = preprocess_body
+      )
 
     # Append the aggregated data to the results list
     aggr_results[[i]] <- df_group
@@ -575,7 +677,14 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs,
 
       # Apply the post-processing function to the 'value' column
       df_postp <- transform(df_combined_aggr,
-                            value = postp_fun(value),
+                            value = tryCatch(
+                              postp_fun(value),
+                              error = function(e) {
+                                warning("Postprocess failed for ",
+                                        variable_name, ": ", e$message)
+                                NA_real_
+                              }
+                            ),
                             postprocess = postprocess_body)
 
       # Append the post-processed data to the results list
@@ -586,7 +695,8 @@ aggr_by_freq <- function(table, freq, prep_fun, aggr_funs,
   }
 
   # Convert the long-format aggregated data back to wide format
-  df_wide <- dcast(df_final, id + aggregation + postprocess ~ freq_date,
+  df_wide <- dcast(df_final,
+                   id + aggregation + preprocess + postprocess ~ freq_date,
                    value.var = "value")
 
   # Order the data frame by 'id', 'aggregation', and 'postprocess' columns

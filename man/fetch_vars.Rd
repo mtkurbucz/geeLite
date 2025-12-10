@@ -13,7 +13,7 @@ fetch_vars(
 \item{path}{[mandatory] (character) Path to the root directory of the
 generated database.}
 
-\item{format}{[mandatory] (character) A character string. Possible values
+\item{format}{[optional] (character) A character string. Possible values
 are \code{"data.frame"} (default) to return a \code{data.frame} object,
 or one of \code{"markdown"}, \code{"latex"}, \code{"html"}, \code{"pipe"}
 (Pandoc's pipe tables), \code{"simple"} (Pandoc's simple tables), and
@@ -23,6 +23,7 @@ or one of \code{"markdown"}, \code{"latex"}, \code{"html"}, \code{"pipe"}
 Returns the variable information in the selected format. If
   \code{format = "data.frame"}, a \code{data.frame} is returned. For other
   formats, the output is printed in the specified format and \code{NULL} is
+  returned invisibly.
 }
 \description{
 Displays information on the available variables in the SQLite database

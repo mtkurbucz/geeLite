@@ -1083,7 +1083,7 @@ compile_db <- function(task, grid, mode, verbose) {
                 )
                 chunk_dfs_update[[length(chunk_dfs_update) + 1]] <- chunk_result
                 if (!is.null(pb)) pb$tick(pb_step /
-                                            (length(batches$b1) + length(batches$b2)))
+                                      (length(batches$b1) + length(batches$b2)))
               }
             }
             # build new polygons
@@ -1100,7 +1100,7 @@ compile_db <- function(task, grid, mode, verbose) {
                 )
                 chunk_dfs_build[[length(chunk_dfs_build) + 1]] <- chunk_result
                 if (!is.null(pb)) pb$tick(pb_step /
-                                            (length(batches$b1) + length(batches$b2)))
+                                      (length(batches$b1) + length(batches$b2)))
               }
             }
             # Merge

@@ -20,11 +20,34 @@ aggr_by_freq(
 \item{freq}{[mandatory] (character) Specifies the frequency to aggregate the
 data.}
 
-\item{prep_fun}{[mandatory] (function) Function used for pre-processing.}
+\item{prep_fun}{[mandatory] (function) Pre-processing function used during
+daily expansion prior to aggregation. This is guaranteed to be a function
+because \code{read_db()} replaces \code{NULL} with \code{linear_interp()}.}
 
-\item{aggr_funs}{[mandatory] (function or list) Aggregation function(s).}
+\item{aggr_funs}{[optional] (function or list) Aggregation function(s) used
+when aggregating to \code{freq}.
+\itemize{
+  \item If a single function is provided, it is used for all variables.
+  \item If an unnamed list of functions is provided, all functions are
+    applied to all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+}}
 
-\item{postp_funs}{[mandatory] (function or list) Post-processing function(s).}
+\item{postp_funs}{[optional] (function or list or \code{"external"}) Post-
+processing function(s) applied after aggregation.
+\itemize{
+  \item If a single function or \code{NULL} is provided, it is used for
+    all variables as \code{default}.
+  \item If an unnamed list of functions is provided, all are applied to
+    all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+  \item If \code{"external"}, functions are loaded from \code{postp/}.
+}
+Default is \code{NULL}.}
 
 \item{variable_name}{[mandatory] (character) Name of the current variable.}
 

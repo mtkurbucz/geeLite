@@ -28,25 +28,37 @@ aggregation. Options include \code{"day"}, \code{"week"}, \code{"month"},
 performed and native dates are returned.}
 
 \item{prep_fun}{[optional] (function or \code{NULL}) A function for
-pre-processing time series data prior to aggregation. If \code{NULL}, a
-default linear interpolation (via \code{\link{linear_interp}}) will be
-used for daily-frequency data. If non-daily, the default behavior simply
-returns the vector without interpolation.}
+pre-processing time series data after expanding to daily frequency and
+before aggregation. This daily expansion is performed whenever
+\code{freq} is not \code{NULL}. If \code{prep_fun = NULL} (default),
+linear interpolation (via \code{\link{linear_interp}}) is applied on the
+daily series. If \code{freq = NULL}, no preprocessing is performed and
+native dates are returned.}
 
-\item{aggr_funs}{[optional] (function or list) A function or a list of
-functions for aggregating data to the specified frequency (\code{freq}).
-Users can directly refer to variable names or IDs. The default function is
-the mean: \code{function(x) mean(x, na.rm = TRUE)}.}
+\item{aggr_funs}{[optional] (function or list) Aggregation function(s) used
+when aggregating to \code{freq}.
+\itemize{
+  \item If a single function is provided, it is used for all variables.
+  \item If an unnamed list of functions is provided, all functions are
+    applied to all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+}}
 
-\item{postp_funs}{[optional] (function or list) A function or list of
-functions applied to the time series data of a single bin after
-aggregation. Users can directly refer to variable names or IDs. The
-default is \code{NULL}, indicating no post-processing.}
+\item{postp_funs}{[optional] (function or list or \code{"external"}) Post-
+processing function(s) applied after aggregation.
+\itemize{
+  \item If a single function or \code{NULL} is provided, it is used for
+    all variables as \code{default}.
+  \item If an unnamed list of functions is provided, all are applied to
+    all variables (treated as \code{default}).
+  \item If a named list is provided, names must be variable names (as
+    returned by \code{fetch_vars}) and/or \code{"default"}; named entries
+    override the default for those variables.
+  \item If \code{"external"}, functions are loaded from \code{postp/}.
 }
-\value{
-A list where the first element (\code{grid}) is a simple feature
-  (sf) object, and subsequent elements are data frame objects corresponding
-  to the variables.
+Default is \code{NULL}.}
 }
 \description{
 Reads, aggregates, and processes the SQLite database
