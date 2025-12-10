@@ -16,16 +16,13 @@ where the \code{postp} folder should be created.}
 No return value, called for side effects.
 }
 \description{
-Creates a \code{postp} folder at the specified path and adds two empty
-files: \code{structure.json} and \code{functions.R}.
+Creates a \code{postp} folder at \code{path} and adds two files:
+\code{structure.json} and \code{functions.R}.
 }
 \details{
-The \code{structure.json} file is initialized with a default JSON structure:
-\code{"default": null}. This file is intended for mapping variables to
-post-processing functions. The \code{functions.R} file is created with a
-placeholder comment indicating where to define the R functions for
-post-processing. If the \code{postp} folder already exists, an error will
-be thrown to prevent overwriting existing files.
+The \code{structure.json} file is initialized with \code{"default": null}.
+The \code{functions.R} file contains simple example functions that match the
+default "do nothing" behavior plus a z-score example.
 }
 \examples{
 # Example: Initialize post-processing files in the database directory

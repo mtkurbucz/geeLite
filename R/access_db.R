@@ -264,18 +264,15 @@ read_db <- function(
 
 #' Initialize Post-Processing Folder and Files
 #'
-#' Creates a \code{postp} folder at the specified path and adds two empty
-#' files: \code{structure.json} and \code{functions.R}.
+#' Creates a \code{postp} folder at \code{path} and adds two files:
+#' \code{structure.json} and \code{functions.R}.
 #' @param path [mandatory] \code{character} The path to the root directory
 #'   where the \code{postp} folder should be created.
 #' @param verbose [optional] (logical) Display messages (default: \code{TRUE}).
 #' @details
-#' The \code{structure.json} file is initialized with a default JSON structure:
-#' \code{"default": null}. This file is intended for mapping variables to
-#' post-processing functions. The \code{functions.R} file is created with a
-#' placeholder comment indicating where to define the R functions for
-#' post-processing. If the \code{postp} folder already exists, an error will
-#' be thrown to prevent overwriting existing files.
+#' The \code{structure.json} file is initialized with \code{"default": null}.
+#' The \code{functions.R} file contains simple example functions that match the
+#' default "do nothing" behavior plus a z-score example.
 #' @return No return value, called for side effects.
 #' @export
 #' @examples
@@ -306,16 +303,35 @@ init_postp <- function(path, verbose = TRUE) {
   writeLines('{\n  "default": null\n}', json_file)
 
   # Create an empty 'functions.R' file
-  writeLines("# Define your post-processing functions here\n", r_script_file)
+  writeLines(c(
+    "# Example postp functions",
+    "FUN_identity <- function(x) x",
+    "",
+    "FUN_zscore <- function(x) {",
+    "  mu <- mean(x, na.rm = TRUE)",
+    "  sdv <- stats::sd(x, na.rm = TRUE)",
+    "  if (is.na(sdv) || sdv == 0) return(x - mu)",
+    "  (x - mu) / sdv",
+    "}",
+    "",
+    "# Add functions below"
+  ), r_script_file)
 
   # Prepare messages for structure and functions file initialization
   message <- list(
     "Structure file initialized: 'postp/structure.json'.",
-    "Function file initialized: 'postp/functions.R'."
+    "Function file initialized: 'postp/functions.R'.",
+    "functions.R includes example functions:",
+    "  FUN_identity(x) and FUN_zscore(x).",
+    "Defaults are unchanged unless",
+    "postp_funs = 'external' is used."
   )
 
-  # Output information if 'verbose' is TRUE
-  output_message(message, verbose)
+  shown <- getOption("geeLite.init_msg")
+  if (!isTRUE(shown)) {
+    options(geeLite.init_msg = TRUE)
+    output_message(message, verbose)
+  }
 
 }
 
@@ -779,9 +795,6 @@ source_with_notification <- function(file) {
       stop("Failed to source the file: ", e$message)
     }
   )
-
-  # Get the list of functions in the source environment after sourcing
-  loaded_functions <- ls(envir = source_env, pattern = "^.+$", all.names = TRUE)
 
   return(source_env)
 }
